@@ -14,7 +14,7 @@ import 'vuetify-dialog/dist/vuetify-dialog.css'
  
 import 'vue-material-design-icons/styles.css';
 import Overlay from './blocks/components/Overlay.vue'
-import { TTS } from './lib/TTS'
+import TTS from './lib/TTS'
 
 
 Vue.use(VuetifyDialog, {

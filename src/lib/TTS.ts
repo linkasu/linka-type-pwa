@@ -1,23 +1,16 @@
-
-let instance: TTS | null = null;
-export class TTS {
+class TTS {
   private synth: SpeechSynthesis;
   public static get instance(): TTS {
-    if (instance === null) {
-      instance = new TTS();
-    }
     return instance;
   }
-  private constructor() {
+  constructor() {
     this.synth = window.speechSynthesis;
   }
-
   say(text:string){
-
     if (text !== "") {
-      console.log(text);
       
       var utterThis = new SpeechSynthesisUtterance(text);
+      
       utterThis.onend = function(event) {
       };
       utterThis.onerror = function(event) {
@@ -25,9 +18,14 @@ export class TTS {
       };
       this.synth.cancel()
       this.synth.speak(utterThis);
-      
     }
   }
+
+  get offlineVoices ():SpeechSynthesisVoice[]{
+    return this.synth.getVoices()
+  }
 }
+let instance: TTS  = new TTS;
+export default TTS;
 
 

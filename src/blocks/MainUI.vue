@@ -27,7 +27,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { TTS } from "../lib/TTS";
+import TTS from "../lib/TTS";
 
 import LHeader from "./LHeader.vue";
 import Bank from "./Bank.vue";

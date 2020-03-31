@@ -34,7 +34,7 @@ import Component from "vue-class-component";
 import fireapp from "../lib/fireapp";
 import Store from "../lib/Store";
 import LList from "./components/LList.vue";
-import { TTS } from "../lib/TTS";
+import TTS from "../lib/TTS";
 
 @Component({
   components: {

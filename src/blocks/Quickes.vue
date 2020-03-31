@@ -12,7 +12,7 @@ import Component from "vue-class-component";
 
 import fireapp from "../lib/fireapp";
 import Store from "../lib/Store";
-import { TTS } from "../lib/TTS";
+import TTS from "../lib/TTS";
 
 const store = new Store();
 
