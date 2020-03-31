@@ -1,29 +1,52 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-  </div>
+  <v-app id="app" v-if="auth!==null">
+    <auth v-if="!auth" @login="login" />
+    <div v-else>
+      <setup v-if="inited===false" />
+      <main-ui v-if="inited===true" />
+    </div>
+  </v-app>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from './components/HelloWorld.vue';
+import fireapp from "./lib/fireapp";
+import { Component, Vue } from "vue-property-decorator";
+import Auth from "./blocks/Auth.vue";
+import MainUI from "./blocks/MainUI.vue";
+import Setup from "./blocks/Setup.vue";
+import Store from "./lib/Store";
 
 @Component({
   components: {
-    HelloWorld,
-  },
+    Auth,
+    MainUi: MainUI,
+    Setup
+  }
 })
-export default class App extends Vue {}
-</script>
+export default class App extends Vue {
+  auth: boolean | null = null;
+  inited: boolean | null = null;
+  login(user: fireapp.User) {
+    this.auth = true;
+  }
 
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  async mounted() {
+    await fireapp.auth().setPersistence(fireapp.auth.Auth.Persistence.LOCAL);
+    fireapp.auth().onAuthStateChanged(state => {
+      this.auth = !!state;
+      if (this.auth) {
+        const store = new Store();
+        const root = store.root;
+        if (root) {
+          root.child("inited").on("value", snap => {            
+            this.inited = snap.val() === true;
+            // this.inited=true
+          });
+        }
+      }
+    });
+  }
+  created() {
+  }
 }
-</style>
+</script>
