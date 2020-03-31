@@ -14,7 +14,7 @@ class LocalMemory {
     return this.get<string>(key, defaultValue, this.setString);
   }
   setString(key: string, value: string) {
-    this.set(key, value ? '1' : '0')
+    this.set(key, value)
   }
   getNumber(key: string, defaultValue: number): number {
     return parseFloat(this.get<number>(key, defaultValue, this.setNumber))
@@ -32,7 +32,7 @@ class LocalMemory {
   private get<T>(key: string, defaultValue: T, setter: (key: string, value: T) => void): string {
     let value = window.localStorage.getItem(key);
     if (value == null) {
-      setter(key, defaultValue);
+      setter.call(this, key, defaultValue);
       return this.get<T>(key, defaultValue, setter);
     }
     return value;

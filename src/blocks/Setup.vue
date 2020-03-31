@@ -42,6 +42,7 @@
       </blockquote>
 
         <voice-settings />
+        <v-form ref="for§m2"/>
         <v-btn @click="step--">Назад</v-btn>
         <v-btn :color="valid[0]?'success':'error'" type="submit" @click="next()">Дальше</v-btn>
       </v-stepper-content>
@@ -89,7 +90,7 @@ import VoiceSettings from './components/VoiceSettings.vue'
 })
 export default class Setup extends Vue {
   tts = TTS.instance;
-  step: number = 1;
+  step: number = 2;
   name: string | null = null;
   gender: boolean | null = null;
   valid: boolean[] = [false, false, false];
