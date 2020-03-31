@@ -1,9 +1,19 @@
 import LocalMemory from './LocalMemory';
 
+let yatts: { speak: (text: string, params: any) => void };
+
+setTimeout(function () {
+  (<any>window.ya).speechkit.settings.apikey = "8414c59e-dbe2-4066-b988-9621fe1a572f";
+  console.log("init tts");
+  yatts = new (<any>window.ya).speechkit.Tts({
+    speaker: "jane"
+  });
+}, 2000);
 class TTS {
   private synth: SpeechSynthesis;
-  private voice: SpeechSynthesisVoice | null = null;
+  private voice: SpeechSynthesisVoice | YandexVoice | null = null;
   private storage = new LocalMemory();
+
   public static get instance(): TTS {
     if (instance == undefined) instance = new TTS
     return instance;
@@ -16,10 +26,16 @@ class TTS {
 
       var utterThis = new SpeechSynthesisUtterance(text);
       if (this.voice == null) {
-        this.voice = this.selectedOfflineVoice;
+        this.voice = this.selectedVoice;
 
       }
-      utterThis.voice = this.voice;
+
+      if (this.yandex) {
+        if (yatts)
+          yatts.speak(text, { speaker: this.voice.voiceURI, speed: this.rate });
+        return
+      }
+      utterThis.voice = <SpeechSynthesisVoice>this.voice;
       utterThis.pitch = this.pitch
       utterThis.rate = this.rate
       utterThis.volume = this.volume
@@ -51,8 +67,15 @@ class TTS {
   set pitch(pitch: number) {
     this.storage.setNumber('pitch', pitch);
   }
+  get yandex() {
+    return this.storage.getBoolean('yandex', false)
+  }
+  set yandex(value: boolean) {
+    this.storage.setBoolean('yandex', value)
+  }
+
   setVoice(uri: string) {
-    const voice = this.offlineVoices.find(item => item.voiceURI === uri)
+    const voice = this.offlineVoices.find(item => item.voiceURI === uri) || this.yandexVoices.find(item => item.voiceURI === uri)
     if (!voice) return;
     this.voice = voice;
     this.storage.setString('voiceuri', voice.voiceURI)
@@ -62,22 +85,39 @@ class TTS {
   get offlineVoices(): SpeechSynthesisVoice[] {
     return this.synth.getVoices()
   }
+  get yandexVoices(): YandexVoice[] {
+    return [
+      { voiceURI: "zahar", text: "Захар" },
+      { voiceURI: "ermil", text: "Емиль" },
+      { voiceURI: "jane", text: "Джейн" },
+      { voiceURI: "oksana", text: "Оксана" },
+      // { voiceURI: "alena", text: "Алёна" },
+      // { voiceURI: "filipp", text: "Филипп" },
+      { voiceURI: "omazh", text: "Ома" }
+    ]
+  }
   get defaultOfflineVoice(): SpeechSynthesisVoice {
 
 
     return this.offlineVoices.find(item => item.default) || this.offlineVoices[0]
   }
 
-  get selectedOfflineVoice(): SpeechSynthesisVoice {
+  get selectedVoice(): SpeechSynthesisVoice | YandexVoice {
+
     const def = this.defaultOfflineVoice;
     const voices = this.offlineVoices;
     const uri = this.storage.getString('voiceuri', def ? def.voiceURI : "uri")
+    if (this.yandex) {
+      const voice = this.yandexVoices.find(voice => voice.voiceURI === uri);
+
+      return voice || this.yandexVoices[0]
+    }
     const voice = voices.find(voice => voice.voiceURI === uri)
 
 
     if (!voice && def) {
       this.storage.setString('voiceuri', def ? def.voiceURI : "uri")
-      return this.selectedOfflineVoice
+      return this.selectedVoice
     }
 
     return voice!
@@ -86,4 +126,7 @@ class TTS {
 let instance: TTS = new TTS;
 export default TTS;
 
-
+interface YandexVoice {
+  voiceURI: string,
+  text: string
+}

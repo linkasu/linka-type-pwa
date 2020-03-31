@@ -44,7 +44,7 @@
         <voice-settings />
         <v-form ref="for§m2"/>
         <v-btn @click="step--">Назад</v-btn>
-        <v-btn :color="valid[0]?'success':'error'" type="submit" @click="next()">Дальше</v-btn>
+        <v-btn :color="valid[1]?'success':'error'" type="submit" @click="next()">Дальше</v-btn>
       </v-stepper-content>
     </v-stepper-items>
     <v-stepper-content step="3">
@@ -55,7 +55,7 @@
           <b>Если не хотите отвечать на эти вопросы, смело пропускайте этап и идите дальше.</b>
         </p>
       </blockquote>
-      <v-form ref="form2" v-model="valid[1]" @submit.prevent="next()">
+      <v-form ref="form2" v-model="valid[2]" @submit.prevent="save()">
         <v-text-field v-model="personal.film" label="Любимый фильм" outlined></v-text-field>
         <v-text-field v-model="personal.book" label="Любимая книга" outlined></v-text-field>
         <v-text-field
@@ -70,7 +70,7 @@
         <v-text-field v-model="personal.hobby" label="Ваша работе:" outlined></v-text-field>
         <v-btn @click="step--">Назад</v-btn>
 
-        <v-btn :color="valid[0]?'success':'error'" type="submit" @click="next()">Дальше</v-btn>
+        <v-btn :color="valid[2]?'success':'error'" type="submit" @click="save()">Сохранить</v-btn>
       </v-form>
     </v-stepper-content>
   </v-stepper>
@@ -90,7 +90,7 @@ import VoiceSettings from './components/VoiceSettings.vue'
 })
 export default class Setup extends Vue {
   tts = TTS.instance;
-  step: number = 2;
+  step: number = 0;
   name: string | null = null;
   gender: boolean | null = null;
   valid: boolean[] = [false, false, false];

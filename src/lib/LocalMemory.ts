@@ -5,7 +5,7 @@ class LocalMemory {
 
 
   getBoolean(key: string, defaultValue: boolean): boolean {
-    return !!this.get<boolean>(key, defaultValue, this.setBoolean)
+    return this.get<boolean>(key, defaultValue, this.setBoolean)==='1'
   }
   setBoolean(key: string, value: boolean) {
     this.set(key, value ? '1' : '0')
