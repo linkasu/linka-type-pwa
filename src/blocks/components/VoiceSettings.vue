@@ -10,9 +10,9 @@
     <v-checkbox label="Использовать голоса яндекс" v-model="yandex"></v-checkbox>
 
     <v-select :items="voices" v-model="voice" @change="setVoice" />
-    <v-slider step="0.1" nin="0" max="2" v-model="pitch" label="Тональность голоса" />
+    <v-slider v-if="!yandex" step="0.1" nin="0" max="2" v-model="pitch" label="Тональность голоса" />
     <v-slider step="0.1" min="0.1" max="2" v-model="rate" label="Скорость голоса" />
-    <v-slider step="0.1" min="0" max="1" v-model="volume" label="Громскость голоса" />
+    <v-slider v-if="!yandex" step="0.1" min="0" max="1" v-model="volume" label="Громскость голоса" />
   </v-form>
 </template>
 
