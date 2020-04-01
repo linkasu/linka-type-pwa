@@ -72,7 +72,7 @@
           <b>Если не хотите отвечать на эти вопросы, смело пропускайте этап и идите дальше.</b>
         </p>
       </blockquote>
-      <v-form ref="form2" v-model="valid[2]" @submit.prevent="save()">
+      <v-form ref="form3" v-model="valid[2]" @submit.prevent="save()">
         <v-text-field v-model="personal.film" label="Любимый фильм" outlined></v-text-field>
         <v-text-field v-model="personal.book" label="Любимая книга" outlined></v-text-field>
         <v-text-field
