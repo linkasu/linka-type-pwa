@@ -30,21 +30,38 @@
             <v-radio label="Мужчина" value="true"></v-radio>
             <v-radio label="Женщина" value="false"></v-radio>
           </v-radio-group>
+          <v-btn :color="valid[0]?'success':'error'" type="submit">Дальше</v-btn>
         </v-form>
         <v-spacer />
-        <v-btn :color="valid[0]?'success':'error'" type="submit" @click="next()">Дальше</v-btn>
       </v-stepper-content>
 
       <v-stepper-content step="2">
-              <blockquote class="blockquote">
-        <h3>Привет, {{name}}!</h3>
-        <p>Сейчас нам нужно настррить синтезатор речи на вашем устройстве. В новых версиях Windows и macOS синтезатор будет работать без интернета. На более старых устройствах это невозможно, поэтому мы  будем использовать онлайн озвучку от Яндекс.</p>
-      </blockquote>
+        <blockquote class="blockquote">
+          <h3>Привет, {{name}}!</h3>
+          <p>Сейчас нам нужно настррить синтезатор речи на вашем устройстве. В новых версиях Windows и macOS синтезатор будет работать без интернета. На более старых устройствах это невозможно, поэтому мы будем использовать онлайн озвучку от Яндекс.</p>
+        </blockquote>
 
         <voice-settings />
-        <v-form ref="for§m2"/>
-        <v-btn @click="step--">Назад</v-btn>
-        <v-btn :color="valid[1]?'success':'error'" type="submit" @click="next()">Дальше</v-btn>
+        <v-form ref="form2" v-model="valid[1]" @submit.prevent="next()">
+          <v-card width="30%">
+            <v-card-title primary-title>Давайте проверим, точно ли вы слышите голос</v-card-title>
+            <v-card-text>
+              <v-text-field
+                v-model="checkCode"
+                label="Проверочный код?"
+                type="number"
+                min="1000"
+                max="9999"
+                counter="4"
+                :rules="codeRules"
+                outlined
+              ></v-text-field>
+              <v-btn @click="tts.say(trueCheckCode.toFixed().split('').join(', '))" black>Послушать код</v-btn>
+            </v-card-text>
+          </v-card>
+          <v-btn @click="step--">Назад</v-btn>
+          <v-btn :color="valid[1]?'success':'error'" type="submit">Дальше</v-btn>
+        </v-form>
       </v-stepper-content>
     </v-stepper-items>
     <v-stepper-content step="3">
@@ -81,20 +98,22 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import TTS from "../lib/TTS";
 
-import VoiceSettings from './components/VoiceSettings.vue'
+import VoiceSettings from "./components/VoiceSettings.vue";
 
 @Component({
-  components:{
+  components: {
     VoiceSettings
-  } 
+  }
 })
 export default class Setup extends Vue {
   tts = TTS.instance;
-  step: number = 0;
+  step: number = 1;
   name: string | null = null;
   gender: boolean | null = null;
   valid: boolean[] = [false, false, false];
   personal = new Personal();
+  checkCode: number | null = null;
+  trueCheckCode = 1000 + Math.floor(Math.random() * 8999);
 
   next() {
     if ((<any>this.$refs["form" + this.step]).validate()) {
@@ -110,6 +129,10 @@ export default class Setup extends Vue {
     (v: any) => {
       return v !== null || "Обязательно укажите";
     }
+  ];
+  codeRules = [
+    (v: number) =>
+      v == this.trueCheckCode || "Неверный код, послушайте код и введите его"
   ];
 }
 
