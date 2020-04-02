@@ -7,13 +7,19 @@
       <v-btn icon>
         <v-icon @click="choose('edit')">mdi-pencil-outline</v-icon>
       </v-btn>
+      <v-btn icon>
+        <v-icon @click="()=>{}">mdi-content-paste</v-icon>
+      </v-btn>
+      <v-btn icon>
+        <v-icon @click="()=>{}">mdi-playlist-music</v-icon>
+      </v-btn>
       <v-spacer />
       <v-toolbar-title>{{title}}</v-toolbar-title>
     </v-toolbar>
     <overlay :active="caller!==null" @quit="()=>caller=null">
       <ul v-if="items.length>0">
         <li v-for="item in sortedItems" :key="item.id">
-          <v-btn block @click="select(item)">{{item[dkey].slice(0, 30)}}</v-btn>
+          <v-btn block @click="select(item)">{{item[dkey]}}</v-btn>
         </li>
       </ul>
       <v-row v-else>
@@ -43,9 +49,9 @@ import Overlay from "./Overlay.vue";
   computed: {
     sortedItems() {
       return this.$props.items.sort((a: any, b: any) => {
-        console.log(a.created);
-        
-        
+        if(a.default!==b.default){
+          return a.default?-1:1
+        }
         return a.created - b.created;
       });
     }

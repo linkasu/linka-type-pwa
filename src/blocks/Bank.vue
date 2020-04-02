@@ -96,7 +96,7 @@ export default class Bank extends Vue {
       .child("Category")
       .child(id)
       .set({
-        created: new Date(),
+        created: +new Date(),
         label: title,
         id,
         statements: {}
@@ -113,7 +113,7 @@ export default class Bank extends Vue {
       .child("statements")
       .child(id)
       .set({
-        created: new Date(),
+        created: +new Date(),
         categoryId: this.cid,
         text,
         id

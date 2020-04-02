@@ -36,7 +36,7 @@ export const parseQuestionsInput = functions.https.onCall(async (data, context) 
 export const getQuestions = functions.database.ref('/factory/questions')
 
 
-async function createCategoryCaller(data: { title: string }, context: CallableContext) {
+async function createCategoryCaller(data: { title: string, isDefault: boolean }, context: CallableContext) {
   if (!context.auth) {
     throw new Error("not auth");
 
@@ -50,6 +50,7 @@ async function createCategoryCaller(data: { title: string }, context: CallableCo
     .set({
       created: +new Date,
       label: data.title,
+      default: data.isDefault,
       id,
       statements: {}
     })
@@ -99,12 +100,11 @@ async function getOrCreateCategoryByName(name: string, context: CallableContext)
     .ref("users/" + context.auth!.uid)
     .child("Category/")
     .once("value")).val())
-  console.log(categories);
 
   const category = categories.find(({ label }) => label === name)
   if (category) {
     return category.id
   } else {
-    return await createCategoryCaller({ title: name }, context)
+    return await createCategoryCaller({ title: name, isDefault: categories.length < 1 }, context)
   }
 }
