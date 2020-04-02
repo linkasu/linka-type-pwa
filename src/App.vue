@@ -50,7 +50,10 @@ export default class App extends Vue {
   }
 }
 </script>
-
 <style>
+.v-btn__content{
+  overflow: hidden;
+  display: block;
+}
 
 </style>
