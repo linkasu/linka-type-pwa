@@ -1,6 +1,8 @@
 import * as functions from 'firebase-functions';
 import { database } from 'firebase-admin';
 import admin = require('firebase-admin');
+import { Question } from './Question';
+import { CallableContext } from 'firebase-functions/lib/providers/https';
 // import { Question } from './Question';
 
 
@@ -13,7 +15,28 @@ admin.initializeApp(functions.config().firebase);
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
-export const createCategory = functions.https.onCall(async (data, context) => {
+export const createCategory = functions.https.onCall(createCategoryCaller)
+export const createStatement = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new Error("not auth");
+
+  };
+  if (data.questions) {
+    await questionsCreater(data.questions, context)
+    return
+  }
+  const id = createStatementCaller(data, context);
+  return id;
+});
+
+export const parseQuestionsInput = functions.https.onCall(async (data, context) => {
+  return data;
+})
+
+export const getQuestions = functions.database.ref('/factory/questions')
+
+
+async function createCategoryCaller(data: { title: string }, context: CallableContext) {
   if (!context.auth) {
     throw new Error("not auth");
 
@@ -31,19 +54,13 @@ export const createCategory = functions.https.onCall(async (data, context) => {
       statements: {}
     })
   return id;
-});
-export const createStatement = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new Error("not auth");
+};
 
-  };
-  if(data.questions){
+async function createStatementCaller(data: { category: string, text: string }, context: CallableContext) {
 
-    return data.questions
-  }
   const id = generateId();
   await database()
-    .ref("users/" + context.auth.uid)
+    .ref("users/" + context.auth!.uid)
     .child("Category")
     .child(data.category)
     .child("statements")
@@ -55,13 +72,7 @@ export const createStatement = functions.https.onCall(async (data, context) => {
       id
     })
   return id;
-});
-
-export const parseQuestionsInput = functions.https.onCall(async (data, context)=>{
-  return data;
-})
-
-export const getQuestions = functions.database.ref('/factory/questions')
+}
 
 function generateId(): string {
   let res = '';
@@ -69,4 +80,31 @@ function generateId(): string {
     res += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
   }
   return res
+}
+
+async function questionsCreater(questions: Question[], context: CallableContext) {
+  for (const question of questions) {
+    if (question.value.length < 1) continue
+    const category = await getOrCreateCategoryByName(question.category, context);
+    for (const phrase of question.phrases) {
+      await createStatementCaller({ category, text: phrase.replace('%%', question.value) }, context);
+    }
+  }
+  return true
+}
+
+async function getOrCreateCategoryByName(name: string, context: CallableContext): Promise<string> {
+
+  const categories = <{ id: string, label: string }[]>Object.values((await database()
+    .ref("users/" + context.auth!.uid)
+    .child("Category/")
+    .once("value")).val())
+  console.log(categories);
+
+  const category = categories.find(({ label }) => label === name)
+  if (category) {
+    return category.id
+  } else {
+    return await createCategoryCaller({ title: name }, context)
+  }
 }

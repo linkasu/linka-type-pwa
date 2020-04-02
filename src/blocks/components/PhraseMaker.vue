@@ -56,10 +56,11 @@ export default class PhraseMaker extends NameProps {
   questions: Question[] = [];
 
   async save() {
-    fireapp
-      .functions()
-      .httpsCallable("createStatement")({ questions: this.questions })
-      .then(console.log);
+    await fireapp.functions().httpsCallable("createStatement")({
+      questions: this.questions
+    });
+
+    this.$emit("saved");
   }
 
   mounted() {

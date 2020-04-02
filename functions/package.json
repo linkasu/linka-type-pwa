@@ -16,5 +16,8 @@
   "devDependencies": {
     "typescript": "^3.2.2"
   },
-  "private": true
+  "engines": {
+    "node":"8"
+  },
+  "private": false
 }

@@ -56,7 +56,10 @@
                 :rules="codeRules"
                 outlined
               ></v-text-field>
-              <v-btn @click="tts.say(trueCheckCode.toFixed().split('').join(', '))" black>Послушать код</v-btn>
+              <v-btn
+                @click="tts.say(trueCheckCode.toFixed().split('').join(', '))"
+                black
+              >Послушать код</v-btn>
             </v-card-text>
           </v-card>
           <v-btn @click="step--">Назад</v-btn>
@@ -72,7 +75,7 @@
           <b>Если не хотите отвечать на эти вопросы, смело пропускайте этап и идите дальше.</b>
         </p>
       </blockquote>
-      <phrase-maker :name="name" />
+      <phrase-maker :name="name" @saved="done" />
     </v-stepper-content>
   </v-stepper>
 </template>
@@ -84,6 +87,7 @@ import TTS from "../lib/TTS";
 
 import VoiceSettings from "./components/VoiceSettings.vue";
 import PhraseMaker from "./components/PhraseMaker.vue";
+import Store from "@/lib/Store";
 
 @Component({
   components: {
@@ -93,7 +97,7 @@ import PhraseMaker from "./components/PhraseMaker.vue";
 })
 export default class Setup extends Vue {
   tts = TTS.instance;
-  step: number = 1  ;
+  step: number = 1;
   name: string | null = null;
   gender: boolean | null = null;
   valid: boolean[] = [false, false, false];
@@ -103,6 +107,13 @@ export default class Setup extends Vue {
   next() {
     if ((<any>this.$refs["form" + this.step]).validate()) {
       this.step++;
+    }
+  }
+  done() {
+    const store = new Store();
+    const root = store.root;
+    if (root) {
+      root.child("inited").set(true);
     }
   }
 
