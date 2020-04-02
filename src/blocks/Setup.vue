@@ -72,23 +72,7 @@
           <b>Если не хотите отвечать на эти вопросы, смело пропускайте этап и идите дальше.</b>
         </p>
       </blockquote>
-      <v-form ref="form3" v-model="valid[2]" @submit.prevent="save()">
-        <v-text-field v-model="personal.film" label="Любимый фильм" outlined></v-text-field>
-        <v-text-field v-model="personal.book" label="Любимая книга" outlined></v-text-field>
-        <v-text-field
-          v-model="personal.age"
-          label="Сколько вам лет?"
-          type="number"
-          min="1"
-          max="150"
-          outlined
-        ></v-text-field>
-        <v-text-field v-model="personal.hobby" label="Ваше хобби:" outlined></v-text-field>
-        <v-text-field v-model="personal.hobby" label="Ваша работе:" outlined></v-text-field>
-        <v-btn @click="step--">Назад</v-btn>
-
-        <v-btn :color="valid[2]?'success':'error'" type="submit" @click="save()">Сохранить</v-btn>
-      </v-form>
+      <phrase-maker :name="name" />
     </v-stepper-content>
   </v-stepper>
 </template>
@@ -99,19 +83,20 @@ import Component from "vue-class-component";
 import TTS from "../lib/TTS";
 
 import VoiceSettings from "./components/VoiceSettings.vue";
+import PhraseMaker from "./components/PhraseMaker.vue";
 
 @Component({
   components: {
-    VoiceSettings
+    VoiceSettings,
+    PhraseMaker
   }
 })
 export default class Setup extends Vue {
   tts = TTS.instance;
-  step: number = 1;
+  step: number = 1  ;
   name: string | null = null;
   gender: boolean | null = null;
   valid: boolean[] = [false, false, false];
-  personal = new Personal();
   checkCode: number | null = null;
   trueCheckCode = 1000 + Math.floor(Math.random() * 8999);
 
@@ -134,14 +119,5 @@ export default class Setup extends Vue {
     (v: number) =>
       v == this.trueCheckCode || "Неверный код, послушайте код и введите его"
   ];
-}
-
-class Personal {
-  film: string | null = null;
-  book: string | null = null;
-  age: number | null = null;
-  work: string | null = null;
-  hobby: string | null = null;
-  mainThings: string | null = null;
 }
 </script>

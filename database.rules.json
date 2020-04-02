@@ -5,6 +5,11 @@
         ".read": "$uid === auth.uid",
         ".write": "$uid === auth.uid"
       }
+    },
+    "factory": {
+      ".read": "auth.uid!=null",
+      ".write": false
+
     }
   }
 }

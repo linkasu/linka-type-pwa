@@ -8,4 +8,7 @@ export default class Store {
     const uid = user.uid
     return fireapp.database().ref("/users/" + uid)
   }
+  get factory (): firebase.database.Reference{
+    return fireapp.database().ref('factory')
+  }
 }

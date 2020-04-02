@@ -4,12 +4,20 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
+    
     "sourceMap": true,
     "strict": true,
     "target": "es2015"
   },
   "compileOnSave": true,
   "include": [
-    // "node_modules"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

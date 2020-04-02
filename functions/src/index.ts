@@ -1,6 +1,8 @@
 import * as functions from 'firebase-functions';
 import { database } from 'firebase-admin';
 import admin = require('firebase-admin');
+// import { Question } from './Question';
+
 
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz1234567890";
 const SIZE = 16;
@@ -35,6 +37,10 @@ export const createStatement = functions.https.onCall(async (data, context) => {
     throw new Error("not auth");
 
   };
+  if(data.questions){
+
+    return data.questions
+  }
   const id = generateId();
   await database()
     .ref("users/" + context.auth.uid)
@@ -50,6 +56,12 @@ export const createStatement = functions.https.onCall(async (data, context) => {
     })
   return id;
 });
+
+export const parseQuestionsInput = functions.https.onCall(async (data, context)=>{
+  return data;
+})
+
+export const getQuestions = functions.database.ref('/factory/questions')
 
 function generateId(): string {
   let res = '';
