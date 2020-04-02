@@ -48,7 +48,7 @@ async function createCategoryCaller(data: { title: string }, context: CallableCo
     .child("Category")
     .child(id)
     .set({
-      created: new Date,
+      created: +new Date,
       label: data.title,
       id,
       statements: {}
@@ -66,7 +66,7 @@ async function createStatementCaller(data: { category: string, text: string }, c
     .child("statements")
     .child(id)
     .set({
-      created: new Date,
+      created: +new Date,
       categoryId: data.category,
       text: data.text,
       id

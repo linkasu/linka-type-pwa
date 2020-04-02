@@ -12,7 +12,7 @@
     </v-toolbar>
     <overlay :active="caller!==null" @quit="()=>caller=null">
       <ul v-if="items.length>0">
-        <li v-for="item in items" :key="item.id">
+        <li v-for="item in sortedItems" :key="item.id">
           <v-btn block @click="select(item)">{{item[dkey].slice(0, 30)}}</v-btn>
         </li>
       </ul>
@@ -39,6 +39,16 @@ import Overlay from "./Overlay.vue";
     items: Array,
     dkey: String,
     title: String
+  },
+  computed: {
+    sortedItems() {
+      return this.$props.items.sort((a: any, b: any) => {
+        console.log(a.created);
+        
+        
+        return a.created - b.created;
+      });
+    }
   }
 })
 export default class LList extends Vue {
