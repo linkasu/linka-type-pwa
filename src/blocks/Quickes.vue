@@ -1,6 +1,6 @@
 <template>
   <v-layout>
-    <v-flex xs3 v-for="n of phrases" :key="n">
+    <v-flex xs6 md2 v-for="n of phrases" :key="n">
       <v-btn block @click="say(n)">{{n}}</v-btn>
     </v-flex>
   </v-layout>
@@ -53,3 +53,9 @@ export default class Quickes extends Vue {
   }
 }
 </script>
+
+<style scoped>
+.layout{
+  flex-wrap: wrap;
+}
+</style>
