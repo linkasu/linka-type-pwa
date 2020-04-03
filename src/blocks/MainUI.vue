@@ -3,16 +3,12 @@
     <l-header @show="showMode=true" />
     <main>
       <v-card-text>
-        <overlay :active="showMode" @quit="showMode=false">
-          <v-text-field
-            outlined="true"
-            type="text"
-            v-model="textForSpeak"
-            @keydown.enter.prevent="say"
-            :style="{'font-size':showMode?'10vh':'inherit'}"
-            :dark="showMode"
-          ></v-text-field>
-        </overlay>
+        <main-input
+          :showMode="showMode"
+          v-model="textForSpeak"
+          @say="say"
+          @showMode="showMode=$event"
+        />
         <v-btn block @click="say">Сказать</v-btn>
         <quickes></quickes>
       </v-card-text>
@@ -32,13 +28,13 @@ import TTS from "../lib/TTS";
 import LHeader from "./LHeader.vue";
 import Bank from "./Bank.vue";
 import Quickes from "./Quickes.vue";
-import Overlay from "./components/Overlay.vue";
+import MainInput from "./components/MainInput.vue";
 
 @Component({
   components: {
     LHeader,
     Bank,
-    Overlay,
+    MainInput,
     Quickes
   }
 })
@@ -46,6 +42,8 @@ export default class MainUI extends Vue {
   textForSpeak: string = "";
   showMode: boolean = false;
   say() {
+    console.log(this.textForSpeak);
+
     TTS.instance.say(this.textForSpeak);
   }
 }

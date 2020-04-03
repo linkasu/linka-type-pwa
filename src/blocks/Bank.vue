@@ -1,7 +1,7 @@
 <template>
   <section>
     <v-layout>
-      <v-flex xs6>
+      <v-flex xs12 md6 lg4>
         <l-list
           @select="cselect"
           @delete="(item)=>deleteItem('category', item)"
@@ -12,7 +12,7 @@
           title="Категории"
         />
       </v-flex>
-      <v-flex xs6>
+      <v-flex xs12 md6 lg8>
         <l-list
           @select="sselect"
           @delete="(item)=>deleteItem('statement', item)"
