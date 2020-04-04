@@ -61,7 +61,7 @@ export default class Quickes extends Vue {
     this.load();
 
     window.addEventListener("keydown", e => {
-      if (e.code === "Key0") {
+      if (e.code === "Digit0"&&e.metaKey) {
         (<HTMLInputElement>this.$el).focus();
       }
     });
