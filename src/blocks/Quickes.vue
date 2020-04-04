@@ -1,14 +1,6 @@
 <template>
   <div width="100%" tabindex="0" class="quickes" @keydown="keydown">
-    <v-layout>
-      <v-flex xs6 md2 v-for="(n, i) of phrases" :key="n">
-        <v-badge color="primary" overlap width="100%" bottom left>
-          <span slot="badge">{{i+1}}</span>
-          <!--slot can be any component-->
-          <v-btn block @click="say(n)" tabindex="-1">{{n}}</v-btn>
-        </v-badge>
-      </v-flex>
-    </v-layout>
+    <button-row :items='phrases' focus="false" @buttonclick="say"/>
   </div>
 </template>
 
@@ -19,10 +11,15 @@ import Component from "vue-class-component";
 import fireapp from "../lib/fireapp";
 import Store from "../lib/Store";
 import TTS from "../lib/TTS";
+import ButtonRow from "./components/ButtonRow.vue"
 
 const store = new Store();
 
-@Component
+@Component({
+  components:{
+    ButtonRow
+  }
+})
 export default class Quickes extends Vue {
   phrases: string[] = new Array(6);
   say(phrase: string) {
@@ -80,11 +77,5 @@ export default class Quickes extends Vue {
 <style scoped>
 .quickes:focus {
   background: #ff5252;
-}
-.layout {
-  flex-wrap: wrap;
-}
-.v-badge {
-  width: 100%;
 }
 </style>
