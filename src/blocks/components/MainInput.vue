@@ -1,16 +1,19 @@
 <template>
   <section>
     <overlay :active="showMode" @quit="toggle">
-      <v-text-field
-        v-if="!showMode"
-        ref="input"
-        outlined="true"
-        type="text"
-        :value="text"
-        @input="input"
-        @keydown.66.meta.prevent="toggle"
-        @keydown.enter.prevent="$emit('say')"
-      ></v-text-field>
+      <div v-if="!showMode">
+        <predicator :value="text" @input="input" ref="predicator"/>
+        <v-text-field
+          ref="input"
+          outlined="true"
+          type="text"
+          :value="text"
+          @input="input"
+          @keydown.66.meta.prevent="toggle"
+          @keydown.49.50.51.52.53.54.meta.prevent="predict"
+          @keydown.enter.prevent="$emit('say')"
+        ></v-text-field>
+      </div>
       <textarea
         v-else
         ref="textarea"
@@ -29,10 +32,12 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import Overlay from "./Overlay.vue";
+import Predicator from "./Predicator.vue";
 
 @Component({
   components: {
-    Overlay
+    Overlay,
+    Predicator
   },
   props: {
     showMode: Boolean,
@@ -45,9 +50,7 @@ import Overlay from "./Overlay.vue";
 })
 export default class MainInput extends Vue {
   input(value: String) {
-    
     this.$emit("out", value);
-
   }
   areainput(event: InputEvent) {
     const textarea = <HTMLTextAreaElement>event.target;
@@ -62,7 +65,7 @@ export default class MainInput extends Vue {
       }
     } else {
       if (event.code === "KeyI") {
-        this.awaitFocus('input');
+        this.awaitFocus("input");
 
         return false;
       }
@@ -70,21 +73,26 @@ export default class MainInput extends Vue {
   }
   toggle() {
     console.log(this);
-    
+
     if ((<any>this).showMode) {
       this.$emit("showMode", false);
 
-      this.awaitFocus('input');
+      this.awaitFocus("input");
     } else {
       this.$emit("showMode", true);
-      this.awaitFocus('textarea');
+      this.awaitFocus("textarea");
     }
   }
   awaitFocus(element: string) {
-    
     setTimeout(() => {
       (<HTMLElement>this.$refs[element]).focus();
     }, 100);
+  }
+  predict(event:KeyboardEvent){
+    console.log(this.$refs);
+    
+    (<Predicator>this.$refs.predicator).shortcut(event.keyCode-49);
+    
   }
   created() {
     window.addEventListener("keydown", this.windowInput);

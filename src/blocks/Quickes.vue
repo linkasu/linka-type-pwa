@@ -1,6 +1,6 @@
 <template>
   <div width="100%" tabindex="0" class="quickes" @keydown="keydown">
-    <button-row :items='phrases' focus="false" @buttonclick="say"/>
+    <button-row :items="phrases" :focus="false" @buttonclick="say" />
   </div>
 </template>
 
@@ -11,12 +11,12 @@ import Component from "vue-class-component";
 import fireapp from "../lib/fireapp";
 import Store from "../lib/Store";
 import TTS from "../lib/TTS";
-import ButtonRow from "./components/ButtonRow.vue"
+import ButtonRow from "./components/ButtonRow.vue";
 
 const store = new Store();
 
 @Component({
-  components:{
+  components: {
     ButtonRow
   }
 })
@@ -61,12 +61,7 @@ export default class Quickes extends Vue {
     this.load();
 
     window.addEventListener("keydown", e => {
-      if (
-        e.code === "KeyQ" &&
-        !["input", "textarea"].includes(
-          (<Element>e.target).tagName.toLowerCase()
-        )
-      ) {
+      if (e.code === "Key0") {
         (<HTMLInputElement>this.$el).focus();
       }
     });
