@@ -62,14 +62,18 @@ export default class Quickes extends Vue {
   }
   mounted() {
     this.load();
-   
-     window.addEventListener("keydown", e => {
-      if (e.code === "KeyQ"&&(<Element>e.target).tagName.toLowerCase()!=='input') {
+
+    window.addEventListener("keydown", e => {
+      if (
+        e.code === "KeyQ" &&
+        !["input", "textarea"].includes(
+          (<Element>e.target).tagName.toLowerCase()
+        )
+      ) {
         (<HTMLInputElement>this.$el).focus();
       }
     });
   }
-    
 }
 </script>
 

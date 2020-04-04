@@ -1,15 +1,26 @@
 <template>
   <section>
-    <overlay :active="showMode" @quit="$emit('showMode', false)">
+    <overlay :active="showMode" @quit="toggle">
       <v-text-field
+        v-if="!showMode"
         ref="input"
         outlined="true"
         type="text"
         :value="text"
         @input="input"
+        @keydown.66.meta.prevent="toggle"
         @keydown.enter.prevent="$emit('say')"
-
       ></v-text-field>
+      <textarea
+        v-else
+        ref="textarea"
+        @keydown.enter.meta="$emit('say')"
+        block
+        @input="areainput"
+        @keydown.esc="toggle"
+        @keydown.66.meta="toggle"
+        :value="text"
+      ></textarea>
     </overlay>
   </section>
 </template>
@@ -34,22 +45,46 @@ import Overlay from "./Overlay.vue";
 })
 export default class MainInput extends Vue {
   input(value: String) {
+    
     this.$emit("out", value);
+
+  }
+  areainput(event: InputEvent) {
+    const textarea = <HTMLTextAreaElement>event.target;
+    // if(textarea.offsetHeight, textarea.scrollHeight)
+
+    this.$emit("out", textarea.value);
   }
   windowInput(event: KeyboardEvent) {
-    
     if (event.target === this.$refs.input) {
-      if(event.code==='Escape'){
-        (<HTMLElement> this.$refs.input).blur()
+      if (event.code === "Escape") {
+        (<HTMLElement>this.$refs.input).blur();
       }
     } else {
       if (event.code === "KeyI") {
-        setTimeout(() => {
-          (<HTMLElement>this.$refs.input).focus();
-        }, 0); 
-        return false
+        this.awaitFocus('input');
+
+        return false;
       }
     }
+  }
+  toggle() {
+    console.log(this);
+    
+    if ((<any>this).showMode) {
+      this.$emit("showMode", false);
+
+      this.awaitFocus('input');
+    } else {
+      this.$emit("showMode", true);
+      this.awaitFocus('textarea');
+    }
+  }
+  awaitFocus(element: string) {
+    
+    setTimeout(() => {
+      (<HTMLElement>this.$refs[element]).focus();
+    }, 100);
   }
   mounted() {
     window.addEventListener("keydown", this.windowInput);
@@ -59,3 +94,16 @@ export default class MainInput extends Vue {
   }
 }
 </script>
+
+
+<style scoped>
+textarea {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  background-color: #000;
+  font-size: 10vh;
+  border: 3px solid #fff;
+}
+</style>
