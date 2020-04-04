@@ -63,7 +63,7 @@ export default class PhraseMaker extends NameProps {
     this.$emit("saved");
   }
 
-  mounted() {
+  created() {
     this.store.factory
       .child("questions")
       .once("value")

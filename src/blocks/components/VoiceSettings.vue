@@ -48,7 +48,7 @@ export default class VoiceSettings extends Vue {
   rate: number = 1;
   volume: number = 1;
   yandex: boolean = false;
-  mounted() {
+  created() {
     this.voice = this.tts.selectedVoice.voiceURI;
     this.pitch = this.tts.pitch;
     this.rate = this.tts.rate;

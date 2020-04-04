@@ -60,7 +60,7 @@ export default class Quickes extends Vue {
       "Я пишу ответ"
     ]);
   }
-  mounted() {
+  created() {
     this.load();
 
     window.addEventListener("keydown", e => {

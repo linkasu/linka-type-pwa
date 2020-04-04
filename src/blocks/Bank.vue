@@ -174,7 +174,7 @@ export default class Bank extends Vue {
   removeCategory(data: fireapp.database.DataSnapshot) {
     this.categories = this.categories.filter(item => item.id != data.key);
   }
-  mounted() {
+  created() {
     if (this.user == null) return;
     if (!this.store.root) return;
 

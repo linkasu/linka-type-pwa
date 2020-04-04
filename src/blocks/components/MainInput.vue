@@ -86,7 +86,7 @@ export default class MainInput extends Vue {
       (<HTMLElement>this.$refs[element]).focus();
     }, 100);
   }
-  mounted() {
+  created() {
     window.addEventListener("keydown", this.windowInput);
   }
   destroyed() {

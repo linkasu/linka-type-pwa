@@ -30,7 +30,7 @@ export default class App extends Vue {
     this.auth = true;
   }
 
-  async mounted() {
+  async created() {
     await fireapp.auth().setPersistence(fireapp.auth.Auth.Persistence.LOCAL);
     fireapp.auth().onAuthStateChanged(state => {
       this.auth = !!state;
@@ -45,8 +45,6 @@ export default class App extends Vue {
         }
       }
     });
-  }
-  created() {
   }
 }
 </script>
