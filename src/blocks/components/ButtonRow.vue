@@ -4,7 +4,7 @@
         <v-badge :color="color" overlap width="100%" bottom left>
           <span slot="badge">{{i+1}}</span>
           <!--slot can be any component-->
-        <v-btn block @click="$emit('buttonclick', n, i)" :tabindex="focus?-1:0">{{n}}</v-btn>
+        <v-btn block @click="$emit('buttonclick', n, i)" :tabindex="focus?0:-1">{{n}}</v-btn>
         </v-badge>
       </v-flex>
     </v-layout>

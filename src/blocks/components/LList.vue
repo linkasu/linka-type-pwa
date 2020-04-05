@@ -1,13 +1,16 @@
 <template>
   <v-card height="100%">
     <v-toolbar short flat v-if="title">
-      <v-btn icon>
-        <v-icon @click="choose('delete')">mdi-delete</v-icon>
+      <v-btn @click="$emit('back')" icon v-if="tstatement">
+        <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
-      <v-btn icon>
-        <v-icon @click="choose('edit')">mdi-pencil-outline</v-icon>
+      <v-btn @click="choose('delete')" icon>
+        <v-icon>mdi-delete</v-icon>
       </v-btn>
-      <v-btn icon>
+      <v-btn @click="choose('edit')" icon>
+        <v-icon>mdi-pencil-outline</v-icon>
+      </v-btn>
+      <v-btn icon v-if="tstatement">
         <v-icon @click="()=>{}">mdi-content-paste</v-icon>
       </v-btn>
       <v-btn icon>
@@ -38,6 +41,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Overlay from "./Overlay.vue";
+import { Prop } from "vue-property-decorator";
 
 @Component({
   components: { Overlay },
@@ -45,20 +49,28 @@ import Overlay from "./Overlay.vue";
     items: Array,
     dkey: String,
     title: String
-  },
-  computed: {
-    sortedItems() {
-      return this.$props.items.sort((a: any, b: any) => {
-        if(a.default!==b.default){
-          return a.default?-1:1
-        }
-        return a.created - b.created;
-      });
-    }
   }
 })
 export default class LList extends Vue {
   caller: Function | null = null;
+
+  @Prop() items: Array<any> = [];
+  @Prop() dkey: String = "";
+  @Prop() title: String = "";
+  @Prop() type: "category" | "statement" = "category";
+
+  get sortedItems() {
+    return this.items.sort((a: any, b: any) => {
+      if (a.default !== b.default) {
+        return a.default ? -1 : 1;
+      }
+      return a.created - b.created;
+    });
+  }
+
+  get tstatement(): boolean {
+    return this.type === "statement";
+  }
 
   select(item: any) {
     if (this.caller !== null) {

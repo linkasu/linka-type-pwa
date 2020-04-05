@@ -1,23 +1,26 @@
 <template>
   <section>
     <v-layout>
-      <v-flex xs12 md6 lg4>
+      <v-flex xs12 v-if="cid===null">
         <l-list
           @select="cselect"
           @delete="(item)=>deleteItem('category', item)"
           @edit="(item)=>editItem('category', item)"
           @add="cadd"
+          type="categoy"
           :items="categories"
           dkey="label"
           title="Категории"
         />
-      </v-flex>
-      <v-flex xs12 md6 lg8>
+      </v-flex >
+      <v-flex xs12  v-else>
         <l-list
           @select="sselect"
           @delete="(item)=>deleteItem('statement', item)"
           @edit="(item)=>editItem('statement', item)"
           @add="sadd"
+          @back="cid=null"
+          type="statement"
           :items="statements"
           dkey="text"
           :title="title||'Категория не выбрана'"

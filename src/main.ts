@@ -24,6 +24,10 @@ import VuetifyDialog from 'vuetify-dialog'
 import 'vuetify-dialog/dist/vuetify-dialog.css'
  
 import 'vue-material-design-icons/styles.css';
+import '@mdi/font/css/materialdesignicons.css'
+import 'material-design-icons-iconfont/dist/material-design-icons.css'
+
+
 import Overlay from './blocks/components/Overlay.vue'
 import TTS from './lib/TTS'
 

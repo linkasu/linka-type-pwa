@@ -52,7 +52,7 @@ export default class MainInput extends Vue {
   input(value: String) {
     this.$emit("out", value);
   }
-  areainput(event: InputEvent) {
+  areainput(event: any) {
     const textarea = <HTMLTextAreaElement>event.target;
     // if(textarea.offsetHeight, textarea.scrollHeight)
 
