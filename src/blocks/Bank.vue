@@ -1,5 +1,5 @@
 <template>
-  <section tabindex="0" class="group">
+  <section tabindex="0" class="group" @keydown="onInput" @keydown.esc="cid=null">
     <v-layout>
       <v-flex xs12 v-if="cid===null">
         <l-list
@@ -12,8 +12,8 @@
           dkey="label"
           title="Категории"
         />
-      </v-flex >
-      <v-flex xs12  v-else>
+      </v-flex>
+      <v-flex xs12 v-else>
         <l-list
           @select="sselect"
           @delete="(item)=>deleteItem('statement', item)"
@@ -38,6 +38,7 @@ import fireapp from "../lib/fireapp";
 import Store from "../lib/Store";
 import LList from "./components/LList.vue";
 import TTS from "../lib/TTS";
+import { QWERTY } from "../constants";
 
 @Component({
   components: {
@@ -51,6 +52,27 @@ export default class Bank extends Vue {
   cid: string | null = null;
   title: string | null = null;
   user: fireapp.User | null = fireapp.auth().currentUser;
+
+  onInput(e: KeyboardEvent) {
+    let number;
+    if (e.which > 48 && e.which < 58) {
+      number = e.which - 48;
+    } else if (e.which > 64 && e.which < 91) {
+      number = QWERTY.indexOf(e.code[3].toLowerCase()) + 10;
+    } else return;
+    number--;
+    
+
+    if (!this.cid) {
+      const item = this.categories[number]
+      if(!item) return;
+      this.cselect(item)
+    } else {
+      const item = this.statements[number]
+      if(!item) return;
+      this.sselect(item)
+    }
+  }
 
   cselect(category: any) {
     if (!category.statements) {
@@ -165,17 +187,22 @@ export default class Bank extends Vue {
     const category = data.val();
 
     this.categories.push(category);
+    this.categories = this.sortedItems(this.categories);
   }
   loadStatement(data: fireapp.database.DataSnapshot) {
     this.removeStatement(data);
     this.statements.push(data.val());
+    this.statements = this.sortedItems(this.statements);
   }
 
   removeStatement(data: fireapp.database.DataSnapshot) {
     this.statements = this.statements.filter(item => item.id != data.key);
+    this.statements = this.sortedItems(this.statements);
   }
   removeCategory(data: fireapp.database.DataSnapshot) {
     this.categories = this.categories.filter(item => item.id != data.key);
+    this.categories = this.sortedItems(this.categories);
+
   }
   created() {
     if (this.user == null) return;
@@ -186,6 +213,14 @@ export default class Bank extends Vue {
     ref.on("child_changed", this.loadCategory);
     ref.on("child_added", this.loadCategory);
     ref.on("child_removed", this.removeCategory);
+  }
+  sortedItems(items: any[]) {
+    return items.sort((a: any, b: any) => {
+      if (a.default !== b.default) {
+        return a.default ? -1 : 1;
+      }
+      return a.created - b.created;
+    });
   }
 }
 

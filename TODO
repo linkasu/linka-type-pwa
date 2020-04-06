@@ -1,4 +1,6 @@
 + predictor
-- redesign bank
++ redesign bank
+- reader mode
+- insert multirow mode
 - settings
 - base phrases importer

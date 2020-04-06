@@ -20,16 +20,11 @@
       <v-toolbar-title>{{title}}</v-toolbar-title>
     </v-toolbar>
     <overlay :active="caller!==null" @quit="()=>caller=null">
-      <ul v-if="items.length>0">
-        <li v-for="item in sortedItems" :key="item.id">
-          <v-btn block @click="select(item)">{{item[dkey]}}</v-btn>
-        </li>
-      </ul>
-      <v-row v-else>
-        <v-col>
-          <h3 absolute center>Ничего не найдено, создайте</h3>
-        </v-col>
-      </v-row>
+      <v-layout wrap width="100%">
+        <v-flex xs6 :md="items.length>10?6:4" v-for="(item, index) of sortedItems" :key="item.id">
+          <badge-button :value="item[dkey]" :hint="index|hintFilter" @buttonclick="select(item)" />
+        </v-flex>
+      </v-layout>
     </overlay>
 
     <v-btn v-if="caller==null" absolute dark bottom right color="pink" @click="$emit('add')">+</v-btn>
@@ -40,15 +35,20 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import { QWERTY } from "./../../constants";
 import Overlay from "./Overlay.vue";
+import BadgeButton from "./BadgeButton.vue";
 import { Prop } from "vue-property-decorator";
 
 @Component({
-  components: { Overlay },
-  props: {
-    items: Array,
-    dkey: String,
-    title: String
+  components: { Overlay, BadgeButton },
+  filters: {
+    hintFilter(i: number) {
+      if (i > 8) {
+        return QWERTY[i - 9].toUpperCase();
+      }
+      return i + 1;
+    }
   }
 })
 export default class LList extends Vue {
@@ -59,14 +59,6 @@ export default class LList extends Vue {
   @Prop() title: String = "";
   @Prop() type: "category" | "statement" = "category";
 
-  get sortedItems() {
-    return this.items.sort((a: any, b: any) => {
-      if (a.default !== b.default) {
-        return a.default ? -1 : 1;
-      }
-      return a.created - b.created;
-    });
-  }
 
   get tstatement(): boolean {
     return this.type === "statement";
