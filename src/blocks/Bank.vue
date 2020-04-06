@@ -213,6 +213,19 @@ export default class Bank extends Vue {
     ref.on("child_changed", this.loadCategory);
     ref.on("child_added", this.loadCategory);
     ref.on("child_removed", this.removeCategory);
+
+    window.addEventListener("keydown", this.onWindowInput)
+  }
+
+
+
+
+
+  onWindowInput(e:KeyboardEvent){
+    if(e.metaKey&&e.which===186){
+      (<HTMLElement> this.$el).focus()
+      return false
+    }
   }
   sortedItems(items: any[]) {
     return items.sort((a: any, b: any) => {
