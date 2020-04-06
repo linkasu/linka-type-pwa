@@ -38,7 +38,7 @@ export default class App extends Vue {
         const store = new Store();
         const root = store.root;
         if (root) {
-          root.child("inited").on("value", snap => {            
+          root.child("inited").on("value", snap => {
             this.inited = snap.val() === true;
             // this.inited=false
           });
@@ -49,9 +49,12 @@ export default class App extends Vue {
 }
 </script>
 <style>
-.v-btn__content{
+.v-btn__content {
   overflow: hidden;
-  display: block;
+  display: block !important;
 }
-
+.group:focus {
+  outline-width: 10px;
+  /* color: ; */
+}
 </style>

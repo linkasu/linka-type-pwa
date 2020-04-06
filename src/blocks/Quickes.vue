@@ -1,5 +1,5 @@
 <template>
-  <div width="100%" tabindex="0" class="quickes" @keydown="keydown">
+  <div width="100%" tabindex="0" class="quickes group" @keydown="keydown">
     <button-row :items="phrases" :focus="false" @buttonclick="say" />
   </div>
 </template>
@@ -68,9 +68,3 @@ export default class Quickes extends Vue {
   }
 }
 </script>
-
-<style scoped>
-.quickes:focus {
-  background: #ff5252;
-}
-</style>

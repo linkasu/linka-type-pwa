@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section tabindex="0" class="group">
     <v-layout>
       <v-flex xs12 v-if="cid===null">
         <l-list
