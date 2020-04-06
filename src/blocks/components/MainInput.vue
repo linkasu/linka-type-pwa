@@ -1,5 +1,6 @@
 <template>
   <section>
+    <audio src="/sounds/type.wav" ref="type"></audio>
     <overlay :active="showMode" @quit="toggle">
       <div v-if="!showMode">
         <predicator :value="text" @input="input" ref="predicator"/>
@@ -49,7 +50,13 @@ import Predicator from "./Predicator.vue";
   }
 })
 export default class MainInput extends Vue {
-  input(value: String) {
+
+
+input(value: String) {
+  const typeAudio = <HTMLAudioElement> this.$refs.type
+  typeAudio.pause()
+  typeAudio.currentTime=0;
+  typeAudio.play()
     this.$emit("out", value);
   }
   areainput(event: any) {
