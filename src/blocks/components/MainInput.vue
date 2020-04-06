@@ -23,6 +23,7 @@
         @input="areainput"
         @keydown.esc="toggle"
         @keydown.66.meta="toggle"
+        @blur="$refs.textarea.focus()"
         :value="text"
       ></textarea>
     </overlay>
