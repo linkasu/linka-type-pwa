@@ -21,7 +21,7 @@
     </v-toolbar>
     <overlay :active="caller!==null" @quit="()=>caller=null">
       <v-layout wrap width="100%">
-        <v-flex xs6 :md="items.length>10?6:4" v-for="(item, index) of sortedItems" :key="item.id">
+        <v-flex xs6 :md="items.length>10?6:4" v-for="(item, index) of items" :key="item.id">
           <badge-button :value="item[dkey]" :hint="index|hintFilter" @buttonclick="select(item)" />
         </v-flex>
       </v-layout>
