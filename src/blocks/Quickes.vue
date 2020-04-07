@@ -13,6 +13,7 @@ import Store from "../lib/Store";
 import TTS from "../lib/TTS";
 import ButtonRow from "./components/ButtonRow.vue";
 
+
 const store = new Store();
 
 @Component({
@@ -47,7 +48,7 @@ export default class Quickes extends Vue {
       this.phrases = arr;
     });
   }
-  async create(ref: fireapp.database.Reference) {
+  async create(ref: firebase.database.Reference) {
     await ref.set([
       "Привет",
       "Как дела?",

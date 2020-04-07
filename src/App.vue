@@ -26,7 +26,7 @@ import Store from "./lib/Store";
 export default class App extends Vue {
   auth: boolean | null = null;
   inited: boolean | null = null;
-  login(user: fireapp.User) {
+  login(user: firebase.User) {
     this.auth = true;
   }
 

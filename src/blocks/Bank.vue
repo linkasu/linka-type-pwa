@@ -51,7 +51,7 @@ export default class Bank extends Vue {
   statements: Array<any> = [];
   cid: string | null = null;
   title: string | null = null;
-  user: fireapp.User | null = fireapp.auth().currentUser;
+  user: firebase.User | null = fireapp.auth().currentUser;
 
   onInput(e: KeyboardEvent) {
     let number;
@@ -182,24 +182,24 @@ export default class Bank extends Vue {
     }
   }
 
-  loadCategory(data: fireapp.database.DataSnapshot) {
+  loadCategory(data: firebase.database.DataSnapshot) {
     if (this.categories.some(item => item.id === data.key)) return;
     const category = data.val();
 
     this.categories.push(category);
     this.categories = this.sortedItems(this.categories);
   }
-  loadStatement(data: fireapp.database.DataSnapshot) {
+  loadStatement(data: firebase.database.DataSnapshot) {
     this.removeStatement(data);
     this.statements.push(data.val());
     this.statements = this.sortedItems(this.statements);
   }
 
-  removeStatement(data: fireapp.database.DataSnapshot) {
+  removeStatement(data: firebase.database.DataSnapshot) {
     this.statements = this.statements.filter(item => item.id != data.key);
     this.statements = this.sortedItems(this.statements);
   }
-  removeCategory(data: fireapp.database.DataSnapshot) {
+  removeCategory(data: firebase.database.DataSnapshot) {
     this.categories = this.categories.filter(item => item.id != data.key);
     this.categories = this.sortedItems(this.categories);
 

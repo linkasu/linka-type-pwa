@@ -1,5 +1,9 @@
-import * as firebase from 'firebase'
-import * as analytics from "@firebase/analytics";
+
+import app, { auth, database, functions, analytics } from 'firebase/app'
+import  'firebase/auth'
+import 'firebase/database'
+import 'firebase/functions'
+import 'firebase/analytics'
 
 const firebaseConfig = {
   apiKey: "AIzaSyBHwz_IGbuPDX6CUCnc-tj2wPdimgmoGZc",
@@ -8,11 +12,18 @@ const firebaseConfig = {
   projectId: "distypepro-android",
   storageBucket: "distypepro-android.appspot.com",
   messagingSenderId: "800888317067",
-  appId: "1:800888317067:web:a8594b3e24f430cf"
+  appId: "1:800888317067:web:a8594b3e24f430cf",
+  measurementId: "G-RM812X3EM4"
 };
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+app.initializeApp(firebaseConfig);
+analytics()
 
 
-
-export default firebase
+export default {
+  app,
+  auth:auth,
+  database:database,
+  functions:functions,
+  analytics:analytics
+}
