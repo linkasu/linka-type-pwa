@@ -13,7 +13,14 @@ import Component from "vue-class-component";
 @Component({
   name: "Overlay",
   props: {
-    active: Boolean
+    active: {
+      type: Boolean,
+      default:false
+    }
+  },
+  model:{
+    prop:'active',
+    event:"quit"
   }
 })
 export default class Overlay extends Vue {

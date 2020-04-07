@@ -3,9 +3,9 @@ import LocalMemory from './LocalMemory';
 let yatts: { speak: (text: string, params: any) => void };
 
 setTimeout(function () {
-  (<any>window.ya).speechkit.settings.apikey = "8414c59e-dbe2-4066-b988-9621fe1a572f";
+  (<any>window).ya.speechkit.settings.apikey = "8414c59e-dbe2-4066-b988-9621fe1a572f";
   console.log("init tts");
-  yatts = new (<any>window.ya).speechkit.Tts({
+  yatts = new (<any>window).ya.speechkit.Tts({
     speaker: "jane"
   });
 }, 2000);
@@ -47,6 +47,11 @@ class TTS {
       };
       this.synth.cancel()
       this.synth.speak(utterThis);
+    }
+  }
+  stop(){
+    if(this.yandex){}else{
+      this.synth.cancel()
     }
   }
   get volume() {

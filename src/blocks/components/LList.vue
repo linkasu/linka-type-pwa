@@ -1,6 +1,6 @@
 <template>
   <v-card height="100%">
-    <v-toolbar short flat v-if="title">
+    <v-toolbar short flat v-if="title" class="v-toolbar-for-over">
       <v-btn @click="$emit('back')" icon v-if="tstatement">
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
@@ -13,9 +13,7 @@
       <v-btn icon v-if="tstatement">
         <v-icon @click="()=>{}">mdi-content-paste</v-icon>
       </v-btn>
-      <v-btn icon>
-        <v-icon @click="()=>{}">mdi-playlist-music</v-icon>
-      </v-btn>
+      <reader v-if="tstatement" :items="items" />
       <v-spacer />
       <v-toolbar-title>{{title}}</v-toolbar-title>
     </v-toolbar>
@@ -38,10 +36,11 @@ import Component from "vue-class-component";
 import { QWERTY } from "./../../constants";
 import Overlay from "./Overlay.vue";
 import BadgeButton from "./BadgeButton.vue";
+import Reader from "./Reader.vue";
 import { Prop } from "vue-property-decorator";
 
 @Component({
-  components: { Overlay, BadgeButton },
+  components: { Overlay, BadgeButton, Reader },
   filters: {
     hintFilter(i: number) {
       if (i > 8) {
@@ -54,11 +53,10 @@ import { Prop } from "vue-property-decorator";
 export default class LList extends Vue {
   caller: Function | null = null;
 
-  @Prop() items: Array<any> = [];
-  @Prop() dkey: String = "";
-  @Prop() title: String = "";
-  @Prop() type: "category" | "statement" = "category";
-
+  @Prop() items: Array<any>|undefined;
+  @Prop() dkey: String|undefined;
+  @Prop() title: String|undefined;
+  @Prop() type: "category" | "statement"|undefined;
 
   get tstatement(): boolean {
     return this.type === "statement";
@@ -82,9 +80,7 @@ export default class LList extends Vue {
 </script>
 
 <style scoped>
-ul {
-  list-style: none;
-  padding: 1em;
-  margin: 0;
+.v-toolbar-for-over{
+  transform: none !important;
 }
 </style>
