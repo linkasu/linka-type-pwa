@@ -96,9 +96,7 @@ input(value: String) {
       (<HTMLElement>this.$refs[element]).focus();
     }, 100);
   }
-  predict(event:KeyboardEvent){
-    console.log(this.$refs);
-    
+  predict(event:KeyboardEvent){    
     (<Predicator>this.$refs.predicator).shortcut(event.keyCode-49);
     
   }
@@ -114,6 +112,7 @@ input(value: String) {
 
 <style scoped>
 textarea {
+  resize: none;
   position: absolute;
   width: 100%;
   height: 100%;
