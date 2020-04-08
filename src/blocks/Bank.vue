@@ -20,6 +20,7 @@
           @edit="(item)=>editItem('statement', item)"
           @add="sadd"
           @back="cid=null"
+          @save="refillCategory"
           type="statement"
           :items="statements"
           dkey="text"
@@ -54,6 +55,8 @@ export default class Bank extends Vue {
   user: firebase.User | null = fireapp.auth().currentUser;
 
   onInput(e: KeyboardEvent) {
+    if (<HTMLElement>e.target != this.$el) return true;
+
     let number;
     if (e.which > 48 && e.which < 58) {
       number = e.which - 48;
@@ -61,16 +64,15 @@ export default class Bank extends Vue {
       number = QWERTY.indexOf(e.code[3].toLowerCase()) + 10;
     } else return;
     number--;
-    
 
     if (!this.cid) {
-      const item = this.categories[number]
-      if(!item) return;
-      this.cselect(item)
+      const item = this.categories[number];
+      if (!item) return;
+      this.cselect(item);
     } else {
-      const item = this.statements[number]
-      if(!item) return;
-      this.sselect(item)
+      const item = this.statements[number];
+      if (!item) return;
+      this.sselect(item);
     }
   }
 
@@ -115,34 +117,13 @@ export default class Bank extends Vue {
     let title = await this.prompt("Введите название категории");
 
     if (!this.store.root || !title) return;
-    const id = generateId();
-
-    this.store.root
-      .child("Category")
-      .child(id)
-      .set({
-        created: +new Date(),
-        label: title,
-        id,
-        statements: {}
-      });
+    this.store.createCategory(title);
   }
   async sadd() {
     let text = await this.prompt("Введите высказывание");
 
     if (!this.store.root || !text || !this.cid) return;
-    const id = generateId();
-    await this.store.root
-      .child("Category")
-      .child(this.cid)
-      .child("statements")
-      .child(id)
-      .set({
-        created: +new Date(),
-        categoryId: this.cid,
-        text,
-        id
-      });
+    await this.store.createStatement(this.cid, text);
   }
 
   async deleteItem(what: string, item: any) {
@@ -181,7 +162,18 @@ export default class Bank extends Vue {
         .set(newText);
     }
   }
+  async refillCategory(rows: string) {
+    if (!this.cid || !this.store.root) return;
+    await this.store.root
+      .child("Category")
+      .child(this.cid)
+      .child("statements")
+      .remove();
 
+    for (const row of rows) {
+      await this.store.createStatement(this.cid, row);
+    }
+  }
   loadCategory(data: firebase.database.DataSnapshot) {
     if (this.categories.some(item => item.id === data.key)) return;
     const category = data.val();
@@ -202,7 +194,6 @@ export default class Bank extends Vue {
   removeCategory(data: firebase.database.DataSnapshot) {
     this.categories = this.categories.filter(item => item.id != data.key);
     this.categories = this.sortedItems(this.categories);
-
   }
   created() {
     if (this.user == null) return;
@@ -214,17 +205,13 @@ export default class Bank extends Vue {
     ref.on("child_added", this.loadCategory);
     ref.on("child_removed", this.removeCategory);
 
-    window.addEventListener("keydown", this.onWindowInput)
+    window.addEventListener("keydown", this.onWindowInput);
   }
 
-
-
-
-
-  onWindowInput(e:KeyboardEvent){
-    if(e.metaKey&&e.which===186){
-      (<HTMLElement> this.$el).focus()
-      return false
+  onWindowInput(e: KeyboardEvent) {
+    if (e.metaKey && e.which === 186) {
+      (<HTMLElement>this.$el).focus();
+      return false;
     }
   }
   sortedItems(items: any[]) {
@@ -235,17 +222,6 @@ export default class Bank extends Vue {
       return a.created - b.created;
     });
   }
-}
-
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz1234567890";
-const SIZE = 16;
-
-function generateId(): string {
-  let res = "";
-  for (let index = 0; index < SIZE; index++) {
-    res += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
-  }
-  return res;
 }
 </script>
 

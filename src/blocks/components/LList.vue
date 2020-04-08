@@ -10,9 +10,7 @@
       <v-btn @click="choose('edit')" icon>
         <v-icon>mdi-pencil-outline</v-icon>
       </v-btn>
-      <v-btn icon v-if="tstatement">
-        <v-icon @click="()=>{}">mdi-content-paste</v-icon>
-      </v-btn>
+      <text-category-editor v-if="tstatement" :items="items" @save="$emit('save', $event)"/>
       <reader v-if="tstatement" :items="items" />
       <v-spacer />
       <v-toolbar-title>{{title}}</v-toolbar-title>
@@ -36,14 +34,15 @@ import Component from "vue-class-component";
 import { QWERTY } from "./../../constants";
 import Overlay from "./Overlay.vue";
 import BadgeButton from "./BadgeButton.vue";
+import TextCategoryEditor from "./TextCategoryEditor.vue";
 import Reader from "./Reader.vue";
 import { Prop } from "vue-property-decorator";
 
 @Component({
-  components: { Overlay, BadgeButton, Reader },
+  components: { Overlay, BadgeButton, Reader, TextCategoryEditor },
   filters: {
     hintFilter(i: number) {
-      if (i > 8) {
+      if (i > 8&&QWERTY[i-9]) {
         return QWERTY[i - 9].toUpperCase();
       }
       return i + 1;
