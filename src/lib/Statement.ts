@@ -1,4 +1,6 @@
-export interface Statement{
-  id:string,
+import { StoreItem } from './StoreItem';
+
+export interface Statement extends StoreItem{
+  categoryId: string;
   text:string
 }

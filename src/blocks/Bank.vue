@@ -40,6 +40,9 @@ import Store from "../lib/Store";
 import LList from "./components/LList.vue";
 import TTS from "../lib/TTS";
 import { QWERTY } from "../constants";
+import { StoreItem } from "../lib/StoreItem";
+import { Statement } from "../lib/Statement";
+import { Category } from "../lib/Category";
 
 @Component({
   components: {
@@ -84,7 +87,7 @@ export default class Bank extends Vue {
     this.title = category.label;
     if (!this.user || !this.store.root) return;
     this.statements = [];
-    const ref = this.store.root.child("/Category/" + this.cid + "/statements");
+    const ref = this.store.getStatements(this.cid!);
     ref.off();
     ref.on("child_added", this.loadStatement);
     ref.on("child_changed", this.loadStatement);
@@ -126,49 +129,25 @@ export default class Bank extends Vue {
     await this.store.createStatement(this.cid, text);
   }
 
-  async deleteItem(what: string, item: any) {
-    if (!this.store.root) return;
-    if (what === "category") {
-      await this.store.root
-        .child("Category")
-        .child(item.id)
-        .remove();
-    } else if (what === "statement") {
-      await this.store.root
-        .child("Category")
-        .child(item.categoryId)
-        .child("statements")
-        .child(item.id)
-        .remove();
-    }
+  async deleteItem(what: "category" | "statement", item: StoreItem) {
+    await this.store.deleteItem(what, this.cid, item.id);
   }
-  async editItem(what: string, item: any) {
-    const newText = await this.prompt("Редактировать", item.label || item.text);
-    if (!this.store.root || !newText) return;
+  async editItem(what: "category" | "statement", item: Statement | Category) {
+    const newText = await this.prompt(
+      "Редактировать",
+      (<Category>item).label || (<Statement>item).text
+    );
+    if (!newText) return;
 
     if (what === "category") {
-      await this.store.root
-        .child("Category")
-        .child(item.id)
-        .child("label")
-        .set(newText);
-    } else if (what === "statement") {
-      await this.store.root
-        .child("Category")
-        .child(item.categoryId)
-        .child("statements")
-        .child(item.id)
-        .child("text")
-        .set(newText);
+      this.store.editCategory(<Category>item, newText);
+    } else {
+      this.store.editStatement(<Statement>item, newText);
     }
   }
   async refillCategory(rows: string) {
     if (!this.cid || !this.store.root) return;
-    await this.store.root
-      .child("Category")
-      .child(this.cid)
-      .child("statements")
-      .remove();
+    await this.store.getStatements(this.cid).remove();
 
     for (const row of rows) {
       await this.store.createStatement(this.cid, row);
