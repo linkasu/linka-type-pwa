@@ -1,7 +1,8 @@
 <template>
   <div>
-    <l-header @show="showMode=true" />
-    <main>
+    <l-header @show="showMode=true" @settings="settingsMode=!settingsMode" :settingsMode="settingsMode"/>
+    <settings v-if="settingsMode" />
+    <main v-else>
       <v-card-text>
         <main-input
           :showMode="showMode"
@@ -28,6 +29,7 @@ import TTS from "../lib/TTS";
 import LHeader from "./LHeader.vue";
 import Bank from "./Bank.vue";
 import Quickes from "./Quickes.vue";
+import Settings from "./Settings.vue";
 import MainInput from "./components/MainInput.vue";
 
 @Component({
@@ -35,15 +37,15 @@ import MainInput from "./components/MainInput.vue";
     LHeader,
     Bank,
     MainInput,
-    Quickes
+    Quickes,
+    Settings
   }
 })
 export default class MainUI extends Vue {
   textForSpeak: string = "";
   showMode: boolean = false;
+  settingsMode = false;
   say() {
-    console.log(this.textForSpeak);
-
     TTS.instance.say(this.textForSpeak);
   }
 }

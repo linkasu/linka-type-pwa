@@ -3,7 +3,7 @@
     <audio src="/sounds/type.wav" ref="type"></audio>
     <overlay :active="showMode" @quit="toggle">
       <div v-if="!showMode">
-        <predicator :value="text" @input="input" ref="predicator"/>
+        <predicator :value="text" @input="input" ref="predicator" v-if="showPredicator" />
         <v-text-field
           ref="input"
           outlined="true"
@@ -35,6 +35,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import Overlay from "./Overlay.vue";
 import Predicator from "./Predicator.vue";
+import LocalMemory from '../../lib/LocalMemory';
 
 @Component({
   components: {
@@ -51,13 +52,12 @@ import Predicator from "./Predicator.vue";
   }
 })
 export default class MainInput extends Vue {
-
-
-input(value: String) {
-  const typeAudio = <HTMLAudioElement> this.$refs.type
-  typeAudio.pause()
-  typeAudio.currentTime=0;
-  typeAudio.play()
+  showPredicator = false;
+  input(value: String) {
+    const typeAudio = <HTMLAudioElement>this.$refs.type;
+    typeAudio.pause();
+    typeAudio.currentTime = 0;
+    typeAudio.play();
     this.$emit("out", value);
   }
   areainput(event: any) {
@@ -96,12 +96,12 @@ input(value: String) {
       (<HTMLElement>this.$refs[element]).focus();
     }, 100);
   }
-  predict(event:KeyboardEvent){    
-    (<Predicator>this.$refs.predicator).shortcut(event.keyCode-49);
-    
+  predict(event: KeyboardEvent) {
+    (<Predicator>this.$refs.predicator).shortcut(event.keyCode - 49);
   }
   created() {
     window.addEventListener("keydown", this.windowInput);
+    this.showPredicator = LocalMemory.instance.getBoolean("predicator", true);
   }
   destroyed() {
     window.removeEventListener("keydown", this.windowInput);
