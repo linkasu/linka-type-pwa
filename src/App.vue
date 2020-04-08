@@ -15,6 +15,7 @@ import Auth from "./blocks/Auth.vue";
 import MainUI from "./blocks/MainUI.vue";
 import Setup from "./blocks/Setup.vue";
 import Store from "./lib/Store";
+import ee from "./registerServiceWorker";
 
 @Component({
   components: {
@@ -43,6 +44,18 @@ export default class App extends Vue {
             // this.inited=false
           });
         }
+      }
+    });
+
+    ee.on("updated", async () => {
+      if (
+        await this.$dialog.confirm({
+          text: "Перезагрузить сейчас?",
+          title: "Есть обновление.",
+          actions: ["Отменить", "Обновить"]
+        })
+      ) {
+        window.location.reload();
       }
     });
   }
