@@ -4,13 +4,15 @@
       @show="showMode=true"
       @settings="settingsMode=!settingsMode"
       :settingsMode="settingsMode"
+      :chat="chat"
+      @chat="chat=$event"
     />
     <settings v-if="settingsMode" />
     <main v-else>
       <v-card-text>
         <main-input
           :showMode="showMode"
-          v-model="textForSpeak"
+          v-model="textForSpeak[chat]"
           @say="say"
           @showMode="showMode=$event"
         />
@@ -36,7 +38,7 @@ import Quickes from "./Quickes.vue";
 import Settings from "./Settings.vue";
 import MainInput from "./components/MainInput.vue";
 import LocalMemory from "../lib/LocalMemory";
-import { Watch } from 'vue-property-decorator';
+import { Watch } from "vue-property-decorator";
 
 @Component({
   components: {
@@ -48,25 +50,36 @@ import { Watch } from 'vue-property-decorator';
   }
 })
 export default class MainUI extends Vue {
-  lc = LocalMemory.instance
-  textForSpeak: string = "";
+  lc = LocalMemory.instance;
+  textForSpeak: string[] = ["", "", ""];
   showMode: boolean = false;
   settingsMode = false;
   isQuickes = true;
   isBank = true;
-  @Watch('settingsMode') onSettingsMode(value:boolean){
-    if(!value){
-    this.isQuickes = !!this.lc.getBoolean("quickes", true);
-    this.isBank = !!this.lc.getBoolean("bank", true);
+  chat = 0;
+  @Watch("settingsMode") onSettingsMode(value: boolean) {
+    if (!value) {
+      this.isQuickes = !!this.lc.getBoolean("quickes", true);
+      this.isBank = !!this.lc.getBoolean("bank", true);
     }
   }
   say() {
-    TTS.instance.say(this.textForSpeak);
+    TTS.instance.say(this.textForSpeak[this.chat]);
+  }
+  windowInput(event: KeyboardEvent) {
+    if (event.metaKey) {
+      if (event.keyCode === 38) {
+        this.chat = this.chat === 0 ? 2 : this.chat - 1;
+      } else if (event.keyCode === 40) {
+        this.chat = this.chat === 2 ? 0 : this.chat + 1;
+      }
+    }
   }
   created() {
     const lc = LocalMemory.instance;
     this.isQuickes = !!lc.getBoolean("quickes", true);
     this.isBank = !!lc.getBoolean("bank", true);
+    window.addEventListener("keydown", this.windowInput);
   }
 }
 </script>
