@@ -99,7 +99,7 @@ async function getOrCreateCategoryByName(name: string, context: CallableContext)
   const categories = <{ id: string, label: string }[]>Object.values((await database()
     .ref("users/" + context.auth!.uid)
     .child("Category/")
-    .once("value")).val())
+    .once("value")).val()||[])
 
   const category = categories.find(({ label }) => label === name)
   if (category) {

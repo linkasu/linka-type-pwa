@@ -73,7 +73,7 @@ class TTS {
     this.storage.setNumber('pitch', pitch);
   }
   get yandex() {
-    return this.storage.getBoolean('yandex', false)
+    return !!this.storage.getBoolean('yandex', false)
   }
   set yandex(value: boolean) {
     this.storage.setBoolean('yandex', value)

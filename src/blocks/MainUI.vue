@@ -56,8 +56,8 @@ export default class MainUI extends Vue {
   isBank = true;
   @Watch('settingsMode') onSettingsMode(value:boolean){
     if(!value){
-    this.isQuickes = this.lc.getBoolean("quickes", true);
-    this.isBank = this.lc.getBoolean("bank", true);
+    this.isQuickes = !!this.lc.getBoolean("quickes", true);
+    this.isBank = !!this.lc.getBoolean("bank", true);
     }
   }
   say() {
@@ -65,8 +65,8 @@ export default class MainUI extends Vue {
   }
   created() {
     const lc = LocalMemory.instance;
-    this.isQuickes = lc.getBoolean("quickes", true);
-    this.isBank = lc.getBoolean("bank", true);
+    this.isQuickes = !!lc.getBoolean("quickes", true);
+    this.isBank = !!lc.getBoolean("bank", true);
   }
 }
 </script>
