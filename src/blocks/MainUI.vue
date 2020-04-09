@@ -1,6 +1,10 @@
 <template>
   <div>
-    <l-header @show="showMode=true" @settings="settingsMode=!settingsMode" :settingsMode="settingsMode"/>
+    <l-header
+      @show="showMode=true"
+      @settings="settingsMode=!settingsMode"
+      :settingsMode="settingsMode"
+    />
     <settings v-if="settingsMode" />
     <main v-else>
       <v-card-text>
@@ -11,10 +15,10 @@
           @showMode="showMode=$event"
         />
         <v-btn block @click="say">Сказать</v-btn>
-        <quickes></quickes>
+        <quickes v-if="isQuickes" />
       </v-card-text>
       <v-card-text>
-        <bank />
+        <bank v-if="isBank" />
       </v-card-text>
     </main>
   </div>
@@ -31,6 +35,8 @@ import Bank from "./Bank.vue";
 import Quickes from "./Quickes.vue";
 import Settings from "./Settings.vue";
 import MainInput from "./components/MainInput.vue";
+import LocalMemory from "../lib/LocalMemory";
+import { Watch } from 'vue-property-decorator';
 
 @Component({
   components: {
@@ -42,11 +48,25 @@ import MainInput from "./components/MainInput.vue";
   }
 })
 export default class MainUI extends Vue {
+  lc = LocalMemory.instance
   textForSpeak: string = "";
   showMode: boolean = false;
   settingsMode = false;
+  isQuickes = true;
+  isBank = true;
+  @Watch('settingsMode') onSettingsMode(value:boolean){
+    if(!value){
+    this.isQuickes = this.lc.getBoolean("quickes", true);
+    this.isBank = this.lc.getBoolean("bank", true);
+    }
+  }
   say() {
     TTS.instance.say(this.textForSpeak);
+  }
+  created() {
+    const lc = LocalMemory.instance;
+    this.isQuickes = lc.getBoolean("quickes", true);
+    this.isBank = lc.getBoolean("bank", true);
   }
 }
 </script>

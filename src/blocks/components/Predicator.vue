@@ -1,7 +1,7 @@
 <template>
   <button-row
     :items="!words||words.length===0?'Здесь будут подсказки при вводе'.split(' '):words"
-    color="green"
+    :color="register===null?'primary':register?'red':'green'"
     @buttonclick="(n,i)=>{shortcut(i)}"
   />
 </template>
@@ -26,6 +26,9 @@ export default class Predicator extends Vue {
     required: true
   })
   value: String | undefined;
+  @Prop({
+    default:null
+  }) register: boolean|undefined
   pos = 0;
   words: string[] = [];
   @Watch("value") onText(value: string) {

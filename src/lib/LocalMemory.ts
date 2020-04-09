@@ -4,11 +4,12 @@ class LocalMemory {
   }
 
 
-  getBoolean(key: string, defaultValue: boolean): boolean {
-    return this.get<boolean>(key, defaultValue, this.setBoolean)==='1'
+  getBoolean(key: string, defaultValue: boolean): boolean|null {
+    const v = this.get<boolean>(key, defaultValue, this.setBoolean)
+    return v==='n'?null:v==='1'?true:false
   }
   setBoolean(key: string, value: boolean) {
-    this.set(key, value ? '1' : '0')
+    this.set(key, value===null? 'n':value ? '1' : '0')
   }
   getString(key: string, defaultValue: string): string {
     return this.get<string>(key, defaultValue, this.setString);

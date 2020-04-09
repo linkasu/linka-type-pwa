@@ -3,7 +3,13 @@
     <audio src="/sounds/type.wav" ref="type"></audio>
     <overlay :active="showMode" @quit="toggle">
       <div v-if="!showMode">
-        <predicator :value="text" @input="input" ref="predicator" v-if="showPredicator" />
+        <predicator
+          :value="text"
+          @input="input"
+          ref="predicator"
+          v-if="showPredicator"
+          :register="holdCMD?register:null"
+        />
         <v-text-field
           ref="input"
           outlined="true"
@@ -11,7 +17,7 @@
           :value="text"
           @input="input"
           @keydown.66.meta.prevent="toggle"
-          @keydown.49.50.51.52.53.54.meta.prevent="predict"
+          @keydown="fieldInput($event)"
           @keydown.enter.prevent="$emit('say')"
         ></v-text-field>
       </div>
@@ -35,7 +41,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import Overlay from "./Overlay.vue";
 import Predicator from "./Predicator.vue";
-import LocalMemory from '../../lib/LocalMemory';
+import LocalMemory from "../../lib/LocalMemory";
+import TTS from "../../lib/TTS";
 
 @Component({
   components: {
@@ -52,12 +59,41 @@ import LocalMemory from '../../lib/LocalMemory';
   }
 })
 export default class MainInput extends Vue {
-  showPredicator = false;
-  input(value: String) {
-    const typeAudio = <HTMLAudioElement>this.$refs.type;
-    typeAudio.pause();
-    typeAudio.currentTime = 0;
-    typeAudio.play();
+  showPredicator: boolean | null = null;
+  prevText = "";
+  wordsCount = 0;
+  holdCMD: boolean | null = LocalMemory.instance.getBoolean("holdCMD", false);
+  register = false;
+  input(value: string) {
+    const readLastWord = LocalMemory.instance.getBoolean("readLastWord", false);
+
+    if (readLastWord === null) {
+    } else if (!readLastWord) {
+      const typeAudio = <HTMLAudioElement>this.$refs.type;
+      typeAudio.pause();
+      typeAudio.currentTime = 0;
+      typeAudio.play();
+    } else {
+      if (value.indexOf(this.prevText) !== 0) {
+        this.wordsCount = 0;
+      }
+      if (value[value.length - 1] === " ") {
+        const words = value.trim().split(" ");
+
+        if (words.length > this.wordsCount) {
+          const before = words[words.length - 2];
+
+          TTS.instance.say(
+            (before && before.length < 4 ? before : "") +
+              " " +
+              words[words.length - 1]
+          );
+        }
+
+        this.wordsCount = words.length;
+      }
+    }
+    this.prevText = value;
     this.$emit("out", value);
   }
   areainput(event: any) {
@@ -65,6 +101,24 @@ export default class MainInput extends Vue {
     // if(textarea.offsetHeight, textarea.scrollHeight)
 
     this.$emit("out", textarea.value);
+  }
+
+  fieldInput(event: KeyboardEvent) {
+    if (this.holdCMD && ["Meta", "Control"].includes(event.key)) {
+      this.register = !this.register;
+      event.preventDefault()
+      return false;
+    }
+    if (
+    event.metaKey||(this.register&&this.holdCMD) && [49, 50, 51, 52, 53, 54].includes(event.keyCode)
+    ) {
+      (<Predicator>this.$refs.predicator).shortcut(event.keyCode - 49);
+
+      this.register = false;
+      event.preventDefault()
+      return false;
+    }
+    return true;
   }
   windowInput(event: KeyboardEvent) {
     if (event.target === this.$refs.input) {
@@ -96,12 +150,10 @@ export default class MainInput extends Vue {
       (<HTMLElement>this.$refs[element]).focus();
     }, 100);
   }
-  predict(event: KeyboardEvent) {
-    (<Predicator>this.$refs.predicator).shortcut(event.keyCode - 49);
-  }
   created() {
     window.addEventListener("keydown", this.windowInput);
     this.showPredicator = LocalMemory.instance.getBoolean("predicator", true);
+    this.holdCMD = LocalMemory.instance.getBoolean("holdCMD", false);
   }
   destroyed() {
     window.removeEventListener("keydown", this.windowInput);
