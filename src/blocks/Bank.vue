@@ -1,5 +1,11 @@
 <template>
-  <section tabindex="0" class="group" @keydown="onInput" @keydown.esc="cid=null">
+  <section
+    tabindex="0"
+    class="group"
+    @keydown="onInput"
+    @keydown.esc.self="back"
+    @keydown.86.self="isPaste=!isPaste"
+  >
     <v-layout>
       <v-flex xs12 v-if="cid===null">
         <l-list
@@ -19,11 +25,13 @@
           @delete="(item)=>deleteItem('statement', item)"
           @edit="(item)=>editItem('statement', item)"
           @add="sadd"
-          @back="cid=null"
+          @back="back()"
           @save="refillCategory"
+          @isPaste="isPaste=!isPaste"
           type="statement"
           :items="statements"
           dkey="text"
+          :isPaste="isPaste"
           :title="title||'Категория не выбрана'"
         />
       </v-flex>
@@ -56,7 +64,7 @@ export default class Bank extends Vue {
   cid: string | null = null;
   title: string | null = null;
   user: firebase.User | null = fireapp.auth().currentUser;
-
+  isPaste = false;
   onInput(e: KeyboardEvent) {
     if (<HTMLElement>e.target != this.$el) return true;
 
@@ -94,10 +102,18 @@ export default class Bank extends Vue {
     ref.on("child_removed", this.removeStatement);
   }
 
-  sselect(statement: any) {
+  sselect(statement: Statement) {
+    if (this.isPaste) {
+      this.$emit("paste", statement.text);
+      this.isPaste = false;
+      return;
+    }
     TTS.instance.say(statement.text);
   }
-
+  back() {
+    this.isPaste = false;
+    this.cid = null;
+  }
   prompt(title: string, edit?: string): Promise<string> {
     return this.$dialog
       .prompt({

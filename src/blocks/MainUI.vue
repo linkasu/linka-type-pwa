@@ -20,7 +20,7 @@
         <quickes v-if="isQuickes" />
       </v-card-text>
       <v-card-text>
-        <bank v-if="isBank" />
+        <bank v-if="isBank" @paste="paste" />
       </v-card-text>
     </main>
   </div>
@@ -65,6 +65,15 @@ export default class MainUI extends Vue {
   }
   say() {
     TTS.instance.say(this.textForSpeak[this.chat]);
+  }
+  paste(event: string) {
+    this.textForSpeak[this.chat] = this.textForSpeak[this.chat] + " " + event;
+
+    //dont ask, it needs
+    this.chat++;
+    setTimeout(() => {
+      this.chat--;
+    }, 0);
   }
   windowInput(event: KeyboardEvent) {
     if (event.metaKey) {

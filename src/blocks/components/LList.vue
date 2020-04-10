@@ -7,10 +7,13 @@
       <v-btn @click="choose('delete')" icon>
         <v-icon>mdi-delete</v-icon>
       </v-btn>
+      <v-btn @click="$emit('isPaste', !isPaste) " icon v-if="tstatement" :color="isPaste?'red':''">
+        <v-icon :color="isPaste?'white':''">mdi-content-paste</v-icon>
+      </v-btn>
       <v-btn @click="choose('edit')" icon>
         <v-icon>mdi-pencil-outline</v-icon>
       </v-btn>
-      <text-category-editor v-if="tstatement" :items="items" @save="$emit('save', $event)"/>
+      <text-category-editor v-if="tstatement" :items="items" @save="$emit('save', $event)" />
       <reader v-if="tstatement" :items="items" />
       <v-spacer />
       <v-toolbar-title>{{title}}</v-toolbar-title>
@@ -42,7 +45,7 @@ import { Prop } from "vue-property-decorator";
   components: { Overlay, BadgeButton, Reader, TextCategoryEditor },
   filters: {
     hintFilter(i: number) {
-      if (i > 8&&QWERTY[i-9]) {
+      if (i > 8 && QWERTY[i - 9]) {
         return QWERTY[i - 9].toUpperCase();
       }
       return i + 1;
@@ -51,11 +54,11 @@ import { Prop } from "vue-property-decorator";
 })
 export default class LList extends Vue {
   caller: Function | null = null;
-
-  @Prop() items: Array<any>|undefined;
-  @Prop() dkey: String|undefined;
-  @Prop() title: String|undefined;
-  @Prop() type: "category" | "statement"|undefined;
+  @Prop() items: Array<any> | undefined;
+  @Prop() dkey: String | undefined;
+  @Prop() title: String | undefined;
+  @Prop() isPaste: boolean | undefined;
+  @Prop() type: "category" | "statement" | undefined;
 
   get tstatement(): boolean {
     return this.type === "statement";
@@ -79,7 +82,7 @@ export default class LList extends Vue {
 </script>
 
 <style scoped>
-.v-toolbar-for-over{
+.v-toolbar-for-over {
   transform: none !important;
 }
 </style>
