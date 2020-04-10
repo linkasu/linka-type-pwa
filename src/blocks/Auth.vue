@@ -75,7 +75,10 @@ export default class Auth extends Vue {
         .auth()
         .createUserWithEmailAndPassword(this.email, this.password);
       this.login();
-    } catch (error) {}
+    } catch (error) {
+      this.error = error.message;
+
+    }
   }
 
   private async resetPassword() {
