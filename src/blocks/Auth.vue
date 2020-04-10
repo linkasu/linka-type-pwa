@@ -35,6 +35,9 @@
               <v-spacer></v-spacer>
               <v-btn @click="login">Войти</v-btn>
             </v-card-actions>
+            <v-card-actions>
+              <v-btn @click="resetPassword" x-small>Сброс пароля</v-btn>
+            </v-card-actions>
           </v-card>
         </v-flex>
       </v-layout>
@@ -73,6 +76,29 @@ export default class Auth extends Vue {
         .createUserWithEmailAndPassword(this.email, this.password);
       this.login();
     } catch (error) {}
+  }
+
+  private async resetPassword() {
+    if (
+      !(await this.$dialog.confirm({
+        title: "Сброс пароля",
+        text: "Вы уверены, что хотите сбросить пароль для " + this.email,
+        actions: ["Да", "Нет"]
+      }))
+    )
+      return;
+    try {
+      await fireapp.auth().sendPasswordResetEmail(this.email);
+    } catch (error) {
+      return this.$dialog.error({
+        title: "Ошибка",
+        text: error.message
+      });
+    }
+    return this.$dialog.warning({
+      title: "Сброс пароля",
+      text: "Вы уверены, что хотите сбросить пароль для " + this.email
+    });
   }
 }
 </script>

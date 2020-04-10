@@ -1,11 +1,11 @@
 
-import app, { auth, database, functions, analytics } from 'firebase/app'
+import app, { auth, database, functions, analytics, FirebaseError } from 'firebase/app'
 import  'firebase/auth'
 import 'firebase/database'
 import 'firebase/functions'
 import 'firebase/analytics'
 
-const firebaseConfig = {
+const firebaseConfig  = {
   apiKey: "AIzaSyBHwz_IGbuPDX6CUCnc-tj2wPdimgmoGZc",
   authDomain: "distypepro-android.firebaseapp.com",
   databaseURL: "https://distypepro-android.firebaseio.com",
@@ -17,6 +17,7 @@ const firebaseConfig = {
 };
 // Initialize Firebase
 app.initializeApp(firebaseConfig);
+auth().languageCode='ru'
 analytics()
 
 
