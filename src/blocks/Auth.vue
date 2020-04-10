@@ -9,14 +9,22 @@
             </v-toolbar>
             <v-card-text>
               <v-form>
-                <v-text-field prepend-icon="person" label="Email" type="text" v-model="email"></v-text-field>
                 <v-text-field
+                  prepend-icon="person"
+                  label="Email"
+                  type="text"
+                  v-model="email"
+                  @keydown.enter="$refs.password.focus()"
+                ></v-text-field>
+                <v-text-field
+                  ref="password"
                   prepend-icon="lock"
                   name="password"
                   label="Пароль"
                   id="password"
                   type="password"
                   v-model="password"
+                  @keydown.enter="login"
                 ></v-text-field>
               </v-form>
             </v-card-text>
