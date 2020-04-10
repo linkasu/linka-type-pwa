@@ -21,25 +21,9 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import TTS from "../../lib/TTS";
 import LocalMemory from "../../lib/LocalMemory";
+import { Watch } from "vue-property-decorator";
 
-@Component({
-  watch: {
-    rate(value) {
-      TTS.instance.rate = value;
-    },
-    pitch(value) {
-      TTS.instance.pitch = value;
-    },
-    volume(value) {
-      TTS.instance.volume = value;
-    },
-    yandex(value) {
-      
-      TTS.instance.yandex = value;
-      
-    }
-  }
-})
+@Component({})
 export default class VoiceSettings extends Vue {
   tts = TTS.instance;
   lc = LocalMemory.instance;
@@ -48,6 +32,20 @@ export default class VoiceSettings extends Vue {
   rate: number = 1;
   volume: number = 1;
   yandex: boolean = false;
+  @Watch("rate") onRate(value:number) {
+    this.tts.rate = value;
+  }
+  @Watch("pitch") onPitch(value:number) {
+    this.tts.pitch = value;
+  }
+  @Watch("volume") onVolume(value:number) {
+    this.tts.volume = value;
+  }
+  @Watch("yandex") onYandex(value:boolean) {
+    this.tts.yandex = value;
+    this.voice = this.tts.selectedVoice.voiceURI;
+  }
+
   created() {
     this.voice = this.tts.selectedVoice.voiceURI;
     this.pitch = this.tts.pitch;
@@ -66,16 +64,18 @@ export default class VoiceSettings extends Vue {
       }));
     }
 
-    let ruvoices = this.tts.offlineVoices.filter(item => {
-      return item.lang.includes("ru");
-    });
-    let notruvoices = this.tts.offlineVoices.filter(item => {
-      return !item.lang.includes("ru");
-    });
-    return [...ruvoices, ...notruvoices].map(item => ({
-      text: item.name + " (" + item.lang + ")",
-      value: item.voiceURI
-    }));
+    return this.tts.offlineVoices
+      .sort((a, b) => {
+        return a.lang.includes("ru") === b.lang.includes("ru")
+          ? 0
+          : a.lang.includes("ru")
+          ? -1
+          : 1;
+      })
+      .map(item => ({
+        text: item.name + " (" + item.lang + ")",
+        value: item.voiceURI
+      }));
   }
 }
 </script>

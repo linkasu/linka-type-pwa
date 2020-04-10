@@ -54,6 +54,7 @@ class TTS {
       this.synth.cancel()
     }
   }
+  
   get volume() {
     return this.storage.getNumber('volume', 1);
   };
