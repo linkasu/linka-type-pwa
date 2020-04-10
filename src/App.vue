@@ -70,4 +70,8 @@ export default class App extends Vue {
   outline-width: 10px;
   /* color: ; */
 }
+body
+{
+  overscroll-behavior-y: contain;
+}
 </style>
