@@ -1,7 +1,7 @@
 <template>
   <button-row
     :items="!words||words.length===0?'Здесь будут подсказки при вводе'.split(' '):words"
-    :color="register===null?'primary':register?'red':'green'"
+    :color="register===null?'secondary':register?'accent':'primary'"
     @buttonclick="(n,i)=>{shortcut(i)}"
   />
 </template>

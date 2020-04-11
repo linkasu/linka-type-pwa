@@ -1,32 +1,43 @@
 <template>
   <v-card height="100%">
-    <v-toolbar short flat v-if="title" class="v-toolbar-for-over">
-      <v-btn @click="$emit('back')" icon v-if="tstatement">
-        <v-icon>mdi-arrow-left</v-icon>
-      </v-btn>
-      <v-btn @click="choose('delete')" icon>
-        <v-icon>mdi-delete</v-icon>
-      </v-btn>
-      <v-btn @click="$emit('isPaste', !isPaste) " icon v-if="tstatement" :color="isPaste?'red':''">
-        <v-icon :color="isPaste?'white':''">mdi-content-paste</v-icon>
-      </v-btn>
-      <v-btn @click="choose('edit')" icon>
-        <v-icon>mdi-pencil-outline</v-icon>
-      </v-btn>
-      <text-category-editor v-if="tstatement" :items="items" @save="$emit('save', $event)" />
-      <reader v-if="tstatement" :items="items" />
-      <v-spacer />
-      <v-toolbar-title>{{title}}</v-toolbar-title>
-    </v-toolbar>
-    <overlay :active="caller!==null" @quit="()=>caller=null">
-      <v-layout wrap width="100%">
-        <v-flex xs6 :md="items.length>10?6:4" v-for="(item, index) of items" :key="item.id">
-          <badge-button :value="item[dkey]" :hint="index|hintFilter" @buttonclick="select(item)" />
-        </v-flex>
-      </v-layout>
-    </overlay>
+    <v-card-text>
+      <v-toolbar short flat v-if="title">
+        <v-btn @click="$emit('back')" icon v-if="tstatement">
+          <v-icon>mdi-arrow-left</v-icon>
+        </v-btn>
+        <v-btn @click="choose('delete')" icon>
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+        <v-btn
+          @click="$emit('isPaste', !isPaste) "
+          icon
+          v-if="tstatement"
+          :color="isPaste?'accent':''"
+        >
+          <v-icon>mdi-content-paste</v-icon>
+        </v-btn>
+        <v-btn @click="choose('edit')" icon>
+          <v-icon>mdi-pencil-outline</v-icon>
+        </v-btn>
+        <v-btn v-if="tstatement" @click="isEditor=true" icon>
+          <v-icon>mdi-format-text</v-icon>
+        </v-btn>
 
-    <v-btn v-if="caller==null" absolute dark bottom right color="pink" @click="$emit('add')">+</v-btn>
+        <reader v-if="tstatement" :items="items" />
+        <v-spacer />
+        <v-toolbar-title>{{title}}</v-toolbar-title>
+      </v-toolbar>
+
+      <overlay :active="caller!==null" @quit="()=>caller=null">
+        <v-layout wrap width="100%">
+          <v-flex xs6 :md="items.length>10?6:4" v-for="(item, index) of items" :key="item.id">
+            <badge-button :value="item[dkey]" :hint="index|hintFilter" @buttonclick="select(item)" />
+          </v-flex>
+        </v-layout>
+      </overlay>
+    </v-card-text>
+      <text-category-editor v-if="isEditor" :items="items" @save="$emit('save', $event)" @quit="isEditor=false"/>
+    <v-btn v-if="caller==null" absolute dark bottom right color="primary" @click="$emit('add')">+</v-btn>
   </v-card>
 </template>
 
@@ -54,6 +65,7 @@ import { Prop } from "vue-property-decorator";
 })
 export default class LList extends Vue {
   caller: Function | null = null;
+  isEditor=false;
   @Prop() items: Array<any> | undefined;
   @Prop() dkey: String | undefined;
   @Prop() title: String | undefined;

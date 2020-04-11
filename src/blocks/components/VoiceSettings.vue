@@ -1,9 +1,11 @@
 <template>
+<v-container grid-list-xs>
+  
   <v-form>
     <v-btn
       x-large
       block
-      color="success"
+      color="accent"
       @click="tts.say('Проверка озвучки, если вы слышите голос и вас всё устраивает, нажмите кнопку Дальше')"
     >Проверить озвучку</v-btn>
 
@@ -14,6 +16,8 @@
     <v-slider step="0.1" min="0.1" max="2" v-model="rate" label="Скорость голоса" />
     <v-slider v-if="!yandex" step="0.1" min="0" max="1" v-model="volume" label="Громскость голоса" />
   </v-form>
+</v-container>
+
 </template>
 
 <script lang="ts">

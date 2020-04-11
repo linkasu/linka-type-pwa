@@ -1,5 +1,5 @@
 <template>
-  <v-app id="app" v-if="auth!==null">
+  <v-app id="app" v-if="auth!==null" light>
     <auth v-if="!auth" @login="login" />
     <div v-else>
       <setup v-if="inited===false" />
@@ -62,10 +62,6 @@ export default class App extends Vue {
 }
 </script>
 <style>
-.v-btn__content {
-  overflow: hidden;
-  display: block !important;
-}
 .group:focus {
   outline-width: 10px;
   /* color: ; */

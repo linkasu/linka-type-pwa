@@ -17,7 +17,7 @@
             v-model="q.value"
           ></v-text-field>
         </v-row>
-        <v-btn color="success" type="submit">Сохранить</v-btn>
+        <v-btn color="accent" type="submit">Сохранить</v-btn>
       </v-form>
     </v-card-text>
   </v-card>

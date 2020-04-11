@@ -30,13 +30,13 @@
             </v-card-text>
             <v-card-text v-if="error" class="error">{{error}}</v-card-text>
             <v-card-actions>
-              <v-btn @click="register">Зарегистрироваться</v-btn>
+              <v-btn @click="register" xs4>Зарегистрироваться</v-btn>
 
               <v-spacer></v-spacer>
               <v-btn @click="login">Войти</v-btn>
             </v-card-actions>
             <v-card-actions>
-              <v-btn @click="resetPassword" x-small>Сброс пароля</v-btn>
+              <v-btn @click="resetPassword" >Сброс пароля</v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>

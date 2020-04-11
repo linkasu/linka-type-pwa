@@ -12,8 +12,8 @@
         />
         <v-text-field
           ref="input"
-          outlined="true"
           type="text"
+          color="accent"
           :value="text"
           @input="input"
           @keydown.66.meta.prevent="toggle"
@@ -171,6 +171,7 @@ textarea {
   color: #fff;
   background-color: #000;
   font-size: 10vh;
+  line-height: 1em;
   border: 3px solid #fff;
 }
 </style>

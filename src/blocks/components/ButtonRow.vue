@@ -23,7 +23,7 @@ import BadgeButton from "./BadgeButton.vue";
     },
     color: {
       type: String,
-      default: "primary"
+      default: "secondary"
     }
   },
   components: {

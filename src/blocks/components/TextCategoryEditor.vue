@@ -1,11 +1,8 @@
 <template>
   <div>
-    <v-btn v-if="!show" @click="show=true" icon>
-      <v-icon>mdi-format-text</v-icon>
-    </v-btn>
-    <overlay v-else v-model="show" ref="overlay">
+    <overlay  active ref="overlay" fixed @quit="$emit('quit')">
       <textarea v-model="text" ref="textarea"/>
-      <v-btn absolute dark fab bottom right color="pink" @blur="$refs.textarea.focus()" @click="$emit('save', text.split('\n')); show=false">
+      <v-btn absolute dark fab bottom right color="pink" @blur="$refs.textarea.focus()" @click="$emit('save', text.split('\n')); $emit('quit')">
         <v-icon>mdi-content-save</v-icon>
       </v-btn>
     </overlay>
@@ -26,14 +23,14 @@ import { Prop, Watch } from "vue-property-decorator";
   }
 })
 export default class TextCategoryEditor extends Vue {
-  show = false;
+
   text = "";
   @Prop() items: Statement[] | undefined;
-  @Watch("show") onItems(value: boolean) {
-    if (this.show && this.items) {
+  mounted(){
+    if ( this.items) {
       this.text = this.items.map(item => item.text).join("\n");
       setTimeout(() => {
-        (<HTMLElement>this.$refs.overlay).focus();
+        (<HTMLElement>this.$refs.textarea).focus();
       }, 0);
     }
   }
@@ -48,5 +45,6 @@ textarea {
   font-size: 2.5vh;
   border: 3px solid #000;
   resize: none;
+  line-height: 1em;
 }
 </style>

@@ -21,7 +21,7 @@
         </v-expansion-panel>
       </v-content>
       <v-footer absolute height="auto">
-        <v-card flat tile width="100%" class="cyan lighten-1 text-center">
+        <v-card flat tile width="100%" class="secondary lighten-1 text-center">
           <v-card-text>
             <v-btn :disabled="page<=0" @click="prev()">
               <v-icon>mdi-chevron-left</v-icon>(z)

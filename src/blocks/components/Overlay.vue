@@ -56,6 +56,7 @@ export default class Overlay extends Vue {
   top: 50%;
   width: 80%;
   height: 60%;
+  line-height: 1em;
   transform: translate(-50%, -50%);
 }
 </style>

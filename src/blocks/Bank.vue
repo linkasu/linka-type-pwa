@@ -34,7 +34,9 @@
           :isPaste="isPaste"
           :title="title||'Категория не выбрана'"
         />
+
       </v-flex>
+
     </v-layout>
   </section>
 </template>

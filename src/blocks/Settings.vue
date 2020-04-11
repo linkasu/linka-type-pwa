@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-tabs v-model="tab" background-color="deep-purple accent-4" center-active dark centered>
+    <v-tabs v-model="tab" background-color="accent-4" center-active dark centered>
       <v-tab>Выбор голоса</v-tab>
       <v-tab>Адаптация интерфейса</v-tab>
       <v-tab>Передача на экран</v-tab>

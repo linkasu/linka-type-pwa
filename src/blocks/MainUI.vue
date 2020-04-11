@@ -16,7 +16,11 @@
           @say="say"
           @showMode="showMode=$event"
         />
-        <v-btn block @click="say">Сказать</v-btn>
+
+        <v-btn block @click="say" >Сказать</v-btn>
+      </v-card-text>
+      <v-card-text>
+
         <quickes v-if="isQuickes" />
       </v-card-text>
       <v-card-text>

@@ -21,7 +21,7 @@
     "vue-class-component": "^7.0.2",
     "vue-material-design-icons": "^4.4.0",
     "vue-property-decorator": "^8.1.0",
-    "vuetify": "^1.5.14",
+    "vuetify": "^2.0.0",
     "vuetify-dialog": "^2.0.2"
   },
   "devDependencies": {

@@ -5,17 +5,9 @@ import 'vuetify/dist/vuetify.css'
 
 import colors from 'vuetify/lib/util/colors'
 
-Vue.use(Vuetify, {
-  theme: {
-    themes: {
-      light: {
-        primary: colors.red.darken1, // #E53935
-        secondary: colors.red.lighten4, // #FFCDD2
-        accent: colors.indigo.base, // #3F51B5
-      },
-    },
-  }
-})
+
+
+Vue.use(Vuetify)
 
 import App from './App.vue'
 import './registerServiceWorker'
@@ -43,7 +35,17 @@ Vue.prototype.$tts = TTS.instance;
 
 
 new Vue({
-  //  vuetify: new Vuetify(),
+   vuetify: new Vuetify( {
+    theme: {
+      themes: {
+        light: {
+          primary: "#197377", // #E53935
+          secondary: "#bed64f", // #FFCDD2
+          accent: "#fbcc30", // #3F51B5
+        },
+      },
+    },
+  }),
   components:{
     Overlay
   },
