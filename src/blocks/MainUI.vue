@@ -80,7 +80,7 @@ export default class MainUI extends Vue {
     }, 0);
   }
   windowInput(event: KeyboardEvent) {
-    if (event.metaKey) {
+    if (event.metaKey||event.ctrlKey) {
       if (event.keyCode === 38) {
         this.chat = this.chat === 0 ? 2 : this.chat - 1;
       } else if (event.keyCode === 40) {

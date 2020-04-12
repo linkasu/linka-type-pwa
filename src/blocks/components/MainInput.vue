@@ -111,10 +111,9 @@ export default class MainInput extends Vue {
       return false;
     }
     if (
-      event.metaKey ||
-      (this.register &&
-        this.holdCMD &&
-        [49, 50, 51, 52, 53, 54].includes(event.keyCode))
+      ((!this.holdCMD && (event.metaKey || event.ctrlKey)) ||
+        (this.register && this.holdCMD)) &&
+      [49, 50, 51, 52, 53, 54].includes(event.keyCode)
     ) {
       (<Predicator>this.$refs.predicator).shortcut(event.keyCode - 49);
 
