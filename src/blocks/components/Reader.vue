@@ -59,7 +59,7 @@ export default class Reader extends Vue {
   @Prop() items: { text: string }[] | undefined;
 
   windowInput(e: KeyboardEvent) {
-    (<HTMLElement>this.$refs.reader).focus();
+    if (!<HTMLElement>this.$refs.reader) return this.distroy();
     switch (e.keyCode) {
       case 90:
         this.prev();
