@@ -22,8 +22,13 @@ export const createStatement = functions.https.onCall(async (data, context) => {
 
   };
   if (data.questions) {
-    await questionsCreater(data.questions, context)
-    return
+    const initRef = database()
+    .ref("users/" + context.auth.uid)
+    .child('inited');
+    if (!await (await initRef.once('value')).val())
+      await questionsCreater(data.questions, context)
+      initRef.set(true)
+    return 'done'
   }
   const id = createStatementCaller(data, context);
   return id;
@@ -99,7 +104,7 @@ async function getOrCreateCategoryByName(name: string, context: CallableContext)
   const categories = <{ id: string, label: string }[]>Object.values((await database()
     .ref("users/" + context.auth!.uid)
     .child("Category/")
-    .once("value")).val()||[])
+    .once("value")).val() || [])
 
   const category = categories.find(({ label }) => label === name)
   if (category) {

@@ -25,11 +25,11 @@
         </blockquote>
         <v-form ref="form1" v-model="valid[0]" @submit.prevent="next()">
           <v-text-field v-model="name" label="«Меня зовут …»" :rules="nameRules" outlined required></v-text-field>
-          <v-radio-group v-model="gender" :rules="genderRules" required>
+          <!-- <v-radio-group v-model="gender" :rules="genderRules" required>
             <p>Я говорю о себе, как:</p>
             <v-radio label="Мужчина" value="true"></v-radio>
             <v-radio label="Женщина" value="false"></v-radio>
-          </v-radio-group>
+          </v-radio-group> -->
           <v-btn :color="valid[0]?'success':'error'" type="submit">Дальше</v-btn>
         </v-form>
         <v-spacer />
@@ -115,6 +115,7 @@ export default class Setup extends Vue {
     if (root) {
       root.child("inited").set(true);
     }
+    this.$emit('inited')
   }
 
   nameRules: Array<(v: string) => boolean | string> = [

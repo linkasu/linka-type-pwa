@@ -17,7 +17,10 @@
             v-model="q.value"
           ></v-text-field>
         </v-row>
-        <v-btn color="accent" type="submit">Сохранить</v-btn>
+        <v-btn :disabled="loading" color="accent" type="submit">Сохранить</v-btn>
+        <v-overlay :value="loading">
+          <v-progress-circular indeterminate size="64"></v-progress-circular>
+        </v-overlay>
       </v-form>
     </v-card-text>
   </v-card>
@@ -30,32 +33,30 @@ import { Question } from "../../../functions/src/Question";
 
 import Store from "@/lib/Store";
 import fireapp from "@/lib/fireapp";
+import { Prop, Watch } from "vue-property-decorator";
 const NameProps = Vue.extend({
   props: {
     name: String
   }
 });
-@Component({
-  props: {
-    name: String
-  },
-  watch: {
-    name(value) {
-      if (!this.$data.questions) return value;
-      const question = (<Question[]>this.$data.questions).find(
-        item => item.uid === "name"
-      );
-      if (question) {
-        question.value = value;
-      }
-    }
-  }
-})
+@Component
 export default class PhraseMaker extends NameProps {
   store = new Store();
   questions: Question[] = [];
+  loading = false;
 
+  @Prop() name!: string;
+  @Watch("name") onName(value: string) {
+    if (!this.$data.questions) return value;
+    const question = (<Question[]>this.$data.questions).find(
+      item => item.uid === "name"
+    );
+    if (question) {
+      question.value = value;
+    }
+  }
   async save() {
+    this.loading = true;
     await fireapp.functions().httpsCallable("createStatement")({
       questions: this.questions
     });

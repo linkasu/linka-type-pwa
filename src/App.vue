@@ -5,7 +5,7 @@
     </v-overlay>
     <auth v-if="auth===false" @login="login" />
     <div v-else>
-      <setup v-if="inited===false" />
+      <setup v-if="inited===false" @inited="inited=true" />
       <main-ui v-if="inited===true" />
     </div>
   </v-app>
