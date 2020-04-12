@@ -1,24 +1,17 @@
 <template>
   <div>
-    <v-btn v-if="!show" @click="show=true" icon>
-      <v-icon>mdi-playlist-music</v-icon>
-    </v-btn>
-    <div v-else class="filler group" ref="reader" tabindex="0" @blur="$event.target.focus()">
+    <div class="filler group" ref="reader" tabindex="0" @blur="$event.target.focus()">
       <v-content>
-        <v-expansion-panel>
-          <v-expansion-panel-content
-            v-for="(item, i) of items"
+        <v-expansion-panels>
+          <v-expansion-panel
+            v-for="(item,i) of items"
             :key="item.id"
-            :class="{primary:i==page, success:i<page}"
+            :class="{accent:i==page, success:i<page}"
           >
-            <template v-slot:header>
-              <div>{{item.text.split(' ').slice(0,2).join(' ')}}</div>
-            </template>
-            <v-card>
-              <v-card-text>{{item.text}}</v-card-text>
-            </v-card>
-          </v-expansion-panel-content>
-        </v-expansion-panel>
+            <v-expansion-panel-header>{{i+1}}. {{item.text.split(' ').slice(0, 2).join(' ')}}</v-expansion-panel-header>
+            <v-expansion-panel-content>{{item.text}}</v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
       </v-content>
       <v-footer absolute height="auto">
         <v-card flat tile width="100%" class="secondary lighten-1 text-center">
@@ -61,41 +54,27 @@ import TTS from "@/lib/TTS";
   }
 })
 export default class Reader extends Vue {
-  show = false;
   page = 0;
   tts = TTS.instance;
   @Prop() items: { text: string }[] | undefined;
-  @Watch("show") onShow(value: boolean) {
-    if (value) {
-      setTimeout(() => {
-        (<HTMLDivElement>this.$refs.reader).focus();
-      }, 100);
-    }
-    return value;
-  }
 
   windowInput(e: KeyboardEvent) {
-    if (!this.$refs.reader) {
-      this.show = false;
-    }
-    if (this.show) {
-      (<HTMLElement>this.$refs.reader).focus();
-      switch (e.keyCode) {
-        case 90:
-          this.prev();
-          break;
-        case 77:
-          this.next();
-          break;
-        case 80:
-          this.say();
-          break;
-        case 83:
-          this.stop();
-          break;
-        default:
-          break;
-      }
+    (<HTMLElement>this.$refs.reader).focus();
+    switch (e.keyCode) {
+      case 90:
+        this.prev();
+        break;
+      case 77:
+        this.next();
+        break;
+      case 80:
+        this.say();
+        break;
+      case 83:
+        this.stop();
+        break;
+      default:
+        break;
     }
   }
   prev() {

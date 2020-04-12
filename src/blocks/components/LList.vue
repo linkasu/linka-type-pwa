@@ -22,8 +22,9 @@
         <v-btn v-if="tstatement" @click="isEditor=true" icon>
           <v-icon>mdi-format-text</v-icon>
         </v-btn>
-
-        <reader v-if="tstatement" :items="items" />
+        <v-btn v-if="tstatement" @click="isReader=true" icon>
+          <v-icon>mdi-playlist-music</v-icon>
+        </v-btn>
         <v-spacer />
         <v-toolbar-title>{{title}}</v-toolbar-title>
       </v-toolbar>
@@ -36,7 +37,13 @@
         </v-layout>
       </overlay>
     </v-card-text>
-      <text-category-editor v-if="isEditor" :items="items" @save="$emit('save', $event)" @quit="isEditor=false"/>
+    <text-category-editor
+      v-if="isEditor"
+      :items="items"
+      @save="$emit('save', $event)"
+      @quit="isEditor=false"
+    />
+    <reader v-if="isReader" :items="items" />
     <v-btn v-if="caller==null" absolute dark bottom right color="primary" @click="$emit('add')">+</v-btn>
   </v-card>
 </template>
@@ -65,7 +72,8 @@ import { Prop } from "vue-property-decorator";
 })
 export default class LList extends Vue {
   caller: Function | null = null;
-  isEditor=false;
+  isEditor = false;
+  isReader = false;
   @Prop() items: Array<any> | undefined;
   @Prop() dkey: String | undefined;
   @Prop() title: String | undefined;
