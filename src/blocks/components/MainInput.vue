@@ -17,6 +17,7 @@
           :value="text"
           @input="input"
           @keydown.66.meta.prevent="toggle"
+          @keydown.8.meta="input('')"
           @keydown="fieldInput($event)"
           @keydown.enter.prevent="$emit('say')"
         ></v-text-field>
@@ -106,19 +107,21 @@ export default class MainInput extends Vue {
   fieldInput(event: KeyboardEvent) {
     if (this.holdCMD && ["Meta", "Control"].includes(event.key)) {
       this.register = !this.register;
-      event.preventDefault()
+      event.preventDefault();
       return false;
     }
     if (
-    event.metaKey||(this.register&&this.holdCMD) && [49, 50, 51, 52, 53, 54].includes(event.keyCode)
+      event.metaKey ||
+      (this.register &&
+        this.holdCMD &&
+        [49, 50, 51, 52, 53, 54].includes(event.keyCode))
     ) {
       (<Predicator>this.$refs.predicator).shortcut(event.keyCode - 49);
 
       this.register = false;
-      event.preventDefault()
+      event.preventDefault();
       return false;
     }
-    return true;
   }
   windowInput(event: KeyboardEvent) {
     if (event.target === this.$refs.input) {
