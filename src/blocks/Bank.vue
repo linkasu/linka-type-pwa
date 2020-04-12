@@ -55,6 +55,7 @@ import { QWERTY } from "../constants";
 import { StoreItem } from "../lib/StoreItem";
 import { Statement } from "../lib/Statement";
 import { Category } from "../lib/Category";
+import { analytics } from "firebase";
 
 @Component({
   components: {
@@ -84,10 +85,12 @@ export default class Bank extends Vue {
     if (!this.cid) {
       const item = this.categories[number];
       if (!item) return;
+      analytics().logEvent("bank_key_cselect");
       this.cselect(item);
     } else {
       const item = this.statements[number];
       if (!item) return;
+      analytics().logEvent("bank_key_sselect");
       this.sselect(item);
     }
   }
@@ -105,6 +108,7 @@ export default class Bank extends Vue {
     ref.on("child_added", this.loadStatement);
     ref.on("child_changed", this.loadStatement);
     ref.on("child_removed", this.removeStatement);
+    analytics().logEvent("bank_cselect");
   }
 
   sselect(statement: Statement) {
@@ -114,6 +118,7 @@ export default class Bank extends Vue {
       return;
     }
     TTS.instance.say(statement.text);
+    analytics().logEvent("bank_key_sselect");
   }
   back() {
     this.isPaste = false;
@@ -142,16 +147,19 @@ export default class Bank extends Vue {
 
     if (!this.store.root || !title) return;
     this.store.createCategory(title);
+    analytics().logEvent("bank_cadd");
   }
   async sadd() {
     let text = await this.prompt("Введите высказывание");
 
     if (!this.store.root || !text || !this.cid) return;
     await this.store.createStatement(this.cid, text);
+    analytics().logEvent("bank_sadd");
   }
 
   async deleteItem(what: "category" | "statement", item: StoreItem) {
     await this.store.deleteItem(what, this.cid, item.id);
+    analytics().logEvent("bank_delete_" + what);
   }
   async editItem(what: "category" | "statement", item: Statement | Category) {
     const newText = await this.prompt(
@@ -165,6 +173,7 @@ export default class Bank extends Vue {
     } else {
       this.store.editStatement(<Statement>item, newText);
     }
+    analytics().logEvent("bank_edit_" + what);
   }
   async refillCategory(rows: string) {
     if (!this.cid || !this.store.root) return;
@@ -173,6 +182,7 @@ export default class Bank extends Vue {
     for (const row of rows) {
       await this.store.createStatement(this.cid, row);
     }
+    analytics().logEvent("bank_refill");
   }
   loadCategory(data: firebase.database.DataSnapshot) {
     this.loading = false;

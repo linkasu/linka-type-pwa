@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "sitepush": "firebase deploy --only hosting"
+    "sitepush": "firebase deploy --only hosting",
+    "deploy": "firebase deploy"
   },
   "dependencies": {
     "@firebase/analytics": "^0.3.0",

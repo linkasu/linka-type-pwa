@@ -1,4 +1,5 @@
 import LocalMemory from './LocalMemory';
+import { analytics } from 'firebase';
 
 let yatts: { speak: (text: string, params: any) => void };
 
@@ -49,12 +50,12 @@ class TTS {
       this.synth.speak(utterThis);
     }
   }
-  stop(){
-    if(this.yandex){}else{
+  stop() {
+    if (this.yandex) { } else {
       this.synth.cancel()
     }
   }
-  
+
   get volume() {
     return this.storage.getNumber('volume', 1);
   };
@@ -74,7 +75,11 @@ class TTS {
     this.storage.setNumber('pitch', pitch);
   }
   get yandex() {
-    return !!this.storage.getBoolean('yandex', false)
+    const value = !!this.storage.getBoolean('yandex', false)
+    analytics()
+      .setUserProperties({ use_yandex: value })
+
+    return value
   }
   set yandex(value: boolean) {
     this.storage.setBoolean('yandex', value)
@@ -84,8 +89,6 @@ class TTS {
     const voice = this.offlineVoices.find(item => item.voiceURI === uri) || this.yandexVoices.find(item => item.voiceURI === uri)
     if (!voice) return;
     this.voice = voice;
-    this.storage.setString('voiceuri', voice.voiceURI)
-
   }
 
   get offlineVoices(): SpeechSynthesisVoice[] {
@@ -115,7 +118,8 @@ class TTS {
     const uri = this.storage.getString('voiceuri', def ? def.voiceURI : "uri")
     if (this.yandex) {
       const voice = this.yandexVoices.find(voice => voice.voiceURI === uri);
-
+      analytics()
+        .setUserProperties({ voice: voice!.voiceURI });
       return voice || this.yandexVoices[0]
     }
     const voice = voices.find(voice => voice.voiceURI === uri)
@@ -125,7 +129,8 @@ class TTS {
       this.storage.setString('voiceuri', def ? def.voiceURI : "uri")
       return this.selectedVoice
     }
-
+    analytics()
+      .setUserProperties({ voice: voice!.voiceURI })
     return voice!
   }
 }

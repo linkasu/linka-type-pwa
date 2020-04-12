@@ -12,7 +12,7 @@ import fireapp from "../lib/fireapp";
 import Store from "../lib/Store";
 import TTS from "../lib/TTS";
 import ButtonRow from "./components/ButtonRow.vue";
-
+import { analytics } from "firebase";
 
 const store = new Store();
 
@@ -24,6 +24,7 @@ const store = new Store();
 export default class Quickes extends Vue {
   phrases: string[] = new Array(6);
   say(phrase: string) {
+    analytics().logEvent("quickes_say");
     TTS.instance.say(phrase);
   }
 
@@ -62,7 +63,7 @@ export default class Quickes extends Vue {
     this.load();
 
     window.addEventListener("keydown", e => {
-      if (e.code === "Digit0"&&(e.metaKey||e.ctrlKey)) {
+      if (e.code === "Digit0" && (e.metaKey || e.ctrlKey)) {
         (<HTMLInputElement>this.$el).focus();
       }
     });

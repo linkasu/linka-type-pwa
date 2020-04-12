@@ -12,6 +12,7 @@ import axios from "axios";
 import Component from "vue-class-component";
 import ButtonRow from "./ButtonRow.vue";
 import { Prop, Watch } from "vue-property-decorator";
+import { analytics } from "firebase";
 const key =
   "pdct.1.1.20171001T082116Z.f25e2b63fec6bfda.539464c0551ea8f6790d15ce6e78977d247d0804";
 
@@ -27,8 +28,9 @@ export default class Predicator extends Vue {
   })
   value: String | undefined;
   @Prop({
-    default:null
-  }) register: boolean|undefined
+    default: null
+  })
+  register: boolean | undefined;
   pos = 0;
   words: string[] = [];
   @Watch("value") onText(value: string) {
@@ -58,6 +60,7 @@ export default class Predicator extends Vue {
       (this.pos === 1 ? " " : "");
     this.$emit("input", text + this.words[index] + " ");
     this.clear();
+    analytics().logEvent("predicator_use");
   }
   clear() {
     this.words = [];

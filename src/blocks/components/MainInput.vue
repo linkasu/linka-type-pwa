@@ -44,6 +44,7 @@ import Overlay from "./Overlay.vue";
 import Predicator from "./Predicator.vue";
 import LocalMemory from "../../lib/LocalMemory";
 import TTS from "../../lib/TTS";
+import { analytics } from 'firebase';
 
 @Component({
   components: {
@@ -143,6 +144,7 @@ export default class MainInput extends Vue {
 
       this.awaitFocus("input");
     } else {
+      analytics().logEvent('spotlight')
       this.$emit("showMode", true);
       this.awaitFocus("textarea");
     }

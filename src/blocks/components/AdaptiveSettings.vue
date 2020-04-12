@@ -51,6 +51,7 @@ import Component from "vue-class-component";
 import TTS from "../../lib/TTS";
 import LocalMemory from "../../lib/LocalMemory";
 import { Watch } from "vue-property-decorator";
+import { analytics } from 'firebase';
 
 @Component
 export default class AdaptiveSettings extends Vue {
@@ -61,18 +62,33 @@ export default class AdaptiveSettings extends Vue {
   readLastWord: boolean | null = this.lc.getBoolean("readLastWord", false);
   holdCMD: boolean | null = this.lc.getBoolean("holdCMD", false);
   @Watch("predicator") onPredicator(value: boolean) {
+
+    analytics()
+      .setUserProperties({ showPredicator: value  })
     this.lc.setBoolean("predicator", value);
   }
   @Watch("quickes") onQuickes(value: boolean) {
+
+    analytics()
+      .setUserProperties({ showQuickes: value  })
     this.lc.setBoolean("quickes", value);
   }
   @Watch("bank") onBank(value: boolean) {
+
+    analytics()
+      .setUserProperties({ showBank: value  })
     this.lc.setBoolean("bank", value);
   }
   @Watch("readLastWord") onReadLastWord(value: boolean) {
+
+    analytics()
+      .setUserProperties({ readLastWord: value  })
     this.lc.setBoolean("readLastWord", value);
   }
   @Watch("holdCMD") onHoldCMD(value: boolean) {
+
+    analytics()
+      .setUserProperties({ onHoldCMD: value  })
     this.lc.setBoolean("holdCMD", value);
   }
   created() {}

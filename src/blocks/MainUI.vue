@@ -17,10 +17,9 @@
           @showMode="showMode=$event"
         />
 
-        <v-btn block @click="say" >Сказать</v-btn>
+        <v-btn block @click="say">Сказать</v-btn>
       </v-card-text>
       <v-card-text>
-
         <quickes v-if="isQuickes" />
       </v-card-text>
       <v-card-text>
@@ -43,6 +42,7 @@ import Settings from "./Settings.vue";
 import MainInput from "./components/MainInput.vue";
 import LocalMemory from "../lib/LocalMemory";
 import { Watch } from "vue-property-decorator";
+import { analytics } from "firebase";
 
 @Component({
   components: {
@@ -68,6 +68,8 @@ export default class MainUI extends Vue {
     }
   }
   say() {
+    analytics().logEvent("say");
+
     TTS.instance.say(this.textForSpeak[this.chat]);
   }
   paste(event: string) {
@@ -80,7 +82,7 @@ export default class MainUI extends Vue {
     }, 0);
   }
   windowInput(event: KeyboardEvent) {
-    if (event.metaKey||event.ctrlKey) {
+    if (event.metaKey || event.ctrlKey) {
       if (event.keyCode === 38) {
         this.chat = this.chat === 0 ? 2 : this.chat - 1;
       } else if (event.keyCode === 40) {
@@ -95,7 +97,6 @@ export default class MainUI extends Vue {
     window.addEventListener("keydown", this.windowInput);
 
     console.log(this);
-    
   }
 }
 </script>

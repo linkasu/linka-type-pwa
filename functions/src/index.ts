@@ -34,9 +34,6 @@ export const createStatement = functions.https.onCall(async (data, context) => {
   return id;
 });
 
-export const parseQuestionsInput = functions.https.onCall(async (data, context) => {
-  return data;
-})
 
 export const getQuestions = functions.database.ref('/factory/questions')
 
