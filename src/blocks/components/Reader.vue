@@ -32,7 +32,7 @@
               <v-icon>mdi-chevron-right</v-icon>
             </v-btn>
           </v-card-text>
-          <v-btn right icon absolute top justify-center @click="show=false">
+          <v-btn right icon absolute top justify-center @click="$emit('quit')">
             <v-icon color="red">mdi-close</v-icon>
           </v-btn>
         </v-card>

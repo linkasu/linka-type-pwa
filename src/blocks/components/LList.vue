@@ -23,7 +23,7 @@
           <v-icon>mdi-format-text</v-icon>
         </v-btn>
         <v-btn v-if="tstatement" @click="isReader=true" icon>
-          <v-icon>mdi-playlist-music</v-icon>
+          <v-icon>mdi-book-open</v-icon>
         </v-btn>
         <v-spacer />
         <v-toolbar-title>{{title}}</v-toolbar-title>
@@ -43,8 +43,8 @@
       @save="$emit('save', $event)"
       @quit="isEditor=false"
     />
-    <reader v-if="isReader" :items="items" />
-    <v-btn v-if="caller==null" absolute dark bottom right color="primary" @click="$emit('add')">+</v-btn>
+    <reader v-if="isReader" :items="items" @quit='isReader=false'/>
+    <v-btn v-if="caller==null" absolute dark bottom right color="accent" @click="$emit('add')">+</v-btn>
   </v-card>
 </template>
 
