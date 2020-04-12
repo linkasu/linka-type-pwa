@@ -6,7 +6,6 @@
     @keydown.esc.self="back"
     @keydown.86.self="isPaste=!isPaste"
   >
-   
     <v-layout>
       <v-flex xs12 v-if="cid===null">
         <l-list
@@ -35,12 +34,11 @@
           :isPaste="isPaste"
           :title="title||'Категория не выбрана'"
         />
-
       </v-flex>
 
-  <v-overlay :value="loading" absolute>
-      <v-progress-circular indeterminate size="64"></v-progress-circular>
-    </v-overlay>
+      <v-overlay :value="loading" absolute>
+        <v-progress-circular indeterminate size="64"></v-progress-circular>
+      </v-overlay>
     </v-layout>
   </section>
 </template>
@@ -71,7 +69,7 @@ export default class Bank extends Vue {
   title: string | null = null;
   user: firebase.User | null = fireapp.auth().currentUser;
   isPaste = false;
-  loading=true;
+  loading = true;
   onInput(e: KeyboardEvent) {
     if (<HTMLElement>e.target != this.$el) return true;
 
@@ -177,9 +175,9 @@ export default class Bank extends Vue {
     }
   }
   loadCategory(data: firebase.database.DataSnapshot) {
-    this.loading = false
+    this.loading = false;
 
-if (this.categories.some(item => item.id === data.key)) return;
+    if (this.categories.some(item => item.id === data.key)) return;
     const category = data.val();
 
     this.categories.push(category);
@@ -213,8 +211,9 @@ if (this.categories.some(item => item.id === data.key)) return;
   }
 
   onWindowInput(e: KeyboardEvent) {
-    if (e.metaKey && e.which === 186) {
+    if ((e.metaKey || e.ctrlKey) && e.which === 186) {
       (<HTMLElement>this.$el).focus();
+      e.preventDefault();
       return false;
     }
   }

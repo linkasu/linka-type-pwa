@@ -1,9 +1,9 @@
 <template>
-  <v-app id="app" v-if="auth!==null" light>
+  <v-app id="app" light>
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="64"></v-progress-circular>
     </v-overlay>
-    <auth v-if="!auth" @login="login" />
+    <auth v-if="auth===false" @login="login" />
     <div v-else>
       <setup v-if="inited===false" />
       <main-ui v-if="inited===true" />
