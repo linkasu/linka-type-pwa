@@ -93,6 +93,9 @@ export default class MainUI extends Vue {
     this.isQuickes = !!lc.getBoolean("quickes", true);
     this.isBank = !!lc.getBoolean("bank", true);
     window.addEventListener("keydown", this.windowInput);
+
+    console.log(this);
+    
   }
 }
 </script>
