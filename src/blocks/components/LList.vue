@@ -8,6 +8,9 @@
         <v-btn @click="choose('delete')" icon>
           <v-icon>mdi-delete</v-icon>
         </v-btn>
+        <v-btn @click="choose('edit')" icon>
+          <v-icon>mdi-pencil-outline</v-icon>
+        </v-btn>
         <v-btn
           @click="$emit('isPaste', !isPaste) "
           icon
@@ -16,8 +19,8 @@
         >
           <v-icon>mdi-content-paste</v-icon>
         </v-btn>
-        <v-btn @click="choose('edit')" icon>
-          <v-icon>mdi-pencil-outline</v-icon>
+        <v-btn @click="$emit('random')" v-if="tstatement" icon>
+          <v-icon>mdi-flash</v-icon>
         </v-btn>
         <v-btn v-if="tstatement" @click="isEditor=true" icon>
           <v-icon>mdi-format-text</v-icon>
@@ -43,7 +46,7 @@
       @save="$emit('save', $event)"
       @quit="isEditor=false"
     />
-    <reader v-if="isReader" :items="items" @quit='isReader=false'/>
+    <reader v-if="isReader" :items="items" @quit="isReader=false" />
     <v-btn v-if="caller==null" absolute dark bottom right color="accent" @click="$emit('add')">+</v-btn>
   </v-card>
 </template>

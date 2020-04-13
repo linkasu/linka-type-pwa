@@ -4,6 +4,7 @@
     class="group"
     @keydown="onInput"
     @keydown.esc.self="back"
+    @keydown.82.self="srandom"
     @keydown.86.self="isPaste=!isPaste"
   >
 
@@ -33,6 +34,7 @@
           :items="statements"
           dkey="text"
           :isPaste="isPaste"
+          @random="srandom"
           :title="title||'Категория не выбрана'"
         />
       </v-flex>
@@ -143,6 +145,12 @@ this.statements=[]
     }
     TTS.instance.say(statement.text);
     analytics().logEvent("bank_key_sselect");
+  }
+  srandom(){
+    if(!this.cid) return;
+    this.sselect(this.statements[Math.floor(Math.random()*(this.statements.length-1))])
+
+    analytics().logEvent("bank_random");
   }
   back() {
     this.isPaste = false;
