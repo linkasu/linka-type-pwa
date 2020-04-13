@@ -1,23 +1,35 @@
 <template>
-<v-container grid-list-xs>
-  
-  <v-form>
-    <v-btn
-      x-large
-      block
-      color="accent"
-      @click="tts.say('Проверка озвучки, если вы слышите голос и вас всё устраивает, нажмите кнопку Дальше')"
-    >Проверить озвучку</v-btn>
+  <v-container grid-list-xs>
+    <v-form>
+      <v-btn
+        x-large
+        block
+        color="accent"
+        @click="tts.say('Проверка озвучки, если вы слышите голос и вас всё устраивает, нажмите кнопку Дальше')"
+      >Проверить озвучку</v-btn>
 
-    <v-checkbox label="Использовать голоса яндекс" v-model="yandex"></v-checkbox>
+      <v-checkbox label="Использовать голоса яндекс" v-model="yandex"></v-checkbox>
 
-    <v-select :items="voices" v-model="voice" @change="setVoice" />
-    <v-slider v-if="!yandex" step="0.1" nin="0" max="2" v-model="pitch" label="Тональность голоса" />
-    <v-slider step="0.1" min="0.1" max="2" v-model="rate" label="Скорость голоса" />
-    <v-slider v-if="!yandex" step="0.1" min="0" max="1" v-model="volume" label="Громскость голоса" />
-  </v-form>
-</v-container>
-
+      <v-select :items="voices" v-model="voice" @change="setVoice" />
+      <v-slider
+        v-if="!yandex"
+        step="0.1"
+        nin="0"
+        max="2"
+        v-model="pitch"
+        label="Тональность голоса"
+      />
+      <v-slider step="0.1" min="0.1" max="2" v-model="rate" label="Скорость голоса" />
+      <v-slider
+        v-if="!yandex"
+        step="0.1"
+        min="0"
+        max="1"
+        v-model="volume"
+        label="Громскость голоса"
+      />
+    </v-form>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -36,16 +48,16 @@ export default class VoiceSettings extends Vue {
   rate: number = 1;
   volume: number = 1;
   yandex: boolean = false;
-  @Watch("rate") onRate(value:number) {
+  @Watch("rate") onRate(value: number) {
     this.tts.rate = value;
   }
-  @Watch("pitch") onPitch(value:number) {
+  @Watch("pitch") onPitch(value: number) {
     this.tts.pitch = value;
   }
-  @Watch("volume") onVolume(value:number) {
+  @Watch("volume") onVolume(value: number) {
     this.tts.volume = value;
   }
-  @Watch("yandex") onYandex(value:boolean) {
+  @Watch("yandex") onYandex(value: boolean) {
     this.tts.yandex = value;
     this.voice = this.tts.selectedVoice.voiceURI;
   }
