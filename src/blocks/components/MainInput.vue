@@ -14,6 +14,7 @@
           ref="input"
           type="text"
           color="accent"
+          clearable
           :value="text"
           @input="input"
           @keydown.66.meta.prevent="toggle"
