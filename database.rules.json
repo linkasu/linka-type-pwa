@@ -1,14 +1,23 @@
 {
   "rules": {
+    "global":{
+      ".read":"auth.uid!=null",
+      ".write": "root.child('admins').child(auth.uid).exists()"
+    },
+    "admins":{
+      ".write": false,
+      ".read": "root.child('admins').child(auth.uid).exists()"
+    },
+
     "users": {
       "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
+        ".read": "$uid == auth.uid",
+        ".write": "$uid == auth.uid"
       }
     },
     "factory": {
       ".read": "auth.uid!=null",
-      ".write": false
+      ".write": "root.child('admins').child(auth.uid).exists()"
 
     }
   }

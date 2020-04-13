@@ -1,4 +1,5 @@
-export interface StoreItem{
-  id:string,
+export interface StoreItem {
+  id: string,
+  created: number;
 
 }

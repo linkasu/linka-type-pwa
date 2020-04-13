@@ -1,11 +1,12 @@
 <template>
-  <section
+   <section
     tabindex="0"
     class="group"
     @keydown="onInput"
     @keydown.esc.self="back"
     @keydown.86.self="isPaste=!isPaste"
   >
+
     <v-layout>
       <v-flex xs12 v-if="cid===null">
         <l-list
@@ -40,6 +41,9 @@
         <v-progress-circular indeterminate size="64"></v-progress-circular>
       </v-overlay>
     </v-layout>
+    
+    <v-switch v-if="isAdmin&&hasHash" color="white" x-small label="globalEdit" v-model="globalEdit"></v-switch>
+
   </section>
 </template>
 
@@ -56,6 +60,7 @@ import { StoreItem } from "../lib/StoreItem";
 import { Statement } from "../lib/Statement";
 import { Category } from "../lib/Category";
 import { analytics } from "firebase";
+import { Watch } from 'vue-property-decorator';
 
 @Component({
   components: {
@@ -71,6 +76,22 @@ export default class Bank extends Vue {
   user: firebase.User | null = fireapp.auth().currentUser;
   isPaste = false;
   loading = true;
+  isAdmin = false;
+  globalEdit = false;
+
+
+public get hasHash() : boolean {
+  return window.location.hash==='#admin'
+}
+
+
+  @Watch('globalEdit') onGlobalEdit(value:boolean){
+
+this.categories=[];
+this.statements=[]
+    
+    this.refCategory()
+  }
   onInput(e: KeyboardEvent) {
     if (<HTMLElement>e.target != this.$el) return true;
 
@@ -103,7 +124,10 @@ export default class Bank extends Vue {
     this.title = category.label;
     if (!this.user || !this.store.root) return;
     this.statements = [];
-    const ref = this.store.getStatements(this.cid!);
+    const ref = this.store.getStatements(
+      this.cid!,
+      this.isAdmin && this.globalEdit
+    );
     ref.off();
     ref.on("child_added", this.loadStatement);
     ref.on("child_changed", this.loadStatement);
@@ -146,19 +170,28 @@ export default class Bank extends Vue {
     let title = await this.prompt("Введите название категории");
 
     if (!this.store.root || !title) return;
-    this.store.createCategory(title);
+    this.store.createCategory(title, this.isAdmin && this.globalEdit);
     analytics().logEvent("bank_cadd");
   }
   async sadd() {
     let text = await this.prompt("Введите высказывание");
 
     if (!this.store.root || !text || !this.cid) return;
-    await this.store.createStatement(this.cid, text);
+    await this.store.createStatement(
+      this.cid,
+      text,
+      this.isAdmin && this.globalEdit
+    );
     analytics().logEvent("bank_sadd");
   }
 
   async deleteItem(what: "category" | "statement", item: StoreItem) {
-    await this.store.deleteItem(what, this.cid, item.id);
+    await this.store.deleteItem(
+      what,
+      this.cid,
+      item.id,
+      this.isAdmin && this.globalEdit
+    );
     analytics().logEvent("bank_delete_" + what);
   }
   async editItem(what: "category" | "statement", item: Statement | Category) {
@@ -169,19 +202,34 @@ export default class Bank extends Vue {
     if (!newText) return;
 
     if (what === "category") {
-      this.store.editCategory(<Category>item, newText);
+      this.store.editCategory(
+        <Category>item,
+        newText,
+        this.isAdmin && this.globalEdit
+      );
     } else {
-      this.store.editStatement(<Statement>item, newText);
+      this.store.editStatement(
+        <Statement>item,
+        newText,
+        this.isAdmin && this.globalEdit
+      );
     }
     analytics().logEvent("bank_edit_" + what);
   }
   async refillCategory(rows: string) {
     if (!this.cid || !this.store.root) return;
-    await this.store.getStatements(this.cid).remove();
-
+    await this.store
+      .getStatements(this.cid, this.isAdmin && this.globalEdit)
+      .remove();
+    this.loading = true;
     for (const row of rows) {
-      await this.store.createStatement(this.cid, row);
+      await this.store.createStatement(
+        this.cid,
+        row,
+        this.isAdmin && this.globalEdit
+      );
     }
+    this.loading = false;
     analytics().logEvent("bank_refill");
   }
   loadCategory(data: firebase.database.DataSnapshot) {
@@ -210,14 +258,21 @@ export default class Bank extends Vue {
   created() {
     if (this.user == null) return;
     if (!this.store.root) return;
-
-    const ref = this.store.root.child("Category");
-    ref.off();
-    ref.on("child_changed", this.loadCategory);
-    ref.on("child_added", this.loadCategory);
-    ref.on("child_removed", this.removeCategory);
-
+    this.store.isAdmin().then(is => {
+      this.isAdmin = is;
+      this.refCategory()
+    });
     window.addEventListener("keydown", this.onWindowInput);
+  }
+  refCategory() {
+
+      const ref = this.store
+        .host(this.isAdmin && this.globalEdit)
+        .child("Category");
+      ref.off();
+      ref.on("child_changed", this.loadCategory);
+      ref.on("child_added", this.loadCategory);
+      ref.on("child_removed", this.removeCategory);
   }
 
   onWindowInput(e: KeyboardEvent) {
@@ -228,12 +283,7 @@ export default class Bank extends Vue {
     }
   }
   sortedItems(items: any[]) {
-    return items.sort((a: any, b: any) => {
-      if (a.default !== b.default) {
-        return a.default ? -1 : 1;
-      }
-      return a.created - b.created;
-    });
+    return Store.sortItems(items)
   }
 }
 </script>

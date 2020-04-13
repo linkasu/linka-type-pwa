@@ -20,6 +20,9 @@ app.initializeApp(firebaseConfig);
 auth().languageCode='ru'
 analytics()
 
+console.log(database());
+
+
 
 export default {
   app,

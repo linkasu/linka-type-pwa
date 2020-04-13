@@ -23,17 +23,36 @@ export const createStatement = functions.https.onCall(async (data, context) => {
   };
   if (data.questions) {
     const initRef = database()
-    .ref("users/" + context.auth.uid)
-    .child('inited');
+      .ref("users/" + context.auth.uid)
+      .child('inited');
     if (!await (await initRef.once('value')).val())
       await questionsCreater(data.questions, context)
-      initRef.set(true)
+    initRef.set(true)
     return 'done'
   }
   const id = createStatementCaller(data, context);
   return id;
 });
 
+export const importFromGlobal = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new Error("not auth");
+
+  };
+
+  const ref = database()
+    .ref('/users/' + context.auth.uid + '/Category/' + data.id);
+  if (!data.force && (await ref.once('value')).exists()) {
+    return 'exists'
+  }
+  const source = database()
+  .ref('/global/Category/'+data.id)
+  const obj = await (await source.once('value')).val()
+  console.log(obj);
+  
+  ref.set(obj)
+  return 'done'
+})
 
 export const getQuestions = functions.database.ref('/factory/questions')
 
