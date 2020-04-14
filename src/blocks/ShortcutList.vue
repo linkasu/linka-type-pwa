@@ -4,7 +4,7 @@
     <v-simple-table>
         <thead>
           <tr>
-            <th class="text-left">Сочитание</th>
+            <th class="text-left">Сочетание</th>
             <th class="text-left">Блок</th>
             <th class="text-left">Функция</th>
           </tr>
