@@ -4,9 +4,9 @@
       <v-toolbar-title>{{settingsMode?'Настройки':'LINKa. Напиши'}}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items v-if="!settingsMode">
-        <!-- <v-btn  @click="$emit('show')" icon title="Показать">
-          <v-icon>mdi-stream</v-icon>
-        </v-btn>-->
+        <v-btn  @click="$emit('shortcut')" icon title="Справка по сочитаниям клавиш">
+          <v-icon>mdi-help</v-icon>
+        </v-btn>
 
         <v-btn @click="$emit('chat', chat===2?0:chat+1)" icon title="Переключить ячейку памяти">
           <v-icon>mdi-numeric-{{chat+1}}-box-multiple</v-icon>

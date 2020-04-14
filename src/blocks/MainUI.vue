@@ -2,11 +2,14 @@
   <div>
     <l-header
       @show="showMode=true"
+      @shortcut="shortcutMode=true"
       @settings="settingsMode=!settingsMode"
       :settingsMode="settingsMode"
       :chat="chat"
+
       @chat="chat=$event"
     />
+    <shortcut-list v-if="shortcutMode" @close="shortcutMode=false"/>
     <settings v-if="settingsMode" />
     <main v-else>
       <v-card-text>
@@ -40,6 +43,7 @@ import Bank from "./Bank.vue";
 import Quickes from "./Quickes.vue";
 import Settings from "./Settings.vue";
 import MainInput from "./components/MainInput.vue";
+import ShortcutList from "./ShortcutList.vue";
 import LocalMemory from "../lib/LocalMemory";
 import { Watch } from "vue-property-decorator";
 import { analytics } from "firebase";
@@ -50,7 +54,8 @@ import { analytics } from "firebase";
     Bank,
     MainInput,
     Quickes,
-    Settings
+    Settings,
+    ShortcutList
   }
 })
 export default class MainUI extends Vue {
@@ -58,8 +63,10 @@ export default class MainUI extends Vue {
   textForSpeak: string[] = ["", "", ""];
   showMode: boolean = false;
   settingsMode = false;
+  shortcutMode = false;
   isQuickes = true;
   isBank = true;
+
   chat = 0;
   @Watch("settingsMode") onSettingsMode(value: boolean) {
     if (!value) {
