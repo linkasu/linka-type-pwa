@@ -7,7 +7,7 @@
         Обучающее видео
       </v-card-title>
       <v-card-media fill-height>
-        <iframe style="width:100%;height:80%;" src="https://www.youtube.com/embed/Zb8KW44Bi8o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <iframe style="width:100%;height:80%;" src="https://www.youtube.com/embed/R0SFAfs2XTw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </v-card-media>
     </v-card>
         <v-btn fab  right small color="primary" @click="$emit('close')">
