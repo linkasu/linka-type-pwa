@@ -6,10 +6,11 @@
       @settings="settingsMode=!settingsMode"
       :settingsMode="settingsMode"
       :chat="chat"
-
       @chat="chat=$event"
+      @tutorial="tutorialMode=true"
     />
-    <shortcut-list v-if="shortcutMode" @close="shortcutMode=false"/>
+    <tutorial v-if="tutorialMode" @close="tutorialMode=false;lc.setBoolean('tutorial', false)" />
+    <shortcut-list v-if="shortcutMode" @close="shortcutMode=false" />
     <settings v-if="settingsMode" />
     <main v-else>
       <v-card-text>
@@ -40,6 +41,7 @@ import TTS from "../lib/TTS";
 
 import LHeader from "./LHeader.vue";
 import Bank from "./Bank.vue";
+import Tutorial from "./Tutorial.vue";
 import Quickes from "./Quickes.vue";
 import Settings from "./Settings.vue";
 import MainInput from "./components/MainInput.vue";
@@ -55,6 +57,7 @@ import { analytics } from "firebase";
     MainInput,
     Quickes,
     Settings,
+    Tutorial,
     ShortcutList
   }
 })
@@ -66,6 +69,7 @@ export default class MainUI extends Vue {
   shortcutMode = false;
   isQuickes = true;
   isBank = true;
+  tutorialMode = this.lc.getBoolean("tutorial", true);
 
   chat = 0;
   @Watch("settingsMode") onSettingsMode(value: boolean) {
