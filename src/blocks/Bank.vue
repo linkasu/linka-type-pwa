@@ -1,5 +1,5 @@
 <template>
-   <section
+  <section
     tabindex="0"
     class="group"
     @keydown="onInput"
@@ -7,7 +7,6 @@
     @keydown.82.self="srandom"
     @keydown.86.self="isPaste=!isPaste"
   >
-
     <v-layout>
       <v-flex xs12 v-if="cid===null">
         <l-list
@@ -43,9 +42,8 @@
         <v-progress-circular indeterminate size="64"></v-progress-circular>
       </v-overlay>
     </v-layout>
-    
-    <v-switch v-if="isAdmin&&hasHash" color="white" x-small label="globalEdit" v-model="globalEdit"></v-switch>
 
+    <v-switch v-if="isAdmin&&hasHash" color="white" x-small label="globalEdit" v-model="globalEdit"></v-switch>
   </section>
 </template>
 
@@ -62,7 +60,7 @@ import { StoreItem } from "../lib/StoreItem";
 import { Statement } from "../lib/Statement";
 import { Category } from "../lib/Category";
 import { analytics } from "firebase";
-import { Watch } from 'vue-property-decorator';
+import { Watch } from "vue-property-decorator";
 
 @Component({
   components: {
@@ -81,18 +79,15 @@ export default class Bank extends Vue {
   isAdmin = false;
   globalEdit = false;
 
+  public get hasHash(): boolean {
+    return window.location.hash === "#admin";
+  }
 
-public get hasHash() : boolean {
-  return window.location.hash==='#admin'
-}
+  @Watch("globalEdit") onGlobalEdit(value: boolean) {
+    this.categories = [];
+    this.statements = [];
 
-
-  @Watch('globalEdit') onGlobalEdit(value:boolean){
-
-this.categories=[];
-this.statements=[]
-    
-    this.refCategory()
+    this.refCategory();
   }
   onInput(e: KeyboardEvent) {
     if (<HTMLElement>e.target != this.$el) return true;
@@ -146,9 +141,11 @@ this.statements=[]
     TTS.instance.say(statement.text);
     analytics().logEvent("bank_key_sselect");
   }
-  srandom(){
-    if(!this.cid) return;
-    this.sselect(this.statements[Math.floor(Math.random()*(this.statements.length-1))])
+  srandom() {
+    if (!this.cid) return;
+    this.sselect(
+      this.statements[Math.floor(Math.random() * (this.statements.length - 1))]
+    );
 
     analytics().logEvent("bank_random");
   }
@@ -159,17 +156,22 @@ this.statements=[]
   prompt(title: string, edit?: string): Promise<string> {
     return this.$dialog
       .prompt({
-        text: "Завтрак",
+        text: "Введите название",
         value: edit,
         title,
         actions: ["Отменить", edit ? "Создать" : "Сохранить"]
       })
       .then(text => {
         if (text == undefined || text == "") {
-          return this.$dialog.error({
-            text: "Вы ничего не ввели",
-            title: "Ошибка"
-          });
+          return this.$dialog
+            .error({
+              text: "Вы ничего не ввели",
+              title: "Ошибка",
+              actions: {
+                false: "Закрыть"
+              }
+            })
+            .then(() => false);
         }
         return text;
       });
@@ -268,19 +270,18 @@ this.statements=[]
     if (!this.store.root) return;
     this.store.isAdmin().then(is => {
       this.isAdmin = is;
-      this.refCategory()
+      this.refCategory();
     });
     window.addEventListener("keydown", this.onWindowInput);
   }
   refCategory() {
-
-      const ref = this.store
-        .host(this.isAdmin && this.globalEdit)
-        .child("Category");
-      ref.off();
-      ref.on("child_changed", this.loadCategory);
-      ref.on("child_added", this.loadCategory);
-      ref.on("child_removed", this.removeCategory);
+    const ref = this.store
+      .host(this.isAdmin && this.globalEdit)
+      .child("Category");
+    ref.off();
+    ref.on("child_changed", this.loadCategory);
+    ref.on("child_added", this.loadCategory);
+    ref.on("child_removed", this.removeCategory);
   }
 
   onWindowInput(e: KeyboardEvent) {
@@ -291,7 +292,7 @@ this.statements=[]
     }
   }
   sortedItems(items: any[]) {
-    return Store.sortItems(items)
+    return Store.sortItems(items);
   }
 }
 </script>

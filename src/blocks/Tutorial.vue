@@ -4,7 +4,7 @@
     width="60vw"
     height="60vh">
       <v-card-title primary-title>
-        Обучеющее видео
+        Обучающее видео
       </v-card-title>
       <v-card-media fill-height>
         <iframe style="width:100%;height:80%;" src="https://www.youtube.com/embed/Zb8KW44Bi8o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
