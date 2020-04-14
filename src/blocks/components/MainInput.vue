@@ -18,6 +18,7 @@
           :value="text"
           @input="input"
           @keydown.66.meta.prevent="toggle"
+          @keydown.66.ctrl.prevent="toggle"
           @keydown.8.meta="input('')"
           @keydown="fieldInput($event)"
           @keydown.enter.prevent="$emit('say')"
@@ -27,10 +28,13 @@
         v-else
         ref="textarea"
         @keydown.enter.meta="$emit('say')"
+        @keydown.enter.ctrl="$emit('say')"
         block
         @input="areainput"
         @keydown.esc="toggle"
         @keydown.66.meta="toggle"
+          @keydown.66.ctrl.prevent="toggle"
+
         @blur="$refs.textarea.focus()"
         :value="text"
       ></textarea>
