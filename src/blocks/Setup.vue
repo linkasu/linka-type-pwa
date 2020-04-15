@@ -29,7 +29,7 @@
             <p>Я говорю о себе, как:</p>
             <v-radio label="Мужчина" value="true"></v-radio>
             <v-radio label="Женщина" value="false"></v-radio>
-          </v-radio-group> -->
+          </v-radio-group>-->
           <v-btn :color="valid[0]?'success':'error'" type="submit">Дальше</v-btn>
         </v-form>
         <v-spacer />
@@ -43,25 +43,32 @@
 
         <voice-settings />
         <v-form ref="form2" v-model="valid[1]" @submit.prevent="next()">
-          <v-card width="30%">
-            <v-card-title primary-title>Давайте проверим, точно ли вы слышите голос</v-card-title>
-            <v-card-text>
-              <v-text-field
-                v-model="checkCode"
-                label="Проверочный код?"
-                type="number"
-                min="1000"
-                max="9999"
-                counter="4"
-                :rules="codeRules"
-                outlined
-              ></v-text-field>
-              <v-btn
-                @click="tts.say(trueCheckCode.toFixed().split('').join(', '))"
-                black
-              >Послушать код</v-btn>
-            </v-card-text>
-          </v-card>
+          <v-layout row wrap>
+            <v-flex xs12 md4 lg3>
+              <v-card>
+                <v-card-title primary-title>Давайте проверим, точно ли вы слышите голос</v-card-title>
+                <v-card-text>
+                  <v-text-field
+                    v-model="checkCode"
+                    label="Проверочный код?"
+                    type="number"
+                    min="1000"
+                    max="9999"
+                    counter="4"
+                    :rules="codeRules"
+                    outlined
+                  ></v-text-field>
+                  <v-btn
+                    @click="tts.say(trueCheckCode.toFixed().split('').join(', '))"
+                    black
+                  >Послушать код</v-btn>
+                  <br>
+                  <i>Если вы не слышите код, выберете другой голос.</i>
+                </v-card-text>
+              </v-card>
+            </v-flex>
+          </v-layout>
+
           <v-btn @click="step--">Назад</v-btn>
           <v-btn :color="valid[1]?'success':'error'" type="submit">Дальше</v-btn>
         </v-form>
@@ -115,12 +122,12 @@ export default class Setup extends Vue {
     if (root) {
       root.child("inited").set(true);
     }
-    this.$emit('inited')
+    this.$emit("inited");
   }
 
   nameRules: Array<(v: string) => boolean | string> = [
     v => !!v || "Обязательно введите имя",
-    v => (v && v.split(" ").length < 2) || "Введите только имя"
+    v => (v && v.trim().split(" ").length < 2) || "Введите только имя"
   ];
   genderRules = [
     (v: any) => {
