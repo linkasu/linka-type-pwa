@@ -196,6 +196,14 @@ export default class Bank extends Vue {
   }
 
   async deleteItem(what: "category" | "statement", item: StoreItem) {
+    if(await this.$dialog.confirm({
+      title:'Действительно удалитть?',
+      text:'Вы действительно хотите удалить?',
+      actions:{
+        true:'Да',
+        false:'Нет'
+      }
+    }))
     await this.store.deleteItem(
       what,
       this.cid,
