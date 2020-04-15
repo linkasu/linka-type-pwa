@@ -21,3 +21,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+save_file.csv
