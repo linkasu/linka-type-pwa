@@ -8,12 +8,17 @@
               <v-toolbar-title>Войти в LINKa</v-toolbar-title>
             </v-toolbar>
             <v-card-text>
-              <v-form>
+              <p>Пожалуйста, введите свой логин и пароль. Если у вас не было аккаунта нажмите кнопку Зарегистрироваться</p>
+              <p>Регистрация необходима для персонализации коммуникатора.</p>
+              <v-form v-model="valid" ref="form">
                 <v-text-field
                   prepend-icon="person"
                   label="Email"
-                  type="text"
+                  type="email"
+                  ref="email"
+                  :rules="[emailCheck]"
                   v-model="email"
+                  required
                   @keydown.enter="$refs.password.focus()"
                 ></v-text-field>
                 <v-text-field
@@ -24,6 +29,8 @@
                   id="password"
                   type="password"
                   v-model="password"
+                  required
+                  :rules="[passwordCheck]"
                   @keydown.enter="login"
                 ></v-text-field>
               </v-form>
@@ -36,7 +43,7 @@
               <v-btn @click="login">Войти</v-btn>
             </v-card-actions>
             <v-card-actions>
-              <v-btn @click="resetPassword" >Сброс пароля</v-btn>
+              <v-btn @click="resetPassword">Сброс пароля</v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -55,12 +62,17 @@ export default class Auth extends Vue {
   email: string = "";
   password: string = "";
   error: string | null = null;
+  valid = false;
   private async login() {
     this.error = null;
+    if (!(<any>this.$refs.form).validate()) return;
     try {
       const res = await fireapp
         .auth()
-        .signInWithEmailAndPassword(this.email.trim(), this.password.trim());
+        .signInWithEmailAndPassword(
+          this.email.trim().toLowerCase(),
+          this.password.trim()
+        );
 
       this.$emit("login", res.user);
     } catch (e) {
@@ -70,18 +82,24 @@ export default class Auth extends Vue {
   }
   private async register() {
     this.error = null;
+    if (!(<any>this.$refs.form).validate()) return;
+
     try {
       await fireapp
         .auth()
-        .createUserWithEmailAndPassword(this.email, this.password);
+        .createUserWithEmailAndPassword(
+          this.email.trim().toLowerCase(),
+          this.password
+        );
       this.login();
     } catch (error) {
       this.error = error.message;
-
     }
   }
 
   private async resetPassword() {
+    if (!(<any>this.$refs.email).validate()) return;
+
     if (
       !(await this.$dialog.confirm({
         title: "Сброс пароля",
@@ -102,6 +120,15 @@ export default class Auth extends Vue {
       title: "Сброс пароля",
       text: "Вы уверены, что хотите сбросить пароль для " + this.email
     });
+  }
+
+  private passwordCheck(value: string) {
+    return value.length < 8 ? "Пароль должен быть больше 7 символов." : true;
+  }
+
+  private emailCheck(value: string) {
+    const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return pattern.test(value) || "Неверный емейл.";
   }
 }
 </script>
