@@ -48,6 +48,7 @@
               <v-card>
                 <v-card-title primary-title>Давайте проверим, точно ли вы слышите голос</v-card-title>
                 <v-card-text>
+                  <i>Нажмите кнопку "Послушать код" и введите его в поле ввода.</i><br>
                   <v-text-field
                     v-model="checkCode"
                     label="Проверочный код?"
