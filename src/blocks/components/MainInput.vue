@@ -6,6 +6,7 @@
         <predicator
           :value="text"
           @input="input"
+          @click="$refs.input.focus()"
           ref="predicator"
           v-if="showPredicator"
           :register="holdCMD?register:null"
