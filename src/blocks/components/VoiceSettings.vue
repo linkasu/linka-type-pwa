@@ -26,7 +26,7 @@
         min="0"
         max="1"
         v-model="volume"
-        label="Громскость голоса"
+        label="Громкость голоса"
       />
     </v-form>
   </v-container>
