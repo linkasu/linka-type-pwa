@@ -1,14 +1,13 @@
 <template>
   <v-card height="100%">
-    <v-card-text>
-      <v-toolbar short flat v-if="title">
-        <v-btn @click="$emit('back')" icon v-if="tstatement">
+    <v-card-title primary-title>
+        <v-btn @click="$emit('back')" icon v-if="tstatement" title="Вернуться к категориям">
           <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
-        <v-btn @click="choose('delete')" icon>
+        <v-btn @click="choose('delete')" icon title="Удалить">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
-        <v-btn @click="choose('edit')" icon>
+        <v-btn @click="choose('edit')" icon title="Редактировать">
           <v-icon>mdi-pencil-outline</v-icon>
         </v-btn>
         <v-btn
@@ -16,21 +15,29 @@
           icon
           v-if="tstatement"
           :color="isPaste?'accent':''"
+          title="При нажатии вставлять в пооле ввода"
         >
           <v-icon>mdi-content-paste</v-icon>
         </v-btn>
-        <v-btn @click="$emit('random')" v-if="tstatement" icon>
+        <v-btn @click="$emit('random')" v-if="tstatement" icon title="Выбрать случайную фразу">
           <v-icon>mdi-flash</v-icon>
         </v-btn>
-        <v-btn v-if="tstatement" @click="isEditor=true" icon>
+        <v-btn
+          v-if="tstatement"
+          @click="isEditor=true"
+          icon
+          title="Редактировать категорию целиком"
+        >
           <v-icon>mdi-format-text</v-icon>
         </v-btn>
-        <v-btn v-if="tstatement" @click="isReader=true" icon>
+        <v-btn v-if="tstatement" @click="isReader=true" icon title="Режим выступлления">
           <v-icon>mdi-book-open</v-icon>
         </v-btn>
         <v-spacer />
-        <v-toolbar-title>{{title}}</v-toolbar-title>
-      </v-toolbar>
+        <h3>{{title}}</h3>
+
+    </v-card-title>
+    <v-card-text>
 
       <overlay :active="caller!==null" @quit="()=>caller=null">
         <v-layout wrap width="100%">
@@ -107,5 +114,12 @@ export default class LList extends Vue {
 <style scoped>
 .v-toolbar-for-over {
   transform: none !important;
+  height: auto !important;
+  min-height: 56px ;
+}
+
+.v-toolbar-for-over>.v-toolbar__content{
+  height: auto !important;
+  min-height: 56px ;
 }
 </style>
