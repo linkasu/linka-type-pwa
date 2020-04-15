@@ -1,6 +1,9 @@
 <template>
   <v-container grid-list-xs>
     <v-form>
+         <p>
+            <b>Внимание!</b> Если у вас iOS устройство, включите звук уведомлений, инвче ничего не услышите.
+          </p>
       <v-btn
         x-large
         block
