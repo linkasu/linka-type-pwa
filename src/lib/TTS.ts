@@ -20,6 +20,10 @@ class TTS {
     return instance;
   }
   constructor() {
+    if(window.speechSynthesis==null){
+
+      this.yandex=true;
+    }
     this.synth = window.speechSynthesis;
   }
   say(text: string) {
