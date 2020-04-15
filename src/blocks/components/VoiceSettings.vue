@@ -10,7 +10,7 @@
 
       <v-checkbox label="Использовать голоса яндекс" v-model="yandex"></v-checkbox>
 
-      <v-select :items="voices" v-model="voice" @change="setVoice" />
+      <v-select :items="voices" v-model="voice" @change="setVoice" label="Голос"/>
       <v-slider
         v-if="!yandex"
         step="0.1"
