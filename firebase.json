@@ -3,6 +3,7 @@
     "rules": "database.rules.json"
   },
   "functions": {
+      "predeploy": "npm i --prefix \"$RESOURCE_DIR\"  && npm --prefix \"$RESOURCE_DIR\" run build",
     "source": "functions",
     "headers": [{
       "source": "*",

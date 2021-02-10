@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "publish": "npm run build && firebase deploy --only hosting",
+    "deploy-functions":"cd functions && npm i && npm build && npm run deploy",
     "deploy": "firebase deploy"
   },
   "dependencies": {
