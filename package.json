@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
+    "build-watch": "vue-cli-service build --watch",
     "build": "vue-cli-service build",
+    "fb-server": "firebase serve",
+    "dev": "concurrently --kill-others \"npm run build-watch\" \"npm run fb-server\"",
     "publish": "npm run build && firebase deploy --only hosting",
-    "deploy-functions":"cd functions && npm i && npm build && npm run deploy",
+    "deploy-functions": "cd functions && npm i && npm build && npm run deploy",
     "deploy": "firebase deploy"
   },
   "dependencies": {
@@ -32,7 +35,8 @@
     "@vue/cli-plugin-pwa": "^3.0.5",
     "@vue/cli-plugin-typescript": "^3.0.5",
     "@vue/cli-service": "^4.5.11",
-    "firebase-cli": "^1.2.0",
+    "concurrently": "^5.3.0",
+    "firebase-tools": "^9.3.0",
     "sass": "^1.32.7",
     "sass-loader": "^10.1.1",
     "stylus": "^0.54.7",
