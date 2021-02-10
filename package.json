@@ -1,11 +1,11 @@
 {
   "name": "linka-type-pwa",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "sitepush": "firebase deploy --only hosting",
+    "publish": "npm run build && firebase deploy --only hosting",
     "deploy": "firebase deploy"
   },
   "dependencies": {
@@ -13,7 +13,7 @@
     "@mdi/font": "^5.0.45",
     "@types/dom-inputevent": "^1.0.5",
     "@types/firebase": "^3.2.1",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "core-js": "^2.6.5",
     "firebase": "^7.13.2",
     "material-design-icons-iconfont": "^5.0.1",
@@ -29,7 +29,7 @@
     "@vue/cli-plugin-babel": "^3.0.5",
     "@vue/cli-plugin-pwa": "^3.0.5",
     "@vue/cli-plugin-typescript": "^3.0.5",
-    "@vue/cli-service": "^3.0.5",
+    "@vue/cli-service": "^4.5.11",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",
     "typescript": "^3.4.3",
