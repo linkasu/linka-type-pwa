@@ -31,6 +31,7 @@
     "@vue/cli-plugin-pwa": "^3.0.5",
     "@vue/cli-plugin-typescript": "^3.0.5",
     "@vue/cli-service": "^4.5.11",
+    "firebase-cli": "^1.2.0",
     "sass": "^1.32.7",
     "sass-loader": "^10.1.1",
     "stylus": "^0.54.7",
