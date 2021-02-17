@@ -90,8 +90,11 @@ class TTS {
   }
 
   setVoice(uri: string) {
+    
     const voice = this.offlineVoices.find(item => item.voiceURI === uri) || this.yandexVoices.find(item => item.voiceURI === uri)
+
     if (!voice) return;
+    this.storage.setString('voiceuri', voice.voiceURI)
     this.voice = voice;
   }
 
