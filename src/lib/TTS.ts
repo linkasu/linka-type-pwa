@@ -1,5 +1,6 @@
 import LocalMemory from './LocalMemory';
 import { analytics } from 'firebase';
+import axios from 'axios';
 
 let yatts: { speak: (text: string, params: any) => void };
 
@@ -37,7 +38,7 @@ class TTS {
 
       if (this.yandex) {
         if (yatts)
-          yatts.speak(text, { speaker: this.voice.voiceURI, speed: this.rate });
+        this.yandexSay(text, { speaker: this.voice.voiceURI, speed: this.rate });
         return
       }
       utterThis.voice = <SpeechSynthesisVoice>this.voice;
@@ -53,6 +54,19 @@ class TTS {
       this.synth.cancel()
       this.synth.speak(utterThis);
     }
+  }
+  async yandexSay(text: string, params: { speaker: string; speed: number; }) {
+    const response  = await axios.post("http://linka.su:5443/voice", {
+      text,
+      voice: params.speaker
+    }, {
+      responseType: 'arraybuffer'
+    })
+    
+    const blob = new Blob([response.data], { type: "audio/mp3" });
+    const url = window.URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    await audio.play()
   }
   stop() {
     if (this.yandex) { } else {
@@ -107,8 +121,8 @@ class TTS {
       { voiceURI: "ermil", text: "Емиль" },
       { voiceURI: "jane", text: "Джейн" },
       { voiceURI: "oksana", text: "Оксана" },
-      // { voiceURI: "alena", text: "Алёна" },
-      // { voiceURI: "filipp", text: "Филипп" },
+      { voiceURI: "alena", text: "Алёна" },
+      { voiceURI: "filipp", text: "Филипп" },
       { voiceURI: "omazh", text: "Ома" }
     ]
   }
