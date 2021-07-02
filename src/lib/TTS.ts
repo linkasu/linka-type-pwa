@@ -49,7 +49,7 @@ class TTS {
     }
   }
   async yandexSay(text: string, params: { speaker: string; speed: number; }) {
-    const response = await axios.post("http://linka.su:5443/voice", {
+    const response = await axios.post("https://us-central1-distypepro-android.cloudfunctions.net/tts", {
       text,
       voice: params.speaker
     }, {
