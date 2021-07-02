@@ -2,28 +2,19 @@ import LocalMemory from './LocalMemory';
 import { analytics } from 'firebase';
 import axios from 'axios';
 
-let yatts: { speak: (text: string, params: any) => void };
-
-setTimeout(function () {
-  (<any>window).ya.speechkit.settings.apikey = "8414c59e-dbe2-4066-b988-9621fe1a572f";
-  console.log("init tts");
-  yatts = new (<any>window).ya.speechkit.Tts({
-    speaker: "jane"
-  });
-}, 2000);
 class TTS {
   private synth: SpeechSynthesis;
   private voice: SpeechSynthesisVoice | YandexVoice | null = null;
   private storage = new LocalMemory();
-
+  private audio = new Audio();
   public static get instance(): TTS {
     if (instance == undefined) instance = new TTS
     return instance;
   }
   constructor() {
-    if(window.speechSynthesis==null){
+    if (window.speechSynthesis == null) {
 
-      this.yandex=true;
+      this.yandex = true;
     }
     this.synth = window.speechSynthesis;
   }
@@ -37,7 +28,6 @@ class TTS {
       }
 
       if (this.yandex) {
-        if (yatts)
         this.yandexSay(text, { speaker: this.voice.voiceURI, speed: this.rate });
         return
       }
@@ -56,20 +46,23 @@ class TTS {
     }
   }
   async yandexSay(text: string, params: { speaker: string; speed: number; }) {
-    const response  = await axios.post("http://linka.su:5443/voice", {
+    const response = await axios.post("http://linka.su:5443/voice", {
       text,
       voice: params.speaker
     }, {
       responseType: 'arraybuffer'
     })
-    
+
     const blob = new Blob([response.data], { type: "audio/mp3" });
     const url = window.URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    await audio.play()
+    this.audio.pause();
+    this.audio.src = url
+    await this.audio.play()
   }
   stop() {
-    if (this.yandex) { } else {
+    if (this.yandex) {
+      this.audio.pause()
+    } else {
       this.synth.cancel()
     }
   }
@@ -104,7 +97,7 @@ class TTS {
   }
 
   setVoice(uri: string) {
-    
+
     const voice = this.offlineVoices.find(item => item.voiceURI === uri) || this.yandexVoices.find(item => item.voiceURI === uri)
 
     if (!voice) return;
