@@ -3,6 +3,8 @@ import { database } from 'firebase-admin';
 import admin = require('firebase-admin');
 import { Question } from './Question';
 import { CallableContext } from 'firebase-functions/lib/providers/https';
+import axios from 'axios';
+import * as cors from 'cors';
 // import { Question } from './Question';
 
 
@@ -52,6 +54,15 @@ export const importFromGlobal = functions.https.onCall(async (data, context) => 
   
   ref.set(obj)
   return 'done'
+})
+
+export const tts = functions.https.onRequest((req, res)=>{
+  cors({origin: '*'})(req, res, async ()=>{
+    const response = await axios.post("http://linka.su:5443/voice", req.body, {
+      responseType: 'arraybuffer'
+    })
+    res.type('mp3').send(response.data)
+  })
 })
 
 export const getQuestions = functions.database.ref('/factory/questions')
