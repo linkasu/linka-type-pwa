@@ -1,12 +1,14 @@
 import LocalMemory from './LocalMemory';
 import { analytics } from 'firebase';
 import axios from 'axios';
+import { EventEmitter } from 'events';
 
 class TTS {
   private synth: SpeechSynthesis;
   private voice: SpeechSynthesisVoice | YandexVoice | null = null;
   private storage = new LocalMemory();
   private audio = new Audio();
+  public events = new EventEmitter()
   public static get instance(): TTS {
     if (instance == undefined) instance = new TTS
     return instance;
@@ -26,7 +28,7 @@ class TTS {
         this.voice = this.selectedVoice;
 
       }
-
+      this.events.emit('start')
       if (this.yandex) {
         this.yandexSay(text, { speaker: this.voice.voiceURI, speed: this.rate });
         return
@@ -36,7 +38,8 @@ class TTS {
       utterThis.rate = this.rate
       utterThis.volume = this.volume
 
-      utterThis.onend = function (event) {
+      utterThis.onend = (event) => {
+        this.events.emit('end')
       };
       utterThis.onerror = function (event) {
 
@@ -58,6 +61,10 @@ class TTS {
     this.audio.pause();
     this.audio.src = url
     await this.audio.play()
+    this.audio
+      .onended = () =>
+        this.events.emit('end')
+
   }
   stop() {
     if (this.yandex) {

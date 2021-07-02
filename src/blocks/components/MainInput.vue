@@ -72,6 +72,9 @@ export default class MainInput extends Vue {
   wordsCount = 0;
   holdCMD: boolean | null = LocalMemory.instance.getBoolean("holdCMD", false);
   register = false;
+
+  mounted(){
+  }
   input(value: string) {
     const readLastWord = LocalMemory.instance.getBoolean("readLastWord", false);
 

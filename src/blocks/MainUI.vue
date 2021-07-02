@@ -1,16 +1,22 @@
 <template>
   <div>
     <l-header
-      @show="showMode=true"
-      @shortcut="shortcutMode=true"
-      @settings="settingsMode=!settingsMode"
+      @show="showMode = true"
+      @shortcut="shortcutMode = true"
+      @settings="settingsMode = !settingsMode"
       :settingsMode="settingsMode"
       :chat="chat"
-      @chat="chat=$event"
-      @tutorial="tutorialMode=true"
+      @chat="chat = $event"
+      @tutorial="tutorialMode = true"
     />
-    <tutorial v-if="tutorialMode" @close="tutorialMode=false;lc.setBoolean('tutorial', false)" />
-    <shortcut-list v-if="shortcutMode" @close="shortcutMode=false" />
+    <tutorial
+      v-if="tutorialMode"
+      @close="
+        tutorialMode = false;
+        lc.setBoolean('tutorial', false);
+      "
+    />
+    <shortcut-list v-if="shortcutMode" @close="shortcutMode = false" />
     <settings v-if="settingsMode" />
     <main v-else>
       <v-card-text>
@@ -18,10 +24,12 @@
           :showMode="showMode"
           v-model="textForSpeak[chat]"
           @say="say"
-          @showMode="showMode=$event"
+          @showMode="showMode = $event"
         />
 
-        <v-btn block @click="say">Сказать</v-btn>
+        <v-btn block @click="say">{{
+          playing ? "Остановить" : "Сказать"
+        }}</v-btn>
       </v-card-text>
       <v-card-text>
         <quickes v-if="isQuickes" />
@@ -58,8 +66,8 @@ import { analytics } from "firebase";
     Quickes,
     Settings,
     Tutorial,
-    ShortcutList
-  }
+    ShortcutList,
+  },
 })
 export default class MainUI extends Vue {
   lc = LocalMemory.instance;
@@ -72,6 +80,17 @@ export default class MainUI extends Vue {
   tutorialMode = this.lc.getBoolean("tutorial", true);
 
   chat = 0;
+  playing: boolean = false;
+
+  mounted() {
+    TTS.instance.events.on("start", () => {
+      this.playing = true;
+    });
+    TTS.instance.events.on("end", () => {
+      this.playing = false;
+    });
+  }
+
   @Watch("settingsMode") onSettingsMode(value: boolean) {
     if (!value) {
       this.isQuickes = !!this.lc.getBoolean("quickes", true);
@@ -80,8 +99,12 @@ export default class MainUI extends Vue {
   }
   say() {
     analytics().logEvent("say");
-
-    TTS.instance.say(this.textForSpeak[this.chat]);
+    if (this.playing) {
+      TTS.instance.stop();
+      this.playing = false;
+    } else {
+      TTS.instance.say(this.textForSpeak[this.chat]);
+    }
   }
   paste(event: string) {
     this.textForSpeak[this.chat] = this.textForSpeak[this.chat] + " " + event;
