@@ -35,7 +35,7 @@
         <quickes v-if="isQuickes" />
       </v-card-text>
       <v-card-text>
-        <bank v-if="isBank" @paste="paste" />
+        <bank v-if="isBank" ref="bank" @paste="paste" />
       </v-card-text>
     </main>
   </div>
@@ -99,11 +99,17 @@ export default class MainUI extends Vue {
   }
   say() {
     analytics().logEvent("say");
+    const saveOnSay = !!LocalMemory.instance.getBoolean("saveOnSay", false);
+    const text = this.textForSpeak[this.chat];
+    if (saveOnSay) {
+      const bank = this.$refs.bank as Bank;
+      bank.createStatement(text);
+    }
     if (this.playing) {
       TTS.instance.stop();
       this.playing = false;
     } else {
-      TTS.instance.say(this.textForSpeak[this.chat]);
+      TTS.instance.say(text);
     }
   }
   paste(event: string) {

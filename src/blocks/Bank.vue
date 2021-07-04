@@ -5,14 +5,14 @@
     @keydown="onInput"
     @keydown.esc.self="back"
     @keydown.82.self="srandom"
-    @keydown.86.self="isPaste=!isPaste"
+    @keydown.86.self="isPaste = !isPaste"
   >
     <v-layout>
-      <v-flex xs12 v-if="cid===null">
+      <v-flex xs12 v-if="cid === null">
         <l-list
           @select="cselect"
-          @delete="(item)=>deleteItem('category', item)"
-          @edit="(item)=>editItem('category', item)"
+          @delete="(item) => deleteItem('category', item)"
+          @edit="(item) => editItem('category', item)"
           @add="cadd"
           type="categoy"
           :items="categories"
@@ -23,18 +23,18 @@
       <v-flex xs12 v-else>
         <l-list
           @select="sselect"
-          @delete="(item)=>deleteItem('statement', item)"
-          @edit="(item)=>editItem('statement', item)"
+          @delete="(item) => deleteItem('statement', item)"
+          @edit="(item) => editItem('statement', item)"
           @add="sadd"
           @back="back()"
           @save="refillCategory"
-          @isPaste="isPaste=!isPaste"
+          @isPaste="isPaste = !isPaste"
           type="statement"
           :items="statements"
           dkey="text"
           :isPaste="isPaste"
           @random="srandom"
-          :title="title||'Категория не выбрана'"
+          :title="title || 'Категория не выбрана'"
         />
       </v-flex>
 
@@ -43,7 +43,13 @@
       </v-overlay>
     </v-layout>
 
-    <v-switch v-if="isAdmin&&hasHash" color="white" x-small label="globalEdit" v-model="globalEdit"></v-switch>
+    <v-switch
+      v-if="isAdmin && hasHash"
+      color="white"
+      x-small
+      label="globalEdit"
+      v-model="globalEdit"
+    ></v-switch>
   </section>
 </template>
 
@@ -64,8 +70,8 @@ import { Watch } from "vue-property-decorator";
 
 @Component({
   components: {
-    LList
-  }
+    LList,
+  },
 })
 export default class Bank extends Vue {
   store: Store = new Store();
@@ -159,17 +165,17 @@ export default class Bank extends Vue {
         text: "Введите название",
         value: edit,
         title,
-        actions: ["Отменить", edit ? "Создать" : "Сохранить"]
+        actions: ["Отменить", edit ? "Создать" : "Сохранить"],
       })
-      .then(text => {
+      .then((text) => {
         if (text == undefined || text == "") {
           return this.$dialog
             .error({
               text: "Вы ничего не ввели",
               title: "Ошибка",
               actions: {
-                false: "Закрыть"
-              }
+                false: "Закрыть",
+              },
             })
             .then(() => false);
         }
@@ -186,6 +192,9 @@ export default class Bank extends Vue {
   async sadd() {
     let text = await this.prompt("Введите высказывание");
 
+    await this.createStatement(text);
+  }
+  async createStatement(text: string) {
     if (!this.store.root || !text || !this.cid) return;
     await this.store.createStatement(
       this.cid,
@@ -196,20 +205,22 @@ export default class Bank extends Vue {
   }
 
   async deleteItem(what: "category" | "statement", item: StoreItem) {
-    if(await this.$dialog.confirm({
-      title:'Действительно удалитть?',
-      text:'Вы действительно хотите удалить?',
-      actions:{
-        true:'Да',
-        false:'Нет'
-      }
-    }))
-    await this.store.deleteItem(
-      what,
-      this.cid,
-      item.id,
-      this.isAdmin && this.globalEdit
-    );
+    if (
+      await this.$dialog.confirm({
+        title: "Действительно удалитть?",
+        text: "Вы действительно хотите удалить?",
+        actions: {
+          true: "Да",
+          false: "Нет",
+        },
+      })
+    )
+      await this.store.deleteItem(
+        what,
+        this.cid,
+        item.id,
+        this.isAdmin && this.globalEdit
+      );
     analytics().logEvent("bank_delete_" + what);
   }
   async editItem(what: "category" | "statement", item: Statement | Category) {
@@ -253,7 +264,7 @@ export default class Bank extends Vue {
   loadCategory(data: firebase.database.DataSnapshot) {
     this.loading = false;
 
-    if (this.categories.some(item => item.id === data.key)) return;
+    if (this.categories.some((item) => item.id === data.key)) return;
     const category = data.val();
 
     this.categories.push(category);
@@ -266,17 +277,17 @@ export default class Bank extends Vue {
   }
 
   removeStatement(data: firebase.database.DataSnapshot) {
-    this.statements = this.statements.filter(item => item.id != data.key);
+    this.statements = this.statements.filter((item) => item.id != data.key);
     this.statements = this.sortedItems(this.statements);
   }
   removeCategory(data: firebase.database.DataSnapshot) {
-    this.categories = this.categories.filter(item => item.id != data.key);
+    this.categories = this.categories.filter((item) => item.id != data.key);
     this.categories = this.sortedItems(this.categories);
   }
   created() {
     if (this.user == null) return;
     if (!this.store.root) return;
-    this.store.isAdmin().then(is => {
+    this.store.isAdmin().then((is) => {
       this.isAdmin = is;
       this.refCategory();
     });
