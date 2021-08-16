@@ -47,7 +47,7 @@ export default class PhraseMaker extends NameProps {
   questions: Question[] = [];
   loading = false;
 
-  @Prop() name!: string = "";
+  @Prop() name: string = "";
   @Watch("name") onName(value: string) {
     if (!this.$data.questions) return value;
     const question = (<Question[]>this.$data.questions).find(
