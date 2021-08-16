@@ -290,7 +290,13 @@ export default class Bank extends Vue {
     this.store.isAdmin().then((is) => {
       this.isAdmin = is;
       this.refCategory();
+    }).catch((error)=>{
+      console.error(error);
+      this.loading=false      
     });
+    setTimeout(() => {
+      this.loading=false
+    }, 1000);
     window.addEventListener("keydown", this.onWindowInput);
   }
   refCategory() {
@@ -308,6 +314,10 @@ export default class Bank extends Vue {
       if (snapshot.val() == null) {
         this.loading = false;
       }
+    })
+    .catch((error)=>{
+      console.error(error);
+      this.loading=false;
     });
   }
 

@@ -34,12 +34,16 @@ export default class App extends Vue {
   login(user: firebase.User) {
     this.auth = true;
   }
-  async created() {
+  async mounted() {
+    console.log('created');
+    
     await fireapp.auth().setPersistence(fireapp.auth.Auth.Persistence.LOCAL);
     fireapp.auth().onAuthStateChanged(state => {
       this.auth = !!state;
       this.loading = false;
+      
       if (this.auth) {
+
         const store = new Store();
         const root = store.root;
         if (root) {
@@ -48,6 +52,9 @@ export default class App extends Vue {
             this.loading = false;     
             // this.inited=false
           });
+          setTimeout(() => {
+            this.inited=true
+          }, 100);
         }
       }
     });
