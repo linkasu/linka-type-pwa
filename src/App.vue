@@ -45,7 +45,7 @@ export default class App extends Vue {
         if (root) {
           root.child("inited").on("value", snap => {
             this.inited = snap.val() === true;
-
+            this.loading = false;     
             // this.inited=false
           });
         }

@@ -297,10 +297,18 @@ export default class Bank extends Vue {
     const ref = this.store
       .host(this.isAdmin && this.globalEdit)
       .child("Category");
+
     ref.off();
     ref.on("child_changed", this.loadCategory);
     ref.on("child_added", this.loadCategory);
     ref.on("child_removed", this.removeCategory);
+    ref.once("value").then((snapshot) => {
+      console.log(snapshot);
+
+      if (snapshot.val() == null) {
+        this.loading = false;
+      }
+    });
   }
 
   onWindowInput(e: KeyboardEvent) {

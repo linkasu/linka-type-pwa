@@ -1,5 +1,5 @@
 <template>
-  <v-card raised :loading="questions.length==0" elevation-24>
+  <v-card raised :loading="questions.length == 0" elevation-24>
     <v-card-title>
       <h3>Вопросы о вас:</h3>
     </v-card-title>
@@ -17,7 +17,9 @@
             v-model="q.value"
           ></v-text-field>
         </v-row>
-        <v-btn :disabled="loading" color="accent" type="submit">Сохранить</v-btn>
+        <v-btn :disabled="loading" color="accent" type="submit" @click="save()"
+          >Сохранить</v-btn
+        >
         <v-overlay :value="loading">
           <v-progress-circular indeterminate size="64"></v-progress-circular>
         </v-overlay>
@@ -36,8 +38,8 @@ import fireapp from "@/lib/fireapp";
 import { Prop, Watch } from "vue-property-decorator";
 const NameProps = Vue.extend({
   props: {
-    name: String
-  }
+    name: String,
+  },
 });
 @Component
 export default class PhraseMaker extends NameProps {
@@ -45,30 +47,34 @@ export default class PhraseMaker extends NameProps {
   questions: Question[] = [];
   loading = false;
 
-  @Prop() name!: string;
+  @Prop() name!: string = "";
   @Watch("name") onName(value: string) {
     if (!this.$data.questions) return value;
     const question = (<Question[]>this.$data.questions).find(
-      item => item.uid === "name"
+      (item) => item.uid === "name"
     );
     if (question) {
       question.value = value;
     }
   }
   async save() {
-    this.loading = true;
-    await fireapp.functions().httpsCallable("createStatement")({
-      questions: this.questions
-    });
-
     this.$emit("saved");
+    // this.loading = true;
+    try {
+      await fireapp.functions().httpsCallable("createStatement")({
+        questions: this.questions,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
   }
 
   created() {
     this.store.factory
       .child("questions")
       .once("value")
-      .then(snap => {
+      .then((snap) => {
         const raw = snap.val();
         this.questions = [];
         for (const row of raw) {
