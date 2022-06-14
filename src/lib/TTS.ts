@@ -49,6 +49,7 @@ class TTS {
     }
   }
   async yandexSay(text: string, params: { speaker: string; speed: number; }) {
+    //good luck
     const response = await axios.post("http://linka.su:5443/voice", {
       text,
       voice: params.speaker
