@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div fill-height  >
     <l-header
       @show="showMode = true"
       @shortcut="shortcutMode = true"
@@ -8,6 +8,7 @@
       :chat="chat"
       @chat="chat = $event"
       @tutorial="tutorialMode = true"
+      @brain="brainMode = !brainMode"
     />
     <tutorial
       v-if="tutorialMode"
@@ -18,7 +19,9 @@
     />
     <shortcut-list v-if="shortcutMode" @close="shortcutMode = false" />
     <settings v-if="settingsMode" />
-    <main v-else>
+    <brain v-else-if="brainMode"
+    @quit="(text)=>{textForSpeak[chat]=text; brainMode = false}" />
+    <main v-if="!settingsMode&&!brainMode">
       <v-card-text>
         <main-input
           :showMode="showMode"
@@ -65,6 +68,7 @@ import Tutorial from './Tutorial.vue'
 import Quickes from './Quickes.vue'
 import Settings from './Settings.vue'
 import MainInput from './components/MainInput.vue'
+import Brain from './components/Brain.vue'
 import ShortcutList from './ShortcutList.vue'
 import LocalMemory from '../lib/LocalMemory'
 import { Watch } from 'vue-property-decorator'
@@ -79,6 +83,7 @@ import { analytics } from 'firebase'
     Settings,
     Tutorial,
     ShortcutList,
+    Brain
   },
 })
 export default class MainUI extends Vue {
@@ -87,6 +92,7 @@ export default class MainUI extends Vue {
   showMode: boolean = false
   settingsMode = false
   shortcutMode = false
+  brainMode = false
   isQuickes = true
   isBank = true
   tutorialMode = this.lc.getBoolean('tutorial', true)

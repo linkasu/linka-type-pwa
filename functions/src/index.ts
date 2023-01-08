@@ -67,7 +67,7 @@ export const getQuestions = functions.database.ref("/factory/questions");
 
 
 
-export const chatbot = functions.https.onRequest(async (req, res) => {
+export const chatbot = functions.https.onCall(async (data, context) => {
   // Get the phrase from the request data
   try {
 
@@ -75,9 +75,9 @@ export const chatbot = functions.https.onRequest(async (req, res) => {
       apiKey: functions.config().openai.key
     });
 
-    const phrase = req.query.phrase;
+    const phrase = data.phrase;
     const openai = new OpenAIApi(configuration);
-    if (!phrase && typeof phrase != 'string') { res.send(); return; }
+    if (!phrase && typeof phrase != 'string') {  return {}; }
     const completion = await openai.createCompletion({
       "model": "text-davinci-003",
       prompt: phrase?.toString(),
@@ -87,12 +87,11 @@ export const chatbot = functions.https.onRequest(async (req, res) => {
       frequency_penalty: 0,
       presence_penalty: 0
     })
-    res.send({ text: completion.data.choices[0]?.text?.replace(/\n/g, '').trim() });
+    return ({ text: completion.data.choices[0]?.text?.replace(/\n/g, '').trim() });
 
   } catch (error) {
     console.error('chatbot error', error);
-    
-    res.status(500).send({ error: error })
+return {error}    
   }
 });
 

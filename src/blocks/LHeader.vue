@@ -14,6 +14,13 @@
           <v-icon>mdi-help</v-icon>
         </v-btn>
         <v-btn
+          @click="$emit('brain')"
+          icon
+          title="Предсказание текста"
+        >
+          <v-icon>mdi-brain</v-icon>
+        </v-btn>
+        <v-btn
           @click="$emit('shortcut')"
           icon
           title="Справка по сочитаниям клавиш"
