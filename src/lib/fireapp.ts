@@ -1,5 +1,5 @@
 
-import app, { auth, database, functions, analytics, FirebaseError } from 'firebase/app'
+import app, { auth, database, functions, analytics } from 'firebase/app'
 import  'firebase/auth'
 import 'firebase/database'
 import 'firebase/functions'
@@ -19,9 +19,6 @@ const firebaseConfig  = {
 app.initializeApp(firebaseConfig);
 auth().languageCode='ru'
 analytics()
-
-console.log(database());
-
 
 
 export default {
