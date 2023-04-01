@@ -76,7 +76,7 @@ export default class Auth extends Vue {
 
       this.$emit("login", res.user);
     } catch (e) {
-      this.error = e.message;
+      this.error = (e as Error).message;
       this.password = "";
     }
   }
@@ -93,7 +93,7 @@ export default class Auth extends Vue {
         );
       this.login();
     } catch (error) {
-      this.error = error.message;
+      this.error = (error as Error).message;
     }
   }
 
@@ -113,7 +113,7 @@ export default class Auth extends Vue {
     } catch (error) {
       return this.$dialog.error({
         title: "Ошибка",
-        text: error.message
+        text: (error as Error).message
       });
     }
     return this.$dialog.warning({
