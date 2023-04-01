@@ -49,7 +49,7 @@ class TTS {
     download = false,
   ) {
     const response = await axios.post(
-      'https://us-central1-distypepro-android.cloudfunctions.net/tts',
+      'https://tts.linka.su/tts',
       {
         text,
         voice: params.speaker,
