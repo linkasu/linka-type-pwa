@@ -1,7 +1,9 @@
 import LocalMemory from './LocalMemory'
-import { analytics } from 'firebase'
+import {analytics} from 'firebase'
 import axios from 'axios'
 import { EventEmitter } from 'events'
+
+const {setUserProperties} =  analytics()
 
 class TTS {
   private synth: SpeechSynthesis
@@ -107,7 +109,7 @@ class TTS {
   }
   get yandex() {
     const value = !!this.storage.getBoolean('yandex', false)
-    analytics().setUserProperties({ use_yandex: value })
+    setUserProperties( { use_yandex: value })
 
     return value
   }
@@ -151,7 +153,7 @@ class TTS {
     const uri = this.storage.getString('voiceuri', def ? def.voiceURI : 'uri')
     if (this.yandex) {
       const voice = this.yandexVoices.find((voice) => voice.voiceURI === uri)
-      analytics().setUserProperties({ voice: voice!.voiceURI })
+      setUserProperties( { voice: voice!.voiceURI })
       return voice || this.yandexVoices[0]
     }
     const voice = voices.find((voice) => voice.voiceURI === uri)
@@ -160,7 +162,7 @@ class TTS {
       this.storage.setString('voiceuri', def ? def.voiceURI : 'uri')
       return this.selectedVoice
     }
-    analytics().setUserProperties({ voice: voice!.voiceURI })
+    setUserProperties( { voice: voice!.voiceURI })
     return voice!
   }
 }

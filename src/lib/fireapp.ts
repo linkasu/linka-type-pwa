@@ -1,9 +1,4 @@
-
-import app, { auth, database, functions, analytics } from 'firebase/app'
-import  'firebase/auth'
-import 'firebase/database'
-import 'firebase/functions'
-import 'firebase/analytics'
+import { analytics, app, auth, database, functions, initializeApp } from "firebase";
 
 const firebaseConfig  = {
   apiKey: "AIzaSyBHwz_IGbuPDX6CUCnc-tj2wPdimgmoGZc",
@@ -15,16 +10,15 @@ const firebaseConfig  = {
   appId: "1:800888317067:web:a8594b3e24f430cf",
   measurementId: "G-RM812X3EM4"
 };
-// Initialize Firebase
-app.initializeApp(firebaseConfig);
+
+initializeApp(firebaseConfig)
 auth().languageCode='ru'
-analytics()
 
 
 export default {
-  app,
+  app: app,
   auth:auth,
-  database:database,
-  functions:functions,
-  analytics:analytics
+  database: database,
+  functions,
+  analytics
 }
