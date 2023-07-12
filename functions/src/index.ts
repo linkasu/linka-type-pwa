@@ -3,8 +3,9 @@ import { Configuration, OpenAIApi } from "openai";
 import { database } from "firebase-admin";
 import admin = require("firebase-admin");
 import { Question } from "./Question";
-import { CallableContext } from "firebase-functions/lib/providers/https";
+
 import axios from "axios";
+import { CallableContext } from "firebase-functions/v1/https";
 // import { Question } from './Question';
 
 

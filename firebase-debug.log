@@ -1,0 +1,114 @@
+[debug] [2023-07-12T11:24:03.238Z] ----------------------------------------------------------------------
+[debug] [2023-07-12T11:24:03.242Z] Command:       /usr/local/bin/node /Users/aacidov/node/linka/linka-type-pwa/node_modules/.bin/firebase serve
+[debug] [2023-07-12T11:24:03.242Z] CLI Version:   11.27.0
+[debug] [2023-07-12T11:24:03.242Z] Platform:      darwin
+[debug] [2023-07-12T11:24:03.242Z] Node Version:  v19.1.0
+[debug] [2023-07-12T11:24:03.242Z] Time:          Wed Jul 12 2023 14:24:03 GMT+0300 (Москва, стандартное время)
+[debug] [2023-07-12T11:24:03.242Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-07-12T11:24:03.245Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2023-07-12T11:24:03.307Z] Field ".functions" in "firebase.json" is possibly invalid: should be object
+[debug] [2023-07-12T11:24:03.307Z] Object ".functions[0]" in "firebase.json" has unknown property: {"additionalProperty":"headers"}
+[debug] [2023-07-12T11:24:03.307Z] Field ".functions" in "firebase.json" is possibly invalid: should match some schema in anyOf
+[debug] [2023-07-12T11:24:03.322Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-07-12T11:24:03.322Z] > authorizing via signed-in user (ibakaidov2@gmail.com)
+[debug] [2023-07-12T11:24:03.323Z] [iam] checking project distypepro-android for permissions ["firebase.projects.get"]
+[debug] [2023-07-12T11:24:03.323Z] > refreshing access token with scopes: []
+[debug] [2023-07-12T11:24:03.323Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2023-07-12T11:24:03.323Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2023-07-12T11:24:03.405Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2023-07-12T11:24:03.406Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2023-07-12T11:24:03.424Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/distypepro-android:testIamPermissions [none]
+[debug] [2023-07-12T11:24:03.424Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/distypepro-android:testIamPermissions x-goog-quota-user=projects/distypepro-android
+[debug] [2023-07-12T11:24:03.424Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/distypepro-android:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2023-07-12T11:24:03.624Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2023-07-12T11:24:03.624Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2023-07-12T11:24:04.286Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/distypepro-android:testIamPermissions 200
+[debug] [2023-07-12T11:24:04.286Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/distypepro-android:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2023-07-12T11:24:04.286Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android [none]
+[debug] [2023-07-12T11:24:04.554Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android 200
+[debug] [2023-07-12T11:24:04.554Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android {"projectId":"distypepro-android","projectNumber":"800888317067","displayName":"LINKa type","name":"projects/distypepro-android","resources":{"hostingSite":"distypepro-android","realtimeDatabaseInstance":"distypepro-android","storageBucket":"distypepro-android.appspot.com","locationId":"us-central"},"state":"ACTIVE","etag":"1_dd1b51d9-7495-49ef-a674-8a30ddeab266"}
+[info] 
+[info] === Serving from '/Users/aacidov/node/linka/linka-type-pwa'...
+[info] 
+[debug] [2023-07-12T11:24:04.579Z] defaultcredentials: writing to file /Users/aacidov/.config/firebase/ibakaidov2_gmail_com_application_default_credentials.json
+[debug] [2023-07-12T11:24:04.580Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/distypepro-android/sites 
+[debug] [2023-07-12T11:24:04.591Z] Setting GAC to /Users/aacidov/.config/firebase/ibakaidov2_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/aacidov/.config/firebase/ibakaidov2_gmail_com_application_default_credentials.json"}}
+[debug] [2023-07-12T11:24:04.591Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android/adminSdkConfig [none]
+[debug] [2023-07-12T11:24:04.826Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android/adminSdkConfig 200
+[debug] [2023-07-12T11:24:04.827Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android/adminSdkConfig {"projectId":"distypepro-android","databaseURL":"https://distypepro-android.firebaseio.com","storageBucket":"distypepro-android.appspot.com","locationId":"us-central"}
+[debug] [2023-07-12T11:24:05.680Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/distypepro-android/sites 200
+[debug] [2023-07-12T11:24:05.680Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/distypepro-android/sites {"sites":[{"name":"projects/distypepro-android/sites/distypepro-android","defaultUrl":"https://distypepro-android.web.app","type":"DEFAULT_SITE"},{"name":"projects/distypepro-android/sites/linkatype","defaultUrl":"https://linkatype.web.app","appId":"1:800888317067:web:a8594b3e24f430cf","type":"USER_SITE"}]}
+[debug] [2023-07-12T11:24:05.680Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android/webApps/-/config [none]
+[debug] [2023-07-12T11:24:06.527Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android/webApps/-/config 200
+[debug] [2023-07-12T11:24:06.527Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android/webApps/-/config {"projectId":"distypepro-android","appId":"1:800888317067:web:a8594b3e24f430cf","databaseURL":"https://distypepro-android.firebaseio.com","storageBucket":"distypepro-android.appspot.com","locationId":"us-central","apiKey":"AIzaSyBHwz_IGbuPDX6CUCnc-tj2wPdimgmoGZc","authDomain":"distypepro-android.firebaseapp.com","messagingSenderId":"800888317067","measurementId":"G-RM812X3EM4"}
+[debug] [2023-07-12T11:24:06.533Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android [none]
+[debug] [2023-07-12T11:24:06.750Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android 200
+[debug] [2023-07-12T11:24:06.750Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/distypepro-android {"projectId":"distypepro-android","projectNumber":"800888317067","displayName":"LINKa type","name":"projects/distypepro-android","resources":{"hostingSite":"distypepro-android","realtimeDatabaseInstance":"distypepro-android","storageBucket":"distypepro-android.appspot.com","locationId":"us-central"},"state":"ACTIVE","etag":"1_dd1b51d9-7495-49ef-a674-8a30ddeab266"}
+[info] i  functions: Watching "/Users/aacidov/node/linka/linka-type-pwa/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/Users/aacidov/node/linka/linka-type-pwa/functions\" for Cloud Functions..."}}
+[info] i  hosting[linkatype]: Serving hosting files from: dist {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mdist\u001b[22m"}}
+[info] ✔  hosting[linkatype]: Local server: http://localhost:5002 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:5002\u001b[22m\u001b[24m"}}
+[debug] [2023-07-12T11:24:06.839Z] Validating nodejs source
+[warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2023-07-12T11:24:07.448Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "16"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@google-cloud/dialogflow": "^5.3.0",
+    "axios": "^1.2.1",
+    "firebase-admin": "^10.0.2",
+    "firebase-functions": "^4.3.0",
+    "openai": "^3.1.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^0.2.0",
+    "typescript": "^4.9.5"
+  },
+  "private": true
+}
+[debug] [2023-07-12T11:24:07.448Z] Building nodejs source
+[debug] [2023-07-12T11:24:07.448Z] Failed to find version of module node: reached end of search path /Users/aacidov/node/linka/linka-type-pwa/functions/node_modules
+[warn] ⚠  functions: Your requested "node" version "16" doesn't match your global version "19". Using node@19 from host. 
+[debug] [2023-07-12T11:24:07.450Z] Could not find functions.yaml. Must use http discovery
+[debug] [2023-07-12T11:24:07.453Z] Found firebase-functions binary at '/Users/aacidov/node/linka/linka-type-pwa/functions/node_modules/.bin/firebase-functions'
+[debug] [2023-07-12T11:24:07.628Z] Serving at port 8652
+
+[debug] [2023-07-12T11:24:07.821Z] Got response from /__/functions.yaml {"endpoints":{"createCategory":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"createCategory"},"createStatement":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"createStatement"},"importFromGlobal":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"importFromGlobal"},"tts":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"httpsTrigger":{},"entryPoint":"tts"},"chatbot":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"chatbot"}},"specVersion":"v1alpha1","requiredAPIs":[]}
+[debug] [2023-07-12T11:24:07.825Z] shutdown requested via /__/quitquitquit
+
+[info] ✔  functions: Loaded functions definitions from source: createCategory, createStatement, importFromGlobal, tts, chatbot. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: createCategory, createStatement, importFromGlobal, tts, chatbot."}}
+[info] ✔  functions[us-central1-createCategory]: http function initialized (http://localhost:5001/distypepro-android/us-central1/createCategory). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/distypepro-android/us-central1/createCategory)."}}
+[info] ✔  functions[us-central1-createStatement]: http function initialized (http://localhost:5001/distypepro-android/us-central1/createStatement). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/distypepro-android/us-central1/createStatement)."}}
+[info] ✔  functions[us-central1-importFromGlobal]: http function initialized (http://localhost:5001/distypepro-android/us-central1/importFromGlobal). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/distypepro-android/us-central1/importFromGlobal)."}}
+[info] ✔  functions[us-central1-tts]: http function initialized (http://localhost:5001/distypepro-android/us-central1/tts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/distypepro-android/us-central1/tts)."}}
+[info] ✔  functions[us-central1-chatbot]: http function initialized (http://localhost:5001/distypepro-android/us-central1/chatbot). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/distypepro-android/us-central1/chatbot)."}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:34 +0000] "GET / HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:34 +0000] \"GET / HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:34 +0000] "GET /js/app.js HTTP/1.1" 200 - "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:34 +0000] \"GET /js/app.js HTTP/1.1\" 200 - \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /js/chunk-vendors.js HTTP/1.1" 200 - "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /js/chunk-vendors.js HTTP/1.1\" 200 - \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /android-icon-192x192.png HTTP/1.1" 404 163 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /android-icon-192x192.png HTTP/1.1\" 404 163 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /favicon-32x32.png HTTP/1.1" 200 1836 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /favicon-32x32.png HTTP/1.1\" 200 1836 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /fonts/MaterialIcons-Regular.d1b99623.woff2 HTTP/1.1" 200 125116 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /fonts/MaterialIcons-Regular.d1b99623.woff2 HTTP/1.1\" 200 125116 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /img/icons/favicon.svg HTTP/1.1" 404 160 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /img/icons/favicon.svg HTTP/1.1\" 404 160 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /manifest.json HTTP/1.1" 200 808 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /manifest.json HTTP/1.1\" 200 808 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /img/icons/favicon-32x32.png HTTP/1.1" 404 166 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /img/icons/favicon-32x32.png HTTP/1.1\" 404 166 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [12/Jul/2023:11:24:35 +0000] "GET /images/icons/icon-144x144.png HTTP/1.1" 200 16748 "http://localhost:5002/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [12/Jul/2023:11:24:35 +0000] \"GET /images/icons/icon-144x144.png HTTP/1.1\" 200 16748 \"http://localhost:5002/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36\""}}
