@@ -5,11 +5,14 @@
         <v-flex xs12 sm8 md4>
           <v-card class="elevation-12">
             <v-toolbar dark color="primary">
-              <v-toolbar-title>Войти в LINKa</v-toolbar-title>
+              <v-toolbar-title v-if="isRegistrationMode">Регистрация в LINKa</v-toolbar-title>
+              <v-toolbar-title v-else>Войти в LINKa</v-toolbar-title>
             </v-toolbar>
-            <v-card-text>
+            <v-card-text v-if="!isRegistrationMode ">
               <p>Пожалуйста, введите свой логин и пароль. Если у вас не было аккаунта нажмите кнопку Зарегистрироваться</p>
               <p>Регистрация необходима для персонализации коммуникатора.</p>
+              </v-card-text>
+              <v-card-text>
               <v-form v-model="valid" ref="form">
                 <v-text-field
                   prepend-icon="person"
@@ -19,7 +22,7 @@
                   :rules="[emailCheck]"
                   v-model="email"
                   required
-                  @keydown.enter="$refs.password.focus()"
+                  @keydown.enter="($refs.password )?.focus()"
                 ></v-text-field>
                 <v-text-field
                   ref="password"
@@ -31,18 +34,19 @@
                   v-model="password"
                   required
                   :rules="[passwordCheck]"
-                  @keydown.enter="login"
+                  @keydown.enter="()=>isRegistrationMode?register(): login()"
                 ></v-text-field>
               </v-form>
             </v-card-text>
             <v-card-text v-if="error" class="error">{{error}}</v-card-text>
             <v-card-actions>
-              <v-btn @click="register" xs4>Зарегистрироваться</v-btn>
+              <v-btn @click="isRegistrationMode = !isRegistrationMode" xs4>{{isRegistrationMode?'Уже есть аккаунт': 'Зарегистрироваться'}}</v-btn>
 
               <v-spacer></v-spacer>
-              <v-btn @click="login">Войти</v-btn>
+              <v-btn @click="login" v-if="!isRegistrationMode">Войти</v-btn>
+              <v-btn @click="register" v-else>Зарегистрироваться</v-btn>
             </v-card-actions>
-            <v-card-actions>
+            <v-card-actions v-if="!isRegistrationMode">
               <v-btn @click="resetPassword">Сброс пароля</v-btn>
             </v-card-actions>
           </v-card>
@@ -62,8 +66,9 @@ export default class Auth extends Vue {
   email: string = "";
   password: string = "";
   error: string | null = null;
+  isRegistrationMode = false
   valid = false;
-  private async login() {
+  async login() {
     this.error = null;
     if (!(<any>this.$refs.form).validate()) return;
     try {
@@ -80,7 +85,7 @@ export default class Auth extends Vue {
       this.password = "";
     }
   }
-  private async register() {
+   async register() {
     this.error = null;
     if (!(<any>this.$refs.form).validate()) return;
 
@@ -97,7 +102,7 @@ export default class Auth extends Vue {
     }
   }
 
-  private async resetPassword() {
+   async resetPassword() {
     if (!(<any>this.$refs.email).validate()) return;
 
     if (
@@ -122,11 +127,11 @@ export default class Auth extends Vue {
     });
   }
 
-  private passwordCheck(value: string) {
+  public passwordCheck(value: string) {
     return value.length < 8 ? "Пароль должен быть больше 7 символов." : true;
   }
 
-  private emailCheck(value: string) {
+  public emailCheck(value: string) {
     const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return pattern.test(value) || "Неверный емейл.";
   }
