@@ -33,7 +33,7 @@
         <v-layout>
           <v-row>
             <v-col :sm="isYandex?11:12">
-              <v-btn block @click="say">
+              <v-btn block @click="say()">
                 {{ playing ? 'Остановить' : 'Сказать' }}
               </v-btn>
             </v-col>
