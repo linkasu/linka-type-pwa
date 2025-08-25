@@ -1,113 +1,58 @@
 <template>
-  <v-overlay>
-    
-    <v-simple-table>
-        <thead>
-          <tr>
-            <th class="text-left">Сочетание</th>
-            <th class="text-left">Блок</th>
-            <th class="text-left">Функция</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, i) of shortcuts" :key="i">
-            <td>
-              <span v-if="item.mod">ctrl+</span>
-              {{ item.key }}
-            </td>
-            <td>{{ item.block }}</td>
-            <td>{{ item.func }}</td>
-          </tr>
-        </tbody>
-    </v-simple-table>
-
-    <v-btn fab  right small color="primary" @click="$emit('close')">
-      <v-icon dark>mdi-close</v-icon>
-    </v-btn>
-  </v-overlay>
+  <v-dialog v-model="value" max-width="600">
+    <v-card>
+      <v-card-title class="headline">Горячие клавиши</v-card-title>
+      <v-card-text>
+        <v-simple-table>
+          <thead>
+            <tr>
+              <th class="text-left">Сочетание</th>
+              <th class="text-left">Описание</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, i) in shortcuts" :key="i">
+              <td>{{ item.key }}</td>
+              <td>{{ item.desc }}</td>
+            </tr>
+          </tbody>
+        </v-simple-table>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="$emit('input', false)">Закрыть</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
 
 @Component
-export default class ShortcutLixt extends Vue {
-  shortcuts: Shortcut[] = [
-    {
-      key: "i",
-      mod: false,
-      func: "Сфокусироваться на поле ввода",
-      block: "Везде"
-    },
-    {
-      key: "1...5",
-      mod: true,
-      func: "Выбрать подсказку из предикатора",
-      block: "Поле ввода"
-    },
-    {
-      key: "Backspace",
-      mod: true,
-      func: "Очистить поле ввода",
-      block: "Поле ввода"
-    },
-    {
-      key: "↑",
-      mod: true,
-      func: "Переключиться на предыдущий чат",
-      block: "Поле ввода"
-    },
-    {
-      key: "↓",
-      mod: true,
-      func: "Переключиться на следующий чат",
-      block: "Поле ввода"
-    },
-    {
-      key: "0",
-      mod: true,
-      func: "Сфокусироваться на быстрых фразах",
-      block: "Везде"
-    },
-    {
-      key: "1...6",
-      mod: false,
-      func: "Выбрать быструю фразу",
-      block: "Быстрые фразы"
-    },
-    {
-      key: "Ж",
-      mod: true,
-      func: "Сфокусироваться на банке фраз",
-      block: "Везде"
-    },
+export default class ShortcutList extends Vue {
+  @Prop({ default: false }) value!: boolean;
 
-    {
-      key: "1...9",
-      mod: false,
-      func: "Выбрать категорию/фразу",
-      block: "Банк фраз"
-    },
-    {
-      key: "V",
-      mod: false,
-      func: "Включить режим вставки",
-      block: "Банк фраз"
-    },
-    {
-      key: "R",
-      mod: false,
-      func: "Выбрать случайную фразу",
-      block: "Банк фраз"
-    }
+  shortcuts: Shortcut[] = [
+    { key: "Ctrl + I", desc: "Сфокусироваться на поле ввода" },
+    { key: "Ctrl + 1...5", desc: "Выбрать подсказку из предикатора" },
+    { key: "Ctrl + Backspace", desc: "Очистить поле ввода" },
+    { key: "Ctrl + ↑", desc: "Переключиться на предыдущий чат" },
+    { key: "Ctrl + ↓", desc: "Переключиться на следующий чат" },
+    { key: "Ctrl + 0", desc: "Сфокусироваться на быстрых фразах" },
+    { key: "1...6", desc: "Выбрать быструю фразу" },
+    { key: "Ctrl + Ж", desc: "Сфокусироваться на банке фраз" },
+    { key: "1...9", desc: "Выбрать категорию/фразу в банке" },
+    { key: "V", desc: "Включить режим вставки" },
+    { key: "R", desc: "Выбрать случайную фразу" }
   ];
 }
 
 interface Shortcut {
   key: string;
-  mod: boolean;
-  block: "Везде" | "Поле ввода" | "Быстрые фразы" | "Банк фраз";
-  func: string;
+  desc: string;
 }
 </script>
+
