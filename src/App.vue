@@ -1,5 +1,5 @@
 <template>
-  <v-app id="app" light>
+  <v-app id="app">
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="64"></v-progress-circular>
     </v-overlay>
@@ -19,6 +19,7 @@ import MainUI from "./blocks/MainUI.vue";
 import Setup from "./blocks/Setup.vue";
 import Store from "./lib/Store";
 import ee from "./registerServiceWorker";
+import LocalMemory from "./lib/LocalMemory";
 
 @Component({
   components: {
@@ -35,8 +36,9 @@ export default class App extends Vue {
     this.auth = true;
   }
   async mounted() {
+    this.$vuetify.theme.dark = !!LocalMemory.instance.getBoolean("darkTheme", false);
     console.log('created');
-    
+
     await fireapp.auth().setPersistence(fireapp.auth.Auth.Persistence.LOCAL);
     fireapp.auth().onAuthStateChanged(state => {
       this.auth = !!state;
