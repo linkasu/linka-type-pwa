@@ -23,9 +23,8 @@ jobs:
           uses: actions/checkout@master
             
         - name: Setup Node.js environment
-          uses: actions/setup-node@v2.5.2
+          uses: actions/setup-node@v4
           with:
-            # Version Spec of the version to use.  Examples: 12.x, 10.15.1, >=10.15.0
             node-version: 22.x
         - run: yarn install
         - run: yarn build
@@ -35,4 +34,6 @@ jobs:
           run: npm i -g firebase-tools
 
         - name: Deploy Hosting
-          run: firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT }} --service-account service-account.json
+          env:
+            GOOGLE_APPLICATION_CREDENTIALS: service-account.json
+          run: firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT }}
