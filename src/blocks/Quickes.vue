@@ -1,5 +1,13 @@
 <template>
   <div width="100%" tabindex="0" class="quickes group" @keydown="keydown">
+    <div class="text-right mb-1">
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-icon small color="primary" v-bind="attrs" v-on="on">mdi-help-circle</v-icon>
+        </template>
+        <span>Нажмите 1-6 для выбора фразы</span>
+      </v-tooltip>
+    </div>
     <button-row :items="phrases" :focus="false" @buttonclick="say" />
   </div>
 </template>

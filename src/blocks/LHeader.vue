@@ -20,12 +20,9 @@
         >
           <v-icon>mdi-brain</v-icon>
         </v-btn>
-        <v-btn
-          @click="$emit('shortcut')"
-          icon
-          title="Справка по сочитаниям клавиш"
-        >
-          <v-icon>mdi-apple-keyboard-command</v-icon>
+        <v-btn text @click="shortcutDialog = true" title="Справка по сочетаниям клавиш">
+          <v-icon left>mdi-apple-keyboard-command</v-icon>
+          Горячие клавиши
         </v-btn>
 
         <v-btn
@@ -39,7 +36,7 @@
           <v-icon>mdi-eye</v-icon>
         </v-btn>
         <v-btn @click="saveOnSayClick()" icon title="Стенограмма">
-          <v-icon>{{!saveOnSay?'mdi-pencil':'mdi-pencil-box'}}</v-icon>  
+          <v-icon>{{!saveOnSay?'mdi-pencil':'mdi-pencil-box'}}</v-icon>
         </v-btn>
       </v-toolbar-items>
       <v-toolbar-items>
@@ -48,6 +45,7 @@
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
+    <shortcut-list v-model="shortcutDialog" />
   </header>
 </template>
 
@@ -56,12 +54,16 @@ import LocalMemory from "@/lib/LocalMemory";
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
+import ShortcutList from "./ShortcutList.vue";
 
-@Component
+@Component({
+  components: { ShortcutList }
+})
 export default class LHeader extends Vue {
   @Prop() settingsMode: boolean | undefined;
   @Prop({ default: 0 }) chat: number | undefined;
   saveOnSay = false;
+  shortcutDialog = false;
   mounted() {
     this.saveOnSay = !!LocalMemory.instance.getBoolean("saveOnSay", false);
   }

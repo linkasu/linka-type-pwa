@@ -2,7 +2,6 @@
   <div fill-height  >
     <l-header
       @show="showMode = true"
-      @shortcut="shortcutMode = true"
       @settings="settingsMode = !settingsMode"
       :settingsMode="settingsMode"
       :chat="chat"
@@ -17,7 +16,6 @@
         lc.setBoolean('tutorial', false)
       "
     />
-    <shortcut-list v-if="shortcutMode" @close="shortcutMode = false" />
     <settings v-if="settingsMode" />
     <brain v-else-if="brainMode"
     @quit="(text)=>{textForSpeak[chat]=text; brainMode = false}" />
@@ -69,7 +67,6 @@ import Quickes from './Quickes.vue'
 import Settings from './Settings.vue'
 import MainInput from './components/MainInput.vue'
 import Brain from './components/Brain.vue'
-import ShortcutList from './ShortcutList.vue'
 import LocalMemory from '../lib/LocalMemory'
 import { Watch } from 'vue-property-decorator'
 import { analytics } from 'firebase'
@@ -82,7 +79,6 @@ import { analytics } from 'firebase'
     Quickes,
     Settings,
     Tutorial,
-    ShortcutList,
     Brain
   },
 })
@@ -91,7 +87,6 @@ export default class MainUI extends Vue {
   textForSpeak: string[] = ['', '', '']
   showMode: boolean = false
   settingsMode = false
-  shortcutMode = false
   brainMode = false
   isQuickes = true
   isBank = true
