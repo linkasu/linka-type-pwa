@@ -28,12 +28,9 @@ jobs:
             node-version: 22.x
         - run: yarn install
         - run: yarn build
-        - run: echo "${{ secrets.SERVICE_ACOUNT }}" > service-account.json
 
         - name: Install Firebase CLI
           run: npm i -g firebase-tools
 
         - name: Deploy Hosting
-          env:
-            GOOGLE_APPLICATION_CREDENTIALS: service-account.json
-          run: firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT }}
+          run: firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT }} --token ${{ secrets.FIREBASE_TOKEN }}
