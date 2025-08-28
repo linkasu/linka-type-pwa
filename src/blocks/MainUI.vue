@@ -7,7 +7,6 @@
       :chat="chat"
       @chat="chat = $event"
       @tutorial="tutorialMode = true"
-      @brain="brainMode = !brainMode"
     />
     <tutorial
       v-if="tutorialMode"
@@ -17,9 +16,7 @@
       "
     />
     <settings v-if="settingsMode" />
-    <brain v-else-if="brainMode"
-    @quit="(text)=>{textForSpeak[chat]=text; brainMode = false}" />
-    <main v-if="!settingsMode&&!brainMode">
+    <main v-if="!settingsMode">
       <v-card-text>
         <main-input
           :showMode="showMode"
@@ -66,7 +63,6 @@ import Tutorial from './Tutorial.vue'
 import Quickes from './Quickes.vue'
 import Settings from './Settings.vue'
 import MainInput from './components/MainInput.vue'
-import Brain from './components/Brain.vue'
 import LocalMemory from '../lib/LocalMemory'
 import { Watch } from 'vue-property-decorator'
 import { analytics } from 'firebase'
@@ -78,8 +74,7 @@ import { analytics } from 'firebase'
     MainInput,
     Quickes,
     Settings,
-    Tutorial,
-    Brain
+    Tutorial
   },
 })
 export default class MainUI extends Vue {
@@ -87,7 +82,6 @@ export default class MainUI extends Vue {
   textForSpeak: string[] = ['', '', '']
   showMode: boolean = false
   settingsMode = false
-  brainMode = false
   isQuickes = true
   isBank = true
   tutorialMode = this.lc.getBoolean('tutorial', true)

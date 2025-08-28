@@ -15,14 +15,6 @@
         >
           <v-icon>mdi-help</v-icon>
         </v-btn>
-        <v-btn
-          @click="$emit('brain')"
-          icon
-          title="Предсказание текста"
-          class="hidden-xs-only"
-        >
-          <v-icon>mdi-brain</v-icon>
-        </v-btn>
         <v-btn text @click="shortcutDialog = true" title="Справка по сочетаниям клавиш" class="hidden-xs-only">
           <v-icon left>mdi-apple-keyboard-command</v-icon>
           Горячие клавиши
@@ -51,14 +43,6 @@
           class="hidden-sm-and-up"
         >
           <v-icon>mdi-help</v-icon>
-        </v-btn>
-        <v-btn
-          @click="$emit('brain')"
-          icon
-          title="Предсказание"
-          class="hidden-sm-and-up"
-        >
-          <v-icon>mdi-brain</v-icon>
         </v-btn>
         <v-btn @click="$emit('show')" icon title="Показать" class="hidden-sm-and-up">
           <v-icon>mdi-eye</v-icon>
