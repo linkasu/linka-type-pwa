@@ -6,10 +6,12 @@
       }}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items v-if="!settingsMode">
+        <!-- Кнопки для десктопа -->
         <v-btn
           @click="$emit('tutorial')"
           icon
           title="Обучающие видео по программе"
+          class="hidden-xs-only"
         >
           <v-icon>mdi-help</v-icon>
         </v-btn>
@@ -17,10 +19,11 @@
           @click="$emit('brain')"
           icon
           title="Предсказание текста"
+          class="hidden-xs-only"
         >
           <v-icon>mdi-brain</v-icon>
         </v-btn>
-        <v-btn text @click="shortcutDialog = true" title="Справка по сочетаниям клавиш">
+        <v-btn text @click="shortcutDialog = true" title="Справка по сочетаниям клавиш" class="hidden-xs-only">
           <v-icon left>mdi-apple-keyboard-command</v-icon>
           Горячие клавиши
         </v-btn>
@@ -29,14 +32,36 @@
           @click="$emit('chat', chat === 2 ? 0 : chat + 1)"
           icon
           title="Переключить ячейку памяти"
+          class="hidden-xs-only"
         >
           <v-icon>mdi-numeric-{{ chat + 1 }}-box-multiple</v-icon>
         </v-btn>
-        <v-btn @click="$emit('show')" icon title="Показать">
+        <v-btn @click="$emit('show')" icon title="Показать" class="hidden-xs-only">
           <v-icon>mdi-eye</v-icon>
         </v-btn>
-        <v-btn @click="saveOnSayClick()" icon title="Стенограмма">
+        <v-btn @click="saveOnSayClick()" icon title="Стенограмма" class="hidden-xs-only">
           <v-icon>{{!saveOnSay?'mdi-pencil':'mdi-pencil-box'}}</v-icon>
+        </v-btn>
+        
+        <!-- Кнопки для мобильных устройств -->
+        <v-btn
+          @click="$emit('tutorial')"
+          icon
+          title="Обучающие видео"
+          class="hidden-sm-and-up"
+        >
+          <v-icon>mdi-help</v-icon>
+        </v-btn>
+        <v-btn
+          @click="$emit('brain')"
+          icon
+          title="Предсказание"
+          class="hidden-sm-and-up"
+        >
+          <v-icon>mdi-brain</v-icon>
+        </v-btn>
+        <v-btn @click="$emit('show')" icon title="Показать" class="hidden-sm-and-up">
+          <v-icon>mdi-eye</v-icon>
         </v-btn>
       </v-toolbar-items>
       <v-toolbar-items>
