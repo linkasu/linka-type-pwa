@@ -62,7 +62,14 @@ export default class VoiceSettings extends Vue {
   }
   @Watch("yandex") onYandex(value: boolean) {
     this.tts.yandex = value;
-    this.voice = this.tts.selectedVoice.voiceURI;
+    if (value) {
+      // При включении Яндекса выбираем первый голос из списка
+      this.voice = this.tts.yandexVoices[0].voiceURI;
+      this.tts.setVoice(this.voice);
+    } else {
+      // При отключении Яндекса возвращаемся к выбранному офлайн голосу
+      this.voice = this.tts.selectedVoice.voiceURI;
+    }
   }
 
   created() {
