@@ -27,6 +27,13 @@ class TTS {
       if (this.voice == null) {
         this.voice = this.selectedVoice
       }
+      
+      // Проверяем, что голос существует
+      if (!this.voice) {
+        console.error('No voice available')
+        return
+      }
+      
       this.events.emit('start')
       if (this.yandex) {
         this.yandexSay(text, { speaker: this.voice.voiceURI, speed: this.rate }, download)
@@ -141,29 +148,58 @@ class TTS {
       { voiceURI: 'omazh', text: 'Ома' },
     ]
   }
-  get defaultOfflineVoice(): SpeechSynthesisVoice {
-    return (
-      this.offlineVoices.find((item) => item.default) || this.offlineVoices[0]
-    )
+  get defaultOfflineVoice(): SpeechSynthesisVoice | undefined {
+    const voices = this.offlineVoices
+    if (voices.length === 0) return undefined
+    return voices.find((item) => item.default) || voices[0]
   }
 
   get selectedVoice(): SpeechSynthesisVoice | YandexVoice {
     const def = this.defaultOfflineVoice
     const voices = this.offlineVoices
     const uri = this.storage.getString('voiceuri', def ? def.voiceURI : 'uri')
+    
     if (this.yandex) {
       const voice = this.yandexVoices.find((voice) => voice.voiceURI === uri)
-      setUserProperties( { voice: voice!.voiceURI })
-      return voice || this.yandexVoices[0]
+      if (voice) {
+        setUserProperties( { voice: voice.voiceURI })
+        return voice
+      }
+      // Если голос не найден, возвращаем первый из списка Яндекса
+      const firstYandexVoice = this.yandexVoices[0]
+      if (firstYandexVoice) {
+        setUserProperties( { voice: firstYandexVoice.voiceURI })
+        return firstYandexVoice
+      }
+      // Fallback - возвращаем первый офлайн голос
+      if (def) {
+        return def
+      }
+      if (voices.length > 0) {
+        return voices[0]
+      }
+      // Если ничего не найдено, возвращаем первый голос Яндекса как fallback
+      return this.yandexVoices[0]
     }
+    
     const voice = voices.find((voice) => voice.voiceURI === uri)
-
-    if (!voice && def) {
-      this.storage.setString('voiceuri', def ? def.voiceURI : 'uri')
-      return this.selectedVoice
+    if (voice) {
+      setUserProperties( { voice: voice.voiceURI })
+      return voice
     }
-    setUserProperties( { voice: voice!.voiceURI })
-    return voice!
+    
+    if (def) {
+      this.storage.setString('voiceuri', def.voiceURI)
+      return def
+    }
+    
+    // Fallback - возвращаем первый доступный голос
+    if (voices.length > 0) {
+      return voices[0]
+    }
+    
+    // Если ничего не найдено, возвращаем первый голос Яндекса как fallback
+    return this.yandexVoices[0]
   }
 }
 let instance: TTS = new TTS()

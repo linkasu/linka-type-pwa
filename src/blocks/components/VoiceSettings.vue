@@ -64,16 +64,25 @@ export default class VoiceSettings extends Vue {
     this.tts.yandex = value;
     if (value) {
       // При включении Яндекса выбираем первый голос из списка
-      this.voice = this.tts.yandexVoices[0].voiceURI;
-      this.tts.setVoice(this.voice);
+      const firstYandexVoice = this.tts.yandexVoices[0];
+      if (firstYandexVoice) {
+        this.voice = firstYandexVoice.voiceURI;
+        this.tts.setVoice(this.voice);
+      }
     } else {
       // При отключении Яндекса возвращаемся к выбранному офлайн голосу
-      this.voice = this.tts.selectedVoice.voiceURI;
+      const selectedVoice = this.tts.selectedVoice;
+      if (selectedVoice) {
+        this.voice = selectedVoice.voiceURI;
+      }
     }
   }
 
   created() {
-    this.voice = this.tts.selectedVoice.voiceURI;
+    const selectedVoice = this.tts.selectedVoice;
+    if (selectedVoice) {
+      this.voice = selectedVoice.voiceURI;
+    }
     this.pitch = this.tts.pitch;
     this.rate = this.tts.rate;
     this.volume = this.tts.volume;
