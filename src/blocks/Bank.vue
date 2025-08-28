@@ -8,14 +8,7 @@
     @keydown.86.self="isPaste = !isPaste"
   >
     <v-layout>
-      <v-flex xs12 class="text-right">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon small color="primary" v-bind="attrs" v-on="on">mdi-help-circle</v-icon>
-          </template>
-          <span>Выбирайте элементы с помощью клавиатуры</span>
-        </v-tooltip>
-      </v-flex>
+ 
       <v-flex xs12 v-if="cid === null">
         <l-list
           @select="cselect"
