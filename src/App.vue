@@ -8,6 +8,7 @@
       <setup v-if="inited===false" @inited="inited=true" />
       <main-ui v-if="inited===true" />
     </div>
+    <mobile-app-prompt />
   </v-app>
 </template>
 
@@ -20,12 +21,14 @@ import Setup from "./blocks/Setup.vue";
 import Store from "./lib/Store";
 import ee from "./registerServiceWorker";
 import LocalMemory from "./lib/LocalMemory";
+import MobileAppPrompt from "./blocks/components/MobileAppPrompt.vue";
 
 @Component({
   components: {
     Auth,
     MainUi: MainUI,
-    Setup
+    Setup,
+    MobileAppPrompt
   }
 })
 export default class App extends Vue {
