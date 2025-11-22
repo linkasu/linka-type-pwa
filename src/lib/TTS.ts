@@ -1,9 +1,19 @@
 import LocalMemory from './LocalMemory'
-import {analytics} from 'firebase'
+import { analytics } from 'firebase'
 import axios from 'axios'
 import { EventEmitter } from 'events'
 
-const {setUserProperties} =  analytics()
+const { setUserProperties } = analytics()
+
+const DEFAULT_YANDEX_VOICES: YandexVoice[] = [
+  { voiceURI: 'zahar', text: 'Захар' },
+  { voiceURI: 'ermil', text: 'Емиль' },
+  { voiceURI: 'jane', text: 'Джейн' },
+  { voiceURI: 'oksana', text: 'Оксана' },
+  { voiceURI: 'alena', text: 'Алёна' },
+  { voiceURI: 'filipp', text: 'Филипп' },
+  { voiceURI: 'omazh', text: 'Ома' },
+]
 
 class TTS {
   private synth: SpeechSynthesis
@@ -11,6 +21,7 @@ class TTS {
   private storage = new LocalMemory()
   private audio = new Audio()
   public events = new EventEmitter()
+  private yandexVoicesList: YandexVoice[] = DEFAULT_YANDEX_VOICES
   public static get instance(): TTS {
     if (instance == undefined) instance = new TTS()
     return instance
@@ -20,6 +31,7 @@ class TTS {
       this.yandex = true
     }
     this.synth = window.speechSynthesis
+    this.fetchYandexVoices()
   }
   say(text: string, download = false) {
     if (text !== '') {
@@ -138,15 +150,7 @@ class TTS {
     return this.synth.getVoices()
   }
   get yandexVoices(): YandexVoice[] {
-    return [
-      { voiceURI: 'zahar', text: 'Захар' },
-      { voiceURI: 'ermil', text: 'Емиль' },
-      { voiceURI: 'jane', text: 'Джейн' },
-      { voiceURI: 'oksana', text: 'Оксана' },
-      { voiceURI: 'alena', text: 'Алёна' },
-      { voiceURI: 'filipp', text: 'Филипп' },
-      { voiceURI: 'omazh', text: 'Ома' },
-    ]
+    return this.yandexVoicesList
   }
   get defaultOfflineVoice(): SpeechSynthesisVoice | undefined {
     const voices = this.offlineVoices
@@ -201,6 +205,40 @@ class TTS {
     // Если ничего не найдено, возвращаем первый голос Яндекса как fallback
     return this.yandexVoices[0]
   }
+
+  private async fetchYandexVoices() {
+    try {
+      const { data } = await axios.get<VoiceApiVoice[]>('https://tts.linka.su/voices')
+      if (!data || data.length === 0) {
+        return
+      }
+
+      const mappedVoices = data.map<YandexVoice>((voice) => ({
+        voiceURI: voice.id,
+        text: voice.name,
+        lang: voice.lang,
+        lang_code: voice.lang_code,
+        gender: voice.gender,
+        role: voice.role,
+      }))
+
+      this.yandexVoicesList = mappedVoices
+      const currentVoiceUri = this.storage.getString('voiceuri', mappedVoices[0]?.voiceURI || '')
+
+      if (
+        this.yandex &&
+        currentVoiceUri &&
+        !mappedVoices.find((voice) => voice.voiceURI === currentVoiceUri)
+      ) {
+        this.storage.setString('voiceuri', mappedVoices[0].voiceURI)
+        this.voice = mappedVoices[0]
+      }
+
+      this.events.emit('yandex-voices-updated', mappedVoices)
+    } catch (error) {
+      console.error('Failed to load Yandex voices', error)
+    }
+  }
 }
 let instance: TTS = new TTS()
 export default TTS
@@ -208,4 +246,17 @@ export default TTS
 interface YandexVoice {
   voiceURI: string
   text: string
+  lang?: string
+  lang_code?: string
+  gender?: string
+  role?: string[] | null
+}
+
+interface VoiceApiVoice {
+  id: string
+  name: string
+  lang: string
+  lang_code: string
+  gender?: string
+  role?: string[] | null
 }

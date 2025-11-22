@@ -51,6 +51,7 @@ export default class VoiceSettings extends Vue {
   rate: number = 1;
   volume: number = 1;
   yandex: boolean = false;
+  yandexVoiceItems: { text: string; value: string }[] = [];
   @Watch("rate") onRate(value: number) {
     this.tts.rate = value;
   }
@@ -63,10 +64,13 @@ export default class VoiceSettings extends Vue {
   @Watch("yandex") onYandex(value: boolean) {
     this.tts.yandex = value;
     if (value) {
-      // При включении Яндекса выбираем первый голос из списка
-      const firstYandexVoice = this.tts.yandexVoices[0];
+      if (this.yandexVoiceItems.length === 0) {
+        this.refreshYandexVoices();
+      }
+
+      const firstYandexVoice = this.yandexVoiceItems[0];
       if (firstYandexVoice) {
-        this.voice = firstYandexVoice.voiceURI;
+        this.voice = firstYandexVoice.value;
         this.tts.setVoice(this.voice);
       }
     } else {
@@ -74,6 +78,7 @@ export default class VoiceSettings extends Vue {
       const selectedVoice = this.tts.selectedVoice;
       if (selectedVoice) {
         this.voice = selectedVoice.voiceURI;
+        this.tts.setVoice(this.voice);
       }
     }
   }
@@ -87,16 +92,43 @@ export default class VoiceSettings extends Vue {
     this.rate = this.tts.rate;
     this.volume = this.tts.volume;
     this.yandex = this.tts.yandex;
+    this.refreshYandexVoices();
+    this.tts.events.on("yandex-voices-updated", this.onYandexVoicesUpdated);
+  }
+  beforeDestroy() {
+    this.tts.events.off("yandex-voices-updated", this.onYandexVoicesUpdated);
   }
   setVoice(uri: string) {
     this.tts.setVoice(uri);
   }
+  refreshYandexVoices() {
+    this.yandexVoiceItems = this.tts.yandexVoices.map((item) => ({
+      value: item.voiceURI,
+      text: item.lang ? `${item.text} (${item.lang})` : item.text
+    }));
+  }
+
+  private onYandexVoicesUpdated = () => {
+    const previousVoice = this.voice;
+    this.refreshYandexVoices();
+
+    if (this.yandex && this.yandexVoiceItems.length > 0) {
+      const matched = this.yandexVoiceItems.find((item) => item.value === previousVoice);
+      const nextVoice = matched || this.yandexVoiceItems[0];
+      if (nextVoice && nextVoice.value !== this.voice) {
+        this.voice = nextVoice.value;
+        this.tts.setVoice(this.voice);
+      }
+    }
+  };
+
   get voices(): { text: string; value: string }[] {
     if (this.yandex) {
-      return this.tts.yandexVoices.map(item => ({
-        value: item.voiceURI,
-        text: item.text
-      }));
+      if (this.yandexVoiceItems.length === 0) {
+        this.refreshYandexVoices();
+      }
+
+      return this.yandexVoiceItems;
     }
 
     return this.tts.offlineVoices
