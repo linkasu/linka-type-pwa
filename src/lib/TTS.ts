@@ -6,13 +6,13 @@ import { EventEmitter } from 'events'
 const { setUserProperties } = analytics()
 
 const DEFAULT_YANDEX_VOICES: YandexVoice[] = [
-  { voiceURI: 'zahar', text: 'Захар' },
-  { voiceURI: 'ermil', text: 'Емиль' },
-  { voiceURI: 'jane', text: 'Джейн' },
-  { voiceURI: 'oksana', text: 'Оксана' },
-  { voiceURI: 'alena', text: 'Алёна' },
-  { voiceURI: 'filipp', text: 'Филипп' },
-  { voiceURI: 'omazh', text: 'Ома' },
+  { voiceURI: 'zahar', text: 'Захар', engine: 'yandex' },
+  { voiceURI: 'ermil', text: 'Емиль', engine: 'yandex' },
+  { voiceURI: 'jane', text: 'Джейн', engine: 'yandex' },
+  { voiceURI: 'oksana', text: 'Оксана', engine: 'yandex' },
+  { voiceURI: 'alena', text: 'Алёна', engine: 'yandex' },
+  { voiceURI: 'filipp', text: 'Филипп', engine: 'yandex' },
+  { voiceURI: 'omazh', text: 'Ома', engine: 'yandex' },
 ]
 
 class TTS {
@@ -220,6 +220,7 @@ class TTS {
         lang_code: voice.lang_code,
         gender: voice.gender,
         role: voice.role,
+        engine: voice.engine || 'yandex',
       }))
 
       this.yandexVoicesList = mappedVoices
@@ -250,6 +251,7 @@ interface YandexVoice {
   lang_code?: string
   gender?: string
   role?: string[] | null
+  engine?: string
 }
 
 interface VoiceApiVoice {
@@ -259,4 +261,5 @@ interface VoiceApiVoice {
   lang_code: string
   gender?: string
   role?: string[] | null
+  engine?: string
 }

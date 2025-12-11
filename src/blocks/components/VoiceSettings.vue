@@ -14,6 +14,16 @@
       <v-checkbox label="Использовать голоса яндекс" v-model="yandex"></v-checkbox>
 
       <v-select :items="voices" v-model="voice" @change="setVoice" label="Голос"/>
+      <v-alert
+        v-if="selectedVoiceDetails"
+        type="info"
+        dense
+        outlined
+        class="mt-2"
+      >
+        <div>Голос: <b>{{ selectedVoiceDetails.name }}</b></div>
+        <div>Компания: {{ selectedVoiceDetails.vendor }}</div>
+      </v-alert>
       <v-slider
         v-if="!yandex"
         step="0.1"
@@ -42,6 +52,14 @@ import TTS from "../../lib/TTS";
 import LocalMemory from "../../lib/LocalMemory";
 import { Watch } from "vue-property-decorator";
 
+type YandexVoiceItem = {
+  text: string;
+  value: string;
+  engine?: string;
+  lang?: string;
+  name?: string;
+};
+
 @Component({})
 export default class VoiceSettings extends Vue {
   tts = TTS.instance;
@@ -51,7 +69,7 @@ export default class VoiceSettings extends Vue {
   rate: number = 1;
   volume: number = 1;
   yandex: boolean = false;
-  yandexVoiceItems: { text: string; value: string }[] = [];
+  yandexVoiceItems: YandexVoiceItem[] = [];
   @Watch("rate") onRate(value: number) {
     this.tts.rate = value;
   }
@@ -102,10 +120,17 @@ export default class VoiceSettings extends Vue {
     this.tts.setVoice(uri);
   }
   refreshYandexVoices() {
-    this.yandexVoiceItems = this.tts.yandexVoices.map((item) => ({
-      value: item.voiceURI,
-      text: item.lang ? `${item.text} (${item.lang})` : item.text
-    }));
+    this.yandexVoiceItems = this.tts.yandexVoices.map((item) => {
+      const baseText = item.lang ? `${item.text} (${item.lang})` : item.text;
+      const vendor = this.getVoiceVendorLabel(item.engine);
+      return {
+        value: item.voiceURI,
+        text: `${baseText} — ${vendor}`,
+        engine: item.engine,
+        lang: item.lang,
+        name: item.text
+      };
+    });
   }
 
   private onYandexVoicesUpdated = () => {
@@ -121,6 +146,45 @@ export default class VoiceSettings extends Vue {
       }
     }
   };
+
+  get selectedVoiceDetails(): { name: string; vendor: string } | null {
+    if (!this.voice) {
+      return null;
+    }
+
+    if (this.yandex) {
+      const voice = this.yandexVoiceItems.find((item) => item.value === this.voice);
+      if (voice) {
+        const displayName = voice.name || voice.text;
+        const name = voice.lang ? `${displayName} (${voice.lang})` : displayName;
+        return {
+          name,
+          vendor: this.getVoiceVendorLabel(voice.engine),
+        };
+      }
+      return { name: this.voice, vendor: "Онлайн синтез" };
+    }
+
+    const offlineVoice = this.tts.offlineVoices.find((item) => item.voiceURI === this.voice);
+    if (offlineVoice) {
+      const name = offlineVoice.lang ? `${offlineVoice.name} (${offlineVoice.lang})` : offlineVoice.name;
+      const vendor = offlineVoice.localService ? "Системный голос устройства" : "Голос браузера";
+      return { name, vendor };
+    }
+
+    return null;
+  }
+
+  private getVoiceVendorLabel(engine?: string) {
+    switch ((engine || "").toLowerCase()) {
+      case "sber":
+        return "Сбер";
+      case "yandex":
+        return "Яндекс";
+      default:
+        return "Онлайн синтез";
+    }
+  }
 
   get voices(): { text: string; value: string }[] {
     if (this.yandex) {
@@ -140,9 +204,13 @@ export default class VoiceSettings extends Vue {
           : 1;
       })
       .map(item => ({
-        text: item.name + " (" + item.lang + ")",
+        text: `${item.name} от ${this.getOfflineVoiceVendorLabel(item)} (${item.lang})`,
         value: item.voiceURI
       }));
+  }
+
+  private getOfflineVoiceVendorLabel(voice: SpeechSynthesisVoice) {
+    return voice.localService ? "устройство" : "браузер";
   }
 }
 </script>
