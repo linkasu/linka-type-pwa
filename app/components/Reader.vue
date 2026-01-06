@@ -85,27 +85,25 @@ onUnmounted(() => {
     :model-value="true"
     fullscreen
     persistent
+    content-class="reader-dialog"
     @update:model-value="emit('close')"
   >
-    <VCard class="reader-card">
-      <VToolbar
-        color="primary"
-        dark
-      >
+    <div class="reader-container">
+      <div class="reader-header">
         <VBtn
           icon
+          variant="text"
+          color="white"
           @click="emit('close')"
         >
           <VIcon>mdi-close</VIcon>
         </VBtn>
-        <VToolbarTitle>{{ t('reader.title') }}</VToolbarTitle>
-        <VSpacer />
-        <span class="text-subtitle-2">
+        <span class="reader-counter">
           {{ currentIndex + 1 }} / {{ statements.length }}
         </span>
-      </VToolbar>
+      </div>
 
-      <VCardText class="reader-content">
+      <div class="reader-content">
         <div class="statement-display">
           <div class="statement-text">
             {{ currentStatement?.text }}
@@ -116,6 +114,8 @@ onUnmounted(() => {
           <VBtn
             icon
             size="x-large"
+            variant="outlined"
+            color="white"
             :disabled="!canGoPrev"
             @click="prev"
           >
@@ -127,10 +127,14 @@ onUnmounted(() => {
           <VBtn
             icon
             size="x-large"
-            color="primary"
+            variant="flat"
+            color="white"
             @click="togglePlay"
           >
-            <VIcon size="large">
+            <VIcon
+              size="large"
+              color="black"
+            >
               {{ isPlaying ? 'mdi-pause' : 'mdi-play' }}
             </VIcon>
           </VBtn>
@@ -138,6 +142,8 @@ onUnmounted(() => {
           <VBtn
             icon
             size="x-large"
+            variant="outlined"
+            color="white"
             :disabled="!canGoNext"
             @click="next"
           >
@@ -147,19 +153,36 @@ onUnmounted(() => {
           </VBtn>
         </div>
 
-        <div class="shortcuts-hint text-center text-caption text-medium-emphasis mt-4">
+        <div class="shortcuts-hint">
           {{ t('reader.shortcuts') }}: Space - {{ t('reader.play') }}, ← → - {{ t('reader.navigate') }}, Esc - {{ t('reader.close') }}
         </div>
-      </VCardText>
-    </VCard>
+      </div>
+    </div>
   </VDialog>
 </template>
 
 <style scoped>
-.reader-card {
+.reader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+}
+
+.reader-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.reader-counter {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
 }
 
 .reader-content {
@@ -168,39 +191,67 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 20px;
 }
 
 .statement-display {
-  max-width: 800px;
   width: 100%;
-  margin-bottom: 60px;
-}
-
-.statement-text {
-  font-size: 2.5rem;
-  line-height: 1.4;
-  text-align: center;
-  padding: 40px;
-  background: rgba(var(--v-theme-surface), 0.5);
-  border-radius: 16px;
-  min-height: 200px;
+  max-width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 40px;
+}
+
+.statement-text {
+  color: #fff;
+  font-size: 10vh;
+  line-height: 1.2em;
+  text-align: center;
+  padding: 40px;
+  border: 3px solid #fff;
+  width: 100%;
+  max-width: calc(100vw - 80px);
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .reader-controls {
   display: flex;
   gap: 24px;
   align-items: center;
+  margin-bottom: 20px;
+}
+
+.shortcuts-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  text-align: center;
 }
 
 @media (max-width: 600px) {
   .statement-text {
-    font-size: 1.8rem;
-    padding: 24px;
+    font-size: 6vh;
+    padding: 20px;
   }
+}
+</style>
+
+<style>
+.reader-dialog {
+  background-color: #000 !important;
+}
+
+.reader-dialog .v-overlay__content {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
 }
 </style>
 

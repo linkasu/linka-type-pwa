@@ -43,8 +43,29 @@ const currentText = computed({
   },
 })
 
-// Switch chat with Ctrl+Up/Down
+// Spotlight textarea ref
+const spotlightTextarea = ref<HTMLTextAreaElement | null>(null)
+
+// Toggle spotlight mode
+const toggleSpotlight = () => {
+  showMode.value = !showMode.value
+  if (showMode.value) {
+    nextTick(() => {
+      spotlightTextarea.value?.focus()
+    })
+  }
+}
+
+// Switch chat with Ctrl+Up/Down and Ctrl+B for spotlight
 const handleKeydown = (event: KeyboardEvent) => {
+  const isCtrlOrMeta = event.ctrlKey || event.metaKey
+  
+  if (isCtrlOrMeta && event.key.toLowerCase() === 'b') {
+    event.preventDefault()
+    toggleSpotlight()
+    return
+  }
+  
   if (event.ctrlKey && event.key === 'ArrowUp') {
     event.preventDefault()
     activeChat.value = (activeChat.value + 2) % 3
@@ -58,6 +79,35 @@ const handleKeydown = (event: KeyboardEvent) => {
     event.preventDefault()
     // Focus bank - emit event or use ref
   }
+}
+
+// Handle spotlight keydown events
+const handleSpotlightKeydown = (event: KeyboardEvent) => {
+  const isCtrlOrMeta = event.ctrlKey || event.metaKey
+  
+  // Stop propagation to prevent Predictor from catching number keys
+  event.stopPropagation()
+  
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    showMode.value = false
+    return
+  }
+  
+  if (isCtrlOrMeta && event.key.toLowerCase() === 'b') {
+    event.preventDefault()
+    showMode.value = false
+    return
+  }
+  
+  // Ctrl+Enter or Cmd+Enter - speak
+  if (event.key === 'Enter' && isCtrlOrMeta) {
+    event.preventDefault()
+    handleSay(false)
+    return
+  }
+  
+  // Regular Enter - allow newline (do nothing, let default behavior)
 }
 
 onMounted(() => {
@@ -255,6 +305,27 @@ watch(() => settingsStore.yandex, (value) => {
     >
       {{ isPlaying ? t('status.playing') : t('status.stopped') }}
     </div>
+
+    <!-- Spotlight Mode Dialog -->
+    <VDialog
+      v-model="showMode"
+      fullscreen
+      persistent
+      content-class="spotlight-dialog"
+    >
+      <div class="spotlight-container">
+        <textarea
+          ref="spotlightTextarea"
+          v-model="currentText"
+          class="spotlight-textarea"
+          :placeholder="t('main.placeholder')"
+          @keydown="handleSpotlightKeydown"
+        />
+        <div class="spotlight-hint">
+          Esc - {{ t('reader.close') }} | Ctrl+Enter - {{ t('main.say') }} | Ctrl+B - {{ t('reader.close') }}
+        </div>
+      </div>
+    </VDialog>
   </VContainer>
 </template>
 
@@ -269,6 +340,59 @@ watch(() => settingsStore.yandex, (value) => {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.spotlight-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.spotlight-textarea {
+  flex: 1;
+  resize: none;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  background-color: #000;
+  font-size: 10vh;
+  line-height: 1.2em;
+  border: 3px solid #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+}
+
+.spotlight-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.spotlight-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  text-align: center;
+  padding: 10px;
+  background-color: #000;
+}
+</style>
+
+<style>
+.spotlight-dialog {
+  background-color: #000 !important;
+}
+
+.spotlight-dialog .v-overlay__content {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
 }
 </style>
 
