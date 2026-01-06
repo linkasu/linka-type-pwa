@@ -92,7 +92,7 @@ watch(() => settingsStore.yandex, (value) => {
       @close-spotlight="showMode = false"
     />
 
-    <MainMainInput
+    <MainInput
       v-model="currentText"
       :is-playing="isPlaying"
       :show-download="showDownload"
