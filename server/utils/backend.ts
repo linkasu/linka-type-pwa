@@ -53,9 +53,11 @@ export async function backendRequest<T>(
 
     const statusCode = error.status || error.statusCode || error.response?.status || 500
     const errorData = error.data || error.response?.data
-    const errorMessage = errorData?.error?.message || error.message || error.response?.data?.error?.message || 'Backend request failed'
+    const errorMessage = errorData?.error?.message || error.message || error.response?.data?.error?.message || ''
     
-    if (statusCode === 401) {
+    if (statusCode === 401 || 
+        errorData?.error?.code === 'unauthorized' || 
+        (errorMessage && (errorMessage.includes('401') || errorMessage.includes('Unauthorized')))) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized',
@@ -63,11 +65,14 @@ export async function backendRequest<T>(
       })
     }
 
+    const finalErrorMessage = errorMessage || 'Backend request failed'
+
     if (errorData?.error) {
+      const finalStatusCode = statusCode >= 400 && statusCode < 600 ? statusCode : 500
       throw createError({
-        statusCode: statusCode >= 400 && statusCode < 600 ? statusCode : 500,
+        statusCode: finalStatusCode,
         statusMessage: error.statusText || error.response?.statusText || 'Server Error',
-        message: errorMessage,
+        message: finalErrorMessage,
         data: errorData,
       })
     }
