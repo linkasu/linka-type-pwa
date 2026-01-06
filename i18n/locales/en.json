@@ -1,0 +1,223 @@
+{
+  "$vuetify": {
+    "input": {
+      "appendAction": "Show/Hide"
+    },
+    "close": "Close"
+  },
+  "app": {
+    "name": "LINKa: type",
+    "description": "Communication app"
+  },
+  "nav": {
+    "home": "Home",
+    "settings": "Settings",
+    "tutorial": "Tutorial",
+    "shortcuts": "Shortcuts"
+  },
+  "auth": {
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "loginError": "Login error. Check your email and password.",
+    "registerSuccess": "Registration successful!",
+    "logoutSuccess": "You have been signed out"
+  },
+  "setup": {
+    "welcome": "Welcome to LINKa!",
+    "welcomeText": "Let's set up the app for you",
+    "step1": "Welcome",
+    "step2": "Voice Setup",
+    "step3": "Personal Phrases",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Finish"
+  },
+  "main": {
+    "say": "Say",
+    "stop": "Stop",
+    "download": "Download",
+    "clear": "Clear",
+    "placeholder": "Enter text to speak...",
+    "chat": "Chat",
+    "chatSwitch": "Switch chat"
+  },
+  "quickes": {
+    "title": "Quick Phrases",
+    "edit": "Edit",
+    "default": {
+      "1": "Yes",
+      "2": "No",
+      "3": "Thank you",
+      "4": "Please",
+      "5": "Help",
+      "6": "Wait"
+    }
+  },
+  "bank": {
+    "title": "Phrase Bank",
+    "categories": "Categories",
+    "statements": "Phrases",
+    "addCategory": "Add category",
+    "addStatement": "Add phrase",
+    "editCategory": "Edit category",
+    "editStatement": "Edit phrase",
+    "deleteCategory": "Delete category",
+    "deleteStatement": "Delete phrase",
+    "confirmDelete": "Are you sure you want to delete?",
+    "pasteMode": "Paste mode",
+    "readMode": "Read mode",
+    "textEditor": "Text editor",
+    "random": "Random phrase",
+    "back": "Back",
+    "empty": "No items",
+    "newCategoryName": "Category name",
+    "newStatementText": "Phrase text"
+  },
+  "predictor": {
+    "title": "Suggestions",
+    "loading": "Loading...",
+    "noSuggestions": "No suggestions"
+  },
+  "settings": {
+    "title": "Settings",
+    "voice": "Voice",
+    "adaptive": "Interface",
+    "import": "Import",
+    "account": "Account",
+    "voiceSettings": {
+      "title": "Voice Settings",
+      "selectVoice": "Select voice",
+      "volume": "Volume",
+      "rate": "Speed",
+      "pitch": "Pitch",
+      "yandexTTS": "Use Yandex TTS",
+      "test": "Test voice",
+      "testText": "Hello! This is a test message."
+    },
+    "adaptiveSettings": {
+      "title": "Interface Settings",
+      "showPredictor": "Show predictor",
+      "showQuickes": "Show quick phrases",
+      "showBank": "Show phrase bank",
+      "saveOnSay": "Save on speak",
+      "typeSound": "Typing sound",
+      "speakLastWord": "Speak last word",
+      "darkTheme": "Dark theme"
+    },
+    "importSettings": {
+      "title": "Import Categories",
+      "globalCategories": "Global categories",
+      "import": "Import",
+      "preview": "Preview",
+      "importSuccess": "Category imported!"
+    },
+    "accountSettings": {
+      "title": "Account",
+      "email": "Email",
+      "deleteAccount": "Delete account",
+      "deleteWarning": "This action cannot be undone. All your data will be deleted.",
+      "confirmDelete": "Type DELETE to confirm"
+    }
+  },
+  "tutorial": {
+    "title": "Tutorial",
+    "close": "Close",
+    "steps": {
+      "1": {
+        "title": "Introduction",
+        "text": "LINKa helps people with speech impairments communicate"
+      },
+      "2": {
+        "title": "Text Input",
+        "text": "Enter text in the field and press Say or Enter"
+      },
+      "3": {
+        "title": "Quick Phrases",
+        "text": "Use keys 1-6 for quick playback"
+      },
+      "4": {
+        "title": "Phrase Bank",
+        "text": "Save frequently used phrases in categories"
+      }
+    }
+  },
+  "shortcuts": {
+    "title": "Keyboard Shortcuts",
+    "global": "Global",
+    "bank": "Phrase Bank",
+    "quickes": "Quick Phrases",
+    "reader": "Reader Mode",
+    "list": {
+      "ctrlUpDown": "Switch chat",
+      "ctrl0": "Focus quick phrases",
+      "ctrlSemicolon": "Focus phrase bank",
+      "enter": "Speak text",
+      "escape": "Back / Close",
+      "numbers19": "Select item 1-9",
+      "lettersAZ": "Select item A-Z",
+      "r": "Random phrase",
+      "v": "Paste mode",
+      "space": "Play / Pause",
+      "arrowRight": "Next phrase",
+      "arrowLeft": "Previous phrase"
+    }
+  },
+  "reader": {
+    "title": "Reader Mode",
+    "play": "Play",
+    "pause": "Pause",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "progress": "{current} of {total}"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error. Check your internet connection.",
+    "unauthorized": "Please sign in",
+    "notFound": "Not found",
+    "validation": "Please check your input",
+    "serverError": "Server error. Please try again later."
+  },
+  "status": {
+    "online": "Online",
+    "offline": "Offline",
+    "syncing": "Syncing...",
+    "synced": "Synced",
+    "playing": "Playing...",
+    "stopped": "Stopped",
+    "loading": "Loading..."
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "retry": "Retry"
+  },
+  "a11y": {
+    "skipNav": "Skip to content",
+    "menuButton": "Open menu",
+    "closeButton": "Close",
+    "playButton": "Play",
+    "stopButton": "Stop",
+    "previousButton": "Previous",
+    "nextButton": "Next",
+    "volumeSlider": "Volume",
+    "rateSlider": "Speech rate",
+    "pitchSlider": "Voice pitch",
+    "chatSelector": "Chat selector",
+    "categoryList": "Category list",
+    "statementList": "Phrase list",
+    "quickesList": "Quick phrases",
+    "predictorList": "Input suggestions"
+  }
+}
+
