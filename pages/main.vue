@@ -86,13 +86,13 @@ watch(() => settingsStore.yandex, (value) => {
     fluid
     class="pa-4"
   >
-    <ChatTabs
+    <MainChatTabs
       v-model="activeChat"
       :show-mode="showMode"
       @close-spotlight="showMode = false"
     />
 
-    <MainInput
+    <MainMainInput
       v-model="currentText"
       :is-playing="isPlaying"
       :show-download="showDownload"
@@ -123,7 +123,7 @@ watch(() => settingsStore.yandex, (value) => {
       {{ isPlaying ? t('status.playing') : t('status.stopped') }}
     </div>
 
-    <SpotlightDialog
+    <MainSpotlightDialog
       v-model="showMode"
       :text="currentText"
       @update:text="currentText = $event"

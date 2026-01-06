@@ -12,7 +12,7 @@ const showTutorial = ref(false)
 watch(
   () => settingsStore.darkTheme,
   (isDark) => {
-    theme.global.name.value = isDark ? 'dark' : 'light'
+    theme.change(isDark ? 'dark' : 'light')
   },
   { immediate: true },
 )
