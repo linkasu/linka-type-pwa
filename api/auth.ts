@@ -8,8 +8,14 @@ export const authApi = {
     return response.data
   },
 
+  async refresh(): Promise<AuthResponse> {
+    const client = getApiClient()
+    const response = await client.post<AuthResponse>('/auth/refresh')
+    return response.data
+  },
+
   async logout(): Promise<void> {
-    // Logout is client-side only for now
+    const client = getApiClient()
+    await client.post('/auth/logout')
   },
 }
-

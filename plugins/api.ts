@@ -7,18 +7,17 @@ import { userApi } from '@/api/user'
 import { globalApi } from '@/api/global'
 import { ttsApi } from '@/api/tts'
 import { onboardingApi } from '@/api/onboarding'
+import { useAuthStore } from '@/stores/auth'
 
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
+  const authStore = useAuthStore()
   
-  const getToken = () => {
-    if (import.meta.client) {
-      return localStorage.getItem('auth_token')
-    }
-    return null
-  }
+  const getToken = () => authStore.token
+  const setToken = (token: string) => authStore.setToken(token)
+  const setUser = (user: { id: string; email: string }) => authStore.setUser(user)
+  const clearAuth = () => authStore.clearAuth()
 
-  createApiClient('/api', getToken)
+  createApiClient('/api', getToken, setToken, setUser, clearAuth)
 
   return {
     provide: {

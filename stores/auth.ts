@@ -6,6 +6,7 @@ interface AuthState {
   token: string | null
   isLoading: boolean
   error: string | null
+  initialized: boolean
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -14,6 +15,7 @@ export const useAuthStore = defineStore('auth', {
     token: null,
     isLoading: false,
     error: null,
+    initialized: false,
   }),
 
   getters: {
@@ -32,11 +34,7 @@ export const useAuthStore = defineStore('auth', {
         
         this.token = response.token
         this.user = response.user
-        
-        if (import.meta.client) {
-          localStorage.setItem('auth_token', response.token)
-          localStorage.setItem('auth_user', JSON.stringify(response.user))
-        }
+        this.initialized = true
         
         return response
       } catch (err: unknown) {
@@ -49,38 +47,62 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async logout() {
+      try {
+        const { $api } = useNuxtApp()
+        await $api.auth.logout()
+      } catch {
+        // ignore logout errors
+      }
+      
       this.token = null
       this.user = null
       this.error = null
+      this.initialized = true
+    },
 
-      if (import.meta.client) {
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('auth_user')
+    async refreshToken() {
+      if (!import.meta.client) return false
+      
+      try {
+        const { $api } = useNuxtApp()
+        const response = await $api.auth.refresh()
+        
+        this.token = response.token
+        this.user = response.user
+        this.initialized = true
+        
+        return true
+      } catch {
+        this.token = null
+        this.user = null
+        this.initialized = true
+        return false
       }
     },
 
-    loadFromStorage() {
-      if (import.meta.client) {
-        const token = localStorage.getItem('auth_token')
-        const userJson = localStorage.getItem('auth_user')
-
-        if (token && userJson) {
-          try {
-            this.token = token
-            this.user = JSON.parse(userJson)
-          } catch {
-            this.logout()
-          }
-        }
+    async initializeAuth() {
+      if (this.initialized) return this.isAuthenticated
+      
+      if (!import.meta.client) {
+        this.initialized = true
+        return false
       }
+      
+      return await this.refreshToken()
     },
 
     setToken(token: string) {
       this.token = token
-      if (import.meta.client) {
-        localStorage.setItem('auth_token', token)
-      }
+    },
+
+    setUser(user: User) {
+      this.user = user
+    },
+
+    clearAuth() {
+      this.token = null
+      this.user = null
+      this.error = null
     },
   },
 })
-

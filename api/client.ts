@@ -1,22 +1,34 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig, type AxiosError } from 'axios'
-import type { ApiError } from '~/types/api'
+import type { ApiError, AuthResponse } from '~/types/api'
 
 let apiClient: AxiosInstance | null = null
+let refreshPromise: Promise<AuthResponse> | null = null
 
-export function createApiClient(baseURL: string, getToken: () => string | null): AxiosInstance {
+interface RequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean
+  _skipAuth?: boolean
+}
+
+export function createApiClient(
+  baseURL: string, 
+  getToken: () => string | null,
+  setToken: (token: string) => void,
+  setUser: (user: { id: string; email: string }) => void,
+  clearAuth: () => void
+): AxiosInstance {
   const client = axios.create({
     baseURL,
     timeout: 30000,
+    withCredentials: true,
     headers: {
       'Content-Type': 'application/json',
     },
   })
 
-  // Request interceptor - add auth token
   client.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
+    (config: RequestConfig) => {
       const token = getToken()
-      if (token) {
+      if (token && !config._skipAuth) {
         config.headers.Authorization = `Bearer ${token}`
       }
       return config
@@ -24,39 +36,59 @@ export function createApiClient(baseURL: string, getToken: () => string | null):
     (error) => Promise.reject(error)
   )
 
-  // Response interceptor - handle errors
   client.interceptors.response.use(
     (response) => response,
     async (error: AxiosError<ApiError>) => {
-      const originalRequest = error.config
+      const originalRequest = error.config as RequestConfig | undefined
 
-      // Handle 401 Unauthorized
-      if (error.response?.status === 401) {
-        // Clear auth and redirect to login
-        if (import.meta.client) {
-          localStorage.removeItem('auth_token')
-          localStorage.removeItem('auth_user')
-          window.location.href = '/login'
+      if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+        const isRefreshRequest = originalRequest.url?.includes('/auth/refresh')
+        const isAuthRequest = originalRequest.url?.includes('/auth') && !isRefreshRequest
+        
+        if (isRefreshRequest || isAuthRequest) {
+          clearAuth()
+          if (import.meta.client && !isAuthRequest) {
+            window.location.href = '/login'
+          }
+          return Promise.reject(error)
         }
-        return Promise.reject(error)
+
+        originalRequest._retry = true
+
+        try {
+          if (!refreshPromise) {
+            refreshPromise = client.post<AuthResponse>('/auth/refresh').then(res => res.data)
+          }
+          
+          const response = await refreshPromise
+          refreshPromise = null
+          
+          setToken(response.token)
+          setUser(response.user)
+          
+          originalRequest.headers.Authorization = `Bearer ${response.token}`
+          return client(originalRequest)
+        } catch (refreshError) {
+          refreshPromise = null
+          clearAuth()
+          if (import.meta.client) {
+            window.location.href = '/login'
+          }
+          return Promise.reject(refreshError)
+        }
       }
 
-      // Handle 5xx errors with retry
       if (
         error.response?.status &&
         error.response.status >= 500 &&
         originalRequest &&
-        !(originalRequest as Record<string, unknown>)._retry
+        !originalRequest._retry
       ) {
-        (originalRequest as Record<string, unknown>)._retry = true
-        
-        // Wait before retry
+        originalRequest._retry = true
         await new Promise((resolve) => setTimeout(resolve, 1000))
-        
         return client(originalRequest)
       }
 
-      // Transform error message
       const apiError = error.response?.data?.error
       if (apiError) {
         const err = new Error(apiError.message)
@@ -78,4 +110,3 @@ export function getApiClient(): AxiosInstance {
   }
   return apiClient
 }
-
