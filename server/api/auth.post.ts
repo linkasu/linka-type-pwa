@@ -10,6 +10,11 @@ interface BackendAuthResponse {
   }
 }
 
+function extractCookieValue(cookieHeader: string): string {
+  const match = cookieHeader.match(/refresh_token=([^;]+)/)
+  return match ? match[1] : ''
+}
+
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
@@ -32,7 +37,16 @@ export default defineEventHandler(async (event) => {
 
   const setCookieHeader = response.headers.get('set-cookie')
   if (setCookieHeader) {
-    appendHeader(event, 'set-cookie', setCookieHeader)
+    const cookieValue = extractCookieValue(setCookieHeader)
+    if (cookieValue) {
+      setCookie(event, 'refresh_token', cookieValue, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 7776000,
+        path: '/',
+      })
+    }
   }
 
   const data = await response.json() as BackendAuthResponse

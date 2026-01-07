@@ -1,21 +1,40 @@
-import { getApiClient } from './client'
 import type { LoginRequest, AuthResponse } from '~/types/api'
+
+async function fetchWithCredentials<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }))
+    throw new Error(error.error?.message || 'Request failed')
+  }
+  
+  return response.json()
+}
 
 export const authApi = {
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const client = getApiClient()
-    const response = await client.post<AuthResponse>('/auth', data)
-    return response.data
+    return fetchWithCredentials<AuthResponse>('/api/auth', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
   },
 
   async refresh(): Promise<AuthResponse> {
-    const client = getApiClient()
-    const response = await client.post<AuthResponse>('/auth/refresh')
-    return response.data
+    return fetchWithCredentials<AuthResponse>('/api/auth/refresh', {
+      method: 'POST',
+    })
   },
 
   async logout(): Promise<void> {
-    const client = getApiClient()
-    await client.post('/auth/logout')
+    await fetchWithCredentials<void>('/api/auth/logout', {
+      method: 'POST',
+    })
   },
 }

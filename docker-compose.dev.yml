@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: linka-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./certs:/app/certs:ro
+    environment:
+      - NODE_ENV=development
+      - API_BASE_URL=https://backend.linka.su
+      - NUXT_HOST=0.0.0.0
+      - NUXT_PORT=3000
+    command: npm run dev
+    restart: unless-stopped
+

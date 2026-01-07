@@ -17,7 +17,8 @@ export default defineNuxtPlugin(() => {
   const setUser = (user: { id: string; email: string }) => authStore.setUser(user)
   const clearAuth = () => authStore.clearAuth()
 
-  createApiClient('/api', getToken, setToken, setUser, clearAuth)
+  // Create axios client for non-auth APIs
+  const client = createApiClient('/api', getToken, setToken, setUser, clearAuth)
 
   return {
     provide: {

@@ -63,16 +63,19 @@ export const useAuthStore = defineStore('auth', {
     async refreshToken() {
       if (!import.meta.client) return false
       
+      console.log('[AUTH STORE] Starting refresh...')
       try {
         const { $api } = useNuxtApp()
         const response = await $api.auth.refresh()
         
+        console.log('[AUTH STORE] Refresh success, user:', response.user.email)
         this.token = response.token
         this.user = response.user
         this.initialized = true
         
         return true
-      } catch {
+      } catch (err) {
+        console.log('[AUTH STORE] Refresh failed:', err)
         this.token = null
         this.user = null
         this.initialized = true

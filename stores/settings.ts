@@ -50,11 +50,12 @@ export const useSettingsStore = defineStore('settings', {
       this.saveToStorage()
     },
 
-    setVoiceSettings(settings: { volume?: number; rate?: number; pitch?: number; voiceUri?: string }) {
+    setVoiceSettings(settings: { volume?: number; rate?: number; pitch?: number; voiceUri?: string; yandexVoice?: string }) {
       if (settings.volume !== undefined) this.volume = settings.volume
       if (settings.rate !== undefined) this.rate = settings.rate
       if (settings.pitch !== undefined) this.pitch = settings.pitch
       if (settings.voiceUri !== undefined) this.voiceUri = settings.voiceUri
+      if (settings.yandexVoice !== undefined) this.yandexVoice = settings.yandexVoice
       this.saveToStorage()
     },
 

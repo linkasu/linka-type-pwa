@@ -10,6 +10,11 @@ interface BackendAuthResponse {
   }
 }
 
+function extractCookieValue(cookieHeader: string): string {
+  const match = cookieHeader.match(/refresh_token=([^;]+)/)
+  return match ? match[1] : ''
+}
+
 export default defineEventHandler(async (event) => {
   const refreshToken = getCookie(event, 'refresh_token')
   
@@ -36,6 +41,20 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Unauthorized',
       message: 'Failed to refresh token',
     })
+  }
+
+  const setCookieHeader = response.headers.get('set-cookie')
+  if (setCookieHeader) {
+    const cookieValue = extractCookieValue(setCookieHeader)
+    if (cookieValue) {
+      setCookie(event, 'refresh_token', cookieValue, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 7776000,
+        path: '/',
+      })
+    }
   }
 
   const data = await response.json() as BackendAuthResponse

@@ -39,6 +39,7 @@ export interface UserPreferences {
   darkTheme: boolean
   yandex: boolean
   voiceUri?: string
+  yandexVoice?: string
   volume: number
   rate: number
   pitch: number

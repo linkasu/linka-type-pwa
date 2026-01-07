@@ -6,6 +6,15 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
+  devServer: {
+    https: process.env.NODE_ENV === 'development' ? {
+      key: './certs/localhost.key',
+      cert: './certs/localhost.crt'
+    } : undefined,
+    port: 3000,
+    host: '0.0.0.0',
+  },
+
   app: {
     head: {
       title: 'LINKa: напиши',

@@ -58,19 +58,19 @@ onMounted(() => {
 
     <VWindow v-model="activeTab">
       <VWindowItem value="voice">
-        <VoiceSettingsTab />
+        <SettingsVoiceSettingsTab />
       </VWindowItem>
 
       <VWindowItem value="adaptive">
-        <AdaptiveSettingsTab />
+        <SettingsAdaptiveSettingsTab />
       </VWindowItem>
 
       <VWindowItem value="import">
-        <ImportTab />
+        <SettingsImportTab />
       </VWindowItem>
 
       <VWindowItem value="account">
-        <AccountTab />
+        <SettingsAccountTab />
       </VWindowItem>
     </VWindow>
   </VContainer>
