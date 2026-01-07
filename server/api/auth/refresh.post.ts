@@ -11,28 +11,31 @@ interface BackendAuthResponse {
 }
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-
-  const response = await fetch(`${BACKEND_URL}/v1/auth`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  })
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
+  const refreshToken = getCookie(event, 'refresh_token')
+  
+  if (!refreshToken) {
     throw createError({
-      statusCode: response.status,
-      statusMessage: response.statusText,
-      message: errorData?.error?.message || 'Authentication failed',
+      statusCode: 401,
+      statusMessage: 'Unauthorized',
+      message: 'Missing refresh token',
     })
   }
 
-  const setCookieHeader = response.headers.get('set-cookie')
-  if (setCookieHeader) {
-    appendHeader(event, 'set-cookie', setCookieHeader)
+  const response = await fetch(`${BACKEND_URL}/v1/auth/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cookie': `refresh_token=${refreshToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    deleteCookie(event, 'refresh_token')
+    throw createError({
+      statusCode: response.status,
+      statusMessage: 'Unauthorized',
+      message: 'Failed to refresh token',
+    })
   }
 
   const data = await response.json() as BackendAuthResponse

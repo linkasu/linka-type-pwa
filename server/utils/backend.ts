@@ -9,12 +9,14 @@ export async function backendRequest<T>(
     body?: unknown
     query?: Record<string, string | number | boolean>
     token?: string | null
+    headers?: Record<string, string>
   } = {}
 ): Promise<T> {
-  const { method = 'GET', body, query, token } = options
+  const { method = 'GET', body, query, token, headers: customHeaders } = options
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...customHeaders,
   }
 
   if (token) {

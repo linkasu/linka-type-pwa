@@ -7,8 +7,8 @@ definePageMeta({
 
 const authStore = useAuthStore()
 
-onMounted(() => {
-  authStore.loadFromStorage()
+onMounted(async () => {
+  await authStore.initializeAuth()
   
   if (authStore.isAuthenticated) {
     navigateTo('/main')
@@ -27,4 +27,3 @@ onMounted(() => {
     />
   </div>
 </template>
-
