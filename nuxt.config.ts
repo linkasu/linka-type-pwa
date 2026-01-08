@@ -175,7 +175,7 @@ export default defineNuxtConfig({
       ],
     },
     devOptions: {
-      enabled: true,
+      enabled: process.env.NUXT_PWA_DEV === 'true',
       type: 'module',
     },
   },
