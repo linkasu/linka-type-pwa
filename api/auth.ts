@@ -26,6 +26,13 @@ export const authApi = {
     })
   },
 
+  async register(data: LoginRequest): Promise<AuthResponse> {
+    return fetchWithCredentials<AuthResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
   async refresh(): Promise<AuthResponse> {
     return fetchWithCredentials<AuthResponse>('/api/auth/refresh', {
       method: 'POST',

@@ -46,6 +46,28 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async register(email: string, password: string) {
+      this.isLoading = true
+      this.error = null
+
+      try {
+        const { $api } = useNuxtApp()
+        const response = await $api.auth.register({ email, password })
+
+        this.token = response.token
+        this.user = response.user
+        this.initialized = true
+
+        return response
+      } catch (err: unknown) {
+        const error = err as Error
+        this.error = error.message || 'Registration failed'
+        throw error
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     async logout() {
       try {
         const { $api } = useNuxtApp()
@@ -63,19 +85,16 @@ export const useAuthStore = defineStore('auth', {
     async refreshToken() {
       if (!import.meta.client) return false
       
-      console.log('[AUTH STORE] Starting refresh...')
       try {
         const { $api } = useNuxtApp()
         const response = await $api.auth.refresh()
         
-        console.log('[AUTH STORE] Refresh success, user:', response.user.email)
         this.token = response.token
         this.user = response.user
         this.initialized = true
         
         return true
-      } catch (err) {
-        console.log('[AUTH STORE] Refresh failed:', err)
+      } catch {
         this.token = null
         this.user = null
         this.initialized = true

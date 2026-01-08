@@ -12,9 +12,11 @@ const userStore = useUserStore()
 
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
+const successMessage = ref('')
 
 const emailRules = [
   (v: string) => !!v || t('auth.email') + ' обязателен',
@@ -26,18 +28,26 @@ const passwordRules = [
   (v: string) => v.length >= 6 || 'Минимум 6 символов',
 ]
 
+const confirmRules = [
+  (v: string) => !!v || 'Подтвердите пароль',
+  (v: string) => v === password.value || 'Пароли не совпадают',
+]
+
 const handleSubmit = async () => {
-  if (!email.value || !password.value) return
+  if (!email.value || !password.value || password.value !== confirmPassword.value) {
+    return
+  }
 
   isLoading.value = true
   errorMessage.value = ''
+  successMessage.value = ''
 
   try {
-    await authStore.login(email.value, password.value)
-    
-    // Check if user needs setup
+    await authStore.register(email.value, password.value)
     await userStore.fetchState()
-    
+
+    successMessage.value = t('auth.registerSuccess')
+
     if (userStore.needsSetup) {
       navigateTo('/setup')
     } else {
@@ -65,6 +75,17 @@ const handleSubmit = async () => {
       {{ errorMessage }}
     </VAlert>
 
+    <VAlert
+      v-if="successMessage"
+      type="success"
+      variant="tonal"
+      class="mb-4"
+      closable
+      @click:close="successMessage = ''"
+    >
+      {{ successMessage }}
+    </VAlert>
+
     <VTextField
       v-model="email"
       :label="t('auth.email')"
@@ -82,7 +103,19 @@ const handleSubmit = async () => {
       prepend-inner-icon="mdi-lock"
       :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
       :rules="passwordRules"
-      autocomplete="current-password"
+      autocomplete="new-password"
+      class="mb-3"
+      @click:append-inner="showPassword = !showPassword"
+    />
+
+    <VTextField
+      v-model="confirmPassword"
+      label="Повторите пароль"
+      :type="showPassword ? 'text' : 'password'"
+      prepend-inner-icon="mdi-lock-check"
+      :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+      :rules="confirmRules"
+      autocomplete="new-password"
       class="mb-4"
       @click:append-inner="showPassword = !showPassword"
     />
@@ -93,9 +126,9 @@ const handleSubmit = async () => {
       size="large"
       block
       :loading="isLoading"
-      :disabled="!email || !password"
+      :disabled="!email || !password || !confirmPassword"
     >
-      {{ t('auth.login') }}
+      {{ t('auth.register') }}
     </VBtn>
 
     <div class="text-center mt-4">
@@ -103,17 +136,9 @@ const handleSubmit = async () => {
         variant="text"
         color="primary"
         size="small"
+        @click="navigateTo('/login')"
       >
-        {{ t('auth.forgotPassword') }}
-      </VBtn>
-      <VBtn
-        variant="text"
-        color="primary"
-        size="small"
-        class="ml-2"
-        @click="navigateTo('/register')"
-      >
-        {{ t('auth.register') }}
+        {{ t('auth.login') }}
       </VBtn>
     </div>
   </VForm>
