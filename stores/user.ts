@@ -5,6 +5,7 @@ import { DEFAULT_PREFERENCES } from '~/types'
 interface UserStoreState {
   inited: boolean | null
   preferences: UserPreferences
+  hasRemotePreferences: boolean
   isLoading: boolean
   error: string | null
 }
@@ -13,6 +14,7 @@ export const useUserStore = defineStore('user', {
   state: (): UserStoreState => ({
     inited: null,
     preferences: { ...DEFAULT_PREFERENCES },
+    hasRemotePreferences: false,
     isLoading: false,
     error: null,
   }),
@@ -32,6 +34,14 @@ export const useUserStore = defineStore('user', {
         const state = await $api.user.getState()
         this.inited = state.inited
         this.preferences = { ...DEFAULT_PREFERENCES, ...state.preferences }
+        this.hasRemotePreferences = Boolean(
+          state.preferences && Object.keys(state.preferences).length > 0,
+        )
+
+        if (this.hasRemotePreferences && import.meta.client) {
+          const { useSettingsStore } = await import('./settings')
+          useSettingsStore().applyUserPreferences(this.preferences)
+        }
       } catch (err: unknown) {
         const error = err as Error
         this.error = error.message || 'Failed to fetch user state'
@@ -55,6 +65,7 @@ export const useUserStore = defineStore('user', {
 
     async updatePreferences(preferences: Partial<UserPreferences>) {
       const original = { ...this.preferences }
+      const originalHasRemote = this.hasRemotePreferences
       
       // Optimistic update
       Object.assign(this.preferences, preferences)
@@ -62,9 +73,11 @@ export const useUserStore = defineStore('user', {
       try {
         const { $api } = useNuxtApp()
         await $api.user.updateState({ preferences })
+        this.hasRemotePreferences = true
       } catch (err: unknown) {
         // Rollback on error
         this.preferences = original
+        this.hasRemotePreferences = originalHasRemote
         const error = err as Error
         this.error = error.message || 'Failed to update preferences'
         throw error
@@ -75,6 +88,12 @@ export const useUserStore = defineStore('user', {
       this.inited = state.inited
       if (state.preferences) {
         this.preferences = { ...DEFAULT_PREFERENCES, ...state.preferences }
+        this.hasRemotePreferences = Object.keys(state.preferences).length > 0
+        if (import.meta.client) {
+          import('./settings').then(({ useSettingsStore }) => {
+            useSettingsStore().applyUserPreferences(this.preferences)
+          })
+        }
       }
     },
 
@@ -111,8 +130,8 @@ export const useUserStore = defineStore('user', {
     reset() {
       this.inited = null
       this.preferences = { ...DEFAULT_PREFERENCES }
+      this.hasRemotePreferences = false
       this.error = null
     },
   },
 })
-

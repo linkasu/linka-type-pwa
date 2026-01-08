@@ -1,5 +1,5 @@
 import type { AuthResponse } from '~/types/api'
-import { assertSameOrigin, isSecureRequest } from '../../utils/security'
+import { isSecureRequest } from '../../utils/security'
 
 const BACKEND_URL = process.env.API_BASE_URL || 'https://backend.linka.su'
 
@@ -17,32 +17,22 @@ function extractCookieValue(cookieHeader: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-  assertSameOrigin(event)
+  const body = await readBody(event)
 
-  const refreshToken = getCookie(event, 'refresh_token')
-  
-  if (!refreshToken) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Unauthorized',
-      message: 'Missing refresh token',
-    })
-  }
-
-  const response = await fetch(`${BACKEND_URL}/v1/auth/refresh`, {
+  const response = await fetch(`${BACKEND_URL}/v1/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Cookie': `refresh_token=${refreshToken}`,
     },
+    body: JSON.stringify(body),
   })
 
   if (!response.ok) {
-    deleteCookie(event, 'refresh_token', { path: '/api/auth' })
+    const errorData = await response.json().catch(() => ({}))
     throw createError({
       statusCode: response.status,
-      statusMessage: 'Unauthorized',
-      message: 'Failed to refresh token',
+      statusMessage: response.statusText,
+      message: errorData?.error?.message || 'Registration failed',
     })
   }
 

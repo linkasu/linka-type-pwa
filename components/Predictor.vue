@@ -8,11 +8,12 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const config = useRuntimeConfig()
+const { $api } = useNuxtApp()
 
 const predictions = ref<string[]>([])
 const isLoading = ref(false)
 const insertPosition = ref(0)
+let activeRequestId = 0
 
 // Debounced fetch
 let fetchTimeout: ReturnType<typeof setTimeout> | null = null
@@ -33,31 +34,23 @@ watch(() => props.modelValue, async (text) => {
 })
 
 const fetchPredictions = async (text: string) => {
+  const requestId = ++activeRequestId
   isLoading.value = true
   
   try {
-    const apiKey = config.public.predictorApiKey
-    if (!apiKey) {
-      predictions.value = []
-      return
-    }
-
-    const response = await fetch(
-      `https://predictor.yandex.net/api/v1/predict.json/complete?key=${apiKey}&q=${encodeURIComponent(text)}&lang=ru&limit=5`
-    )
-    
-    if (!response.ok) {
-      throw new Error('Predictor API error')
-    }
-
-    const data = await response.json()
+    const data = await $api.predictor.complete(text, { lang: 'ru', limit: 5 })
+    if (requestId !== activeRequestId) return
     predictions.value = data.text || []
     insertPosition.value = data.pos || text.length
   } catch (err) {
     console.error('Predictor error:', err)
-    predictions.value = []
+    if (requestId === activeRequestId) {
+      predictions.value = []
+    }
   } finally {
-    isLoading.value = false
+    if (requestId === activeRequestId) {
+      isLoading.value = false
+    }
   }
 }
 
@@ -166,4 +159,3 @@ onUnmounted(() => {
   font-weight: bold;
 }
 </style>
-

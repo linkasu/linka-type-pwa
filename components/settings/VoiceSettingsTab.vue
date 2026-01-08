@@ -16,9 +16,15 @@ const {
 
 const selectedTtsVoice = ref(settingsStore.yandexVoice || 'alena')
 const selectedBrowserVoice = ref(settingsStore.voiceUri || '')
+const hasSpeechSynthesis = ref(false)
 
 onMounted(() => {
   loadTtsVoices()
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return
+  }
+
+  hasSpeechSynthesis.value = true
   loadBrowserVoices()
   speechSynthesis.onvoiceschanged = loadBrowserVoices
 
@@ -62,7 +68,7 @@ const handleTestVoice = () => {
       />
 
       <VSelect
-        v-else
+        v-else-if="hasSpeechSynthesis"
         v-model="selectedBrowserVoice"
         :items="browserVoices"
         :label="t('settings.voiceSettings.selectVoice')"
@@ -70,6 +76,14 @@ const handleTestVoice = () => {
         item-value="voiceURI"
         class="mb-4"
       />
+      <VAlert
+        v-else
+        type="warning"
+        variant="tonal"
+        class="mb-4"
+      >
+        {{ t('settings.voiceSettings.speechSynthesisUnavailable') }}
+      </VAlert>
 
       <div class="mb-4">
         <div class="d-flex justify-space-between mb-2">
@@ -129,4 +143,3 @@ const handleTestVoice = () => {
     </VCardText>
   </VCard>
 </template>
-

@@ -19,6 +19,10 @@ export interface Category {
   statementsCount?: number
 }
 
+export interface GlobalCategory extends Category {
+  statements?: Statement[]
+}
+
 export interface Statement {
   id: string
   categoryId: string
@@ -155,6 +159,7 @@ export interface OnboardingRequest {
 export interface TTSRequest {
   text: string
   voice: string
+  speed?: number
 }
 
 export interface DeleteAccountRequest {
@@ -167,4 +172,3 @@ export interface PredictorResponse {
   pos: number
   text: string[]
 }
-

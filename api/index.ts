@@ -7,6 +7,7 @@ export { userApi } from './user'
 export { globalApi } from './global'
 export { ttsApi } from './tts'
 export { onboardingApi } from './onboarding'
+export { predictorApi } from './predictor'
 
 // Combined API object for use in plugins
 export const api = {
@@ -49,5 +50,8 @@ export const api = {
     getQuestions: () => import('./onboarding').then(m => m.onboardingApi.getQuestions()),
     generatePhrases: (data: import('~/types/api').OnboardingRequest) => import('./onboarding').then(m => m.onboardingApi.generatePhrases(data)),
   },
+  predictor: {
+    complete: (text: string, options?: import('./predictor').PredictorOptions) =>
+      import('./predictor').then(m => m.predictorApi.complete(text, options)),
+  },
 }
-

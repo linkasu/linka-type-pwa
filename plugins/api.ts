@@ -7,6 +7,7 @@ import { userApi } from '@/api/user'
 import { globalApi } from '@/api/global'
 import { ttsApi } from '@/api/tts'
 import { onboardingApi } from '@/api/onboarding'
+import { predictorApi } from '@/api/predictor'
 import { useAuthStore } from '@/stores/auth'
 
 export default defineNuxtPlugin(() => {
@@ -31,6 +32,7 @@ export default defineNuxtPlugin(() => {
         global: globalApi,
         tts: ttsApi,
         onboarding: onboardingApi,
+        predictor: predictorApi,
       },
     },
   }
@@ -47,6 +49,7 @@ declare module '#app' {
       global: typeof globalApi
       tts: typeof ttsApi
       onboarding: typeof onboardingApi
+      predictor: typeof predictorApi
     }
   }
 }

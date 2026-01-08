@@ -59,11 +59,42 @@ export function useBankItems() {
   const saveTextEditorChanges = async (statements: string[]) => {
     if (!selectedCategoryId.value) return
 
-    const existing = statementsStore.getByCategoryId(selectedCategoryId.value)
-    await Promise.all(existing.map(s => statementsStore.deleteStatement(s.id)))
-    await Promise.all(statements.map(text =>
-      statementsStore.createStatement(selectedCategoryId.value!, text),
-    ))
+    const categoryId = selectedCategoryId.value
+    const normalized = statements
+      .map(text => text.trim())
+      .filter(Boolean)
+    const existing = statementsStore.getByCategoryId(categoryId)
+
+    const existingTexts = existing.map(statement => statement.text)
+    const hasChanges =
+      normalized.length !== existingTexts.length ||
+      normalized.some((text, index) => text !== existingTexts[index])
+
+    if (!hasChanges) return
+
+    const created: Statement[] = []
+
+    try {
+      for (const text of normalized) {
+        const statement = await statementsStore.createStatement(categoryId, text)
+        created.push(statement)
+      }
+    } catch (err) {
+      await Promise.all(
+        created.map(statement =>
+          statementsStore.deleteStatement(statement.id).catch(() => null),
+        ),
+      )
+      throw err
+    }
+
+    await Promise.all(
+      existing.map(statement =>
+        statementsStore.deleteStatement(statement.id).catch(() => null),
+      ),
+    )
+
+    await statementsStore.fetchByCategory(categoryId, true)
   }
 
   const getItemLabel = (item: Category | Statement): string => {
@@ -87,4 +118,3 @@ export function useBankItems() {
     isCategory,
   }
 }
-

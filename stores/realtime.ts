@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
 import type { RealtimeChange, ChangeType } from '~/types/api'
+import { useCategoriesStore } from './categories'
+import { useStatementsStore } from './statements'
+import { useQuickesStore } from './quickes'
+import { useUserStore } from './user'
 
 interface RealtimeState {
   isConnected: boolean
@@ -65,11 +69,6 @@ export const useRealtimeStore = defineStore('realtime', {
     },
 
     processChange(change: RealtimeChange) {
-      const { useCategoriesStore } = require('./categories')
-      const { useStatementsStore } = require('./statements')
-      const { useQuickesStore } = require('./quickes')
-      const { useUserStore } = require('./user')
-
       const categoriesStore = useCategoriesStore()
       const statementsStore = useStatementsStore()
       const quickesStore = useQuickesStore()
@@ -124,4 +123,3 @@ export const useRealtimeStore = defineStore('realtime', {
     },
   },
 })
-

@@ -19,6 +19,10 @@ const {
   finishSetup,
 } = useOnboardingSteps()
 
+onMounted(() => {
+  settingsStore.initialize()
+})
+
 const testVoice = () => {
   if ('speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance(t('settings.voiceSettings.testText'))

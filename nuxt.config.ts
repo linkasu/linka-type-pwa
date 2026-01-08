@@ -159,7 +159,7 @@ export default defineNuxtConfig({
       globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       runtimeCaching: [
         {
-          urlPattern: /^https:\/\/backend\.linka\.su\/v1\/.*/i,
+          urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
           handler: 'NetworkFirst',
           options: {
             cacheName: 'api-cache',
@@ -183,9 +183,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBaseUrl: process.env.API_BASE_URL || 'https://backend.linka.su',
-      // Predictor API key will be obtained from backend for security
-      // For local development, set PREDICTOR_API_KEY in .env
-      predictorApiKey: process.env.PREDICTOR_API_KEY || '',
     },
   },
 

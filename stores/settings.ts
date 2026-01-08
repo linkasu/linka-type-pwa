@@ -7,6 +7,36 @@ interface SettingsState extends UserPreferences {
 }
 
 const STORAGE_KEY = 'linka_settings'
+const SYNC_DEBOUNCE_MS = 800
+
+const PREFERENCE_KEYS: Array<keyof UserPreferences> = [
+  'darkTheme',
+  'yandex',
+  'voiceUri',
+  'yandexVoice',
+  'volume',
+  'rate',
+  'pitch',
+  'showPredictor',
+  'showQuickes',
+  'showBank',
+  'saveOnSay',
+  'typeSound',
+  'speakLastWord',
+]
+
+let pendingSync: ReturnType<typeof setTimeout> | null = null
+let pendingPatch: Partial<UserPreferences> = {}
+
+const pickPreferences = (state: Partial<SettingsState>): Partial<UserPreferences> => {
+  const patch: Partial<UserPreferences> = {}
+  for (const key of PREFERENCE_KEYS) {
+    if (state[key] !== undefined) {
+      patch[key] = state[key] as UserPreferences[typeof key]
+    }
+  }
+  return patch
+}
 
 export const useSettingsStore = defineStore('settings', {
   state: (): SettingsState => ({
@@ -15,6 +45,33 @@ export const useSettingsStore = defineStore('settings', {
   }),
 
   actions: {
+    async initialize() {
+      this.loadFromStorage()
+
+      if (!import.meta.client) return
+
+      const { useAuthStore } = await import('./auth')
+      const { useUserStore } = await import('./user')
+      const authStore = useAuthStore()
+
+      if (!authStore.isAuthenticated) return
+
+      const userStore = useUserStore()
+      if (userStore.inited === null) {
+        try {
+          await userStore.fetchState()
+        } catch {
+          return
+        }
+      }
+
+      if (userStore.hasRemotePreferences) {
+        this.applyUserPreferences(userStore.preferences)
+      } else {
+        this.queuePreferenceSync(pickPreferences(this.$state))
+      }
+    },
+
     loadFromStorage() {
       if (import.meta.client) {
         const stored = localStorage.getItem(STORAGE_KEY)
@@ -29,6 +86,13 @@ export const useSettingsStore = defineStore('settings', {
       }
     },
 
+    applyUserPreferences(preferences: UserPreferences) {
+      this.voiceUri = undefined
+      this.yandexVoice = undefined
+      Object.assign(this, { ...DEFAULT_PREFERENCES, ...preferences })
+      this.saveToStorage()
+    },
+
     saveToStorage() {
       if (import.meta.client) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.$state))
@@ -38,11 +102,13 @@ export const useSettingsStore = defineStore('settings', {
     updateSettings(settings: Partial<SettingsState>) {
       Object.assign(this, settings)
       this.saveToStorage()
+      this.queuePreferenceSync(pickPreferences(settings))
     },
 
     toggleDarkTheme() {
       this.darkTheme = !this.darkTheme
       this.saveToStorage()
+      this.queuePreferenceSync({ darkTheme: this.darkTheme })
     },
 
     setLocale(locale: 'ru' | 'en') {
@@ -57,17 +123,46 @@ export const useSettingsStore = defineStore('settings', {
       if (settings.voiceUri !== undefined) this.voiceUri = settings.voiceUri
       if (settings.yandexVoice !== undefined) this.yandexVoice = settings.yandexVoice
       this.saveToStorage()
+      this.queuePreferenceSync(pickPreferences(settings))
     },
 
     toggleYandexTTS() {
       this.yandex = !this.yandex
       this.saveToStorage()
+      this.queuePreferenceSync({ yandex: this.yandex })
     },
 
     resetToDefaults() {
       Object.assign(this, { ...DEFAULT_PREFERENCES, locale: this.locale })
+      this.voiceUri = undefined
+      this.yandexVoice = undefined
       this.saveToStorage()
+      this.queuePreferenceSync({ ...DEFAULT_PREFERENCES })
+    },
+
+    async queuePreferenceSync(preferences: Partial<UserPreferences>) {
+      if (!import.meta.client) return
+      if (Object.keys(preferences).length === 0) return
+
+      pendingPatch = { ...pendingPatch, ...preferences }
+      if (pendingSync) return
+
+      pendingSync = setTimeout(async () => {
+        const patch = { ...pendingPatch }
+        pendingPatch = {}
+        pendingSync = null
+
+        try {
+          const { useAuthStore } = await import('./auth')
+          const { useUserStore } = await import('./user')
+          const authStore = useAuthStore()
+
+          if (!authStore.isAuthenticated) return
+          await useUserStore().updatePreferences(patch)
+        } catch (err) {
+          console.warn('Failed to sync preferences:', err)
+        }
+      }, SYNC_DEBOUNCE_MS)
     },
   },
 })
-

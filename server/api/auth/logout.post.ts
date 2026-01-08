@@ -1,6 +1,10 @@
+import { assertSameOrigin } from '../../utils/security'
+
 const BACKEND_URL = process.env.API_BASE_URL || 'https://backend.linka.su'
 
 export default defineEventHandler(async (event) => {
+  assertSameOrigin(event)
+
   const refreshToken = getCookie(event, 'refresh_token')
   
   if (refreshToken) {
@@ -17,7 +21,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  deleteCookie(event, 'refresh_token')
+  deleteCookie(event, 'refresh_token', { path: '/api/auth' })
 
   return { status: 'ok' }
 })

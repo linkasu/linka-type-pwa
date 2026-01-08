@@ -24,7 +24,7 @@ const showMode = ref(false)
 const showDownload = ref(false)
 
 onMounted(async () => {
-  settingsStore.loadFromStorage()
+  await settingsStore.initialize()
   try {
     await Promise.all([
       categoriesStore.fetchCategories(),
@@ -145,4 +145,3 @@ watch(() => settingsStore.yandex, (value) => {
   border: 0;
 }
 </style>
-

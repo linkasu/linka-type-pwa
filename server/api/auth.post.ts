@@ -1,4 +1,5 @@
 import type { AuthResponse } from '~/types/api'
+import { isSecureRequest } from '../utils/security'
 
 const BACKEND_URL = process.env.API_BASE_URL || 'https://backend.linka.su'
 
@@ -41,10 +42,10 @@ export default defineEventHandler(async (event) => {
     if (cookieValue) {
       setCookie(event, 'refresh_token', cookieValue, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: isSecureRequest(event),
+        sameSite: 'lax',
         maxAge: 7776000,
-        path: '/',
+        path: '/api/auth',
       })
     }
   }

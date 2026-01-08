@@ -12,7 +12,7 @@ const settingsStore = useSettingsStore()
 const activeTab = ref('voice')
 
 onMounted(() => {
-  settingsStore.loadFromStorage()
+  settingsStore.initialize()
 })
 </script>
 

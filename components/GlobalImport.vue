@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Category, Statement } from '~/types/api'
+import type { GlobalCategory, Statement } from '~/types/api'
 
 const { t } = useI18n()
 const { $api } = useNuxtApp()
 
-const globalCategories = ref<Category[]>([])
+const globalCategories = ref<GlobalCategory[]>([])
 const isLoading = ref(false)
 const expandedCategory = ref<string | null>(null)
 const categoryStatements = ref<Map<string, Statement[]>>(new Map())
@@ -138,4 +138,3 @@ const importCategory = async (categoryId: string) => {
     </div>
   </div>
 </template>
-

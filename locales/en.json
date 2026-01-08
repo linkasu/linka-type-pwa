@@ -90,7 +90,8 @@
       "pitch": "Pitch",
       "yandexTTS": "Use Yandex TTS",
       "test": "Test voice",
-      "testText": "Hello! This is a test message."
+      "testText": "Hello! This is a test message.",
+      "speechSynthesisUnavailable": "Your browser does not support speech synthesis via the Web Speech API."
     },
     "adaptiveSettings": {
       "title": "Interface Settings",
@@ -214,4 +215,3 @@
     "predictorList": "Input suggestions"
   }
 }
-

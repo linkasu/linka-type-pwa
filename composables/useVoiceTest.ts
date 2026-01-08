@@ -1,31 +1,36 @@
 import { useSettingsStore } from '~/stores/settings'
 import type { TTSVoice } from '~/api/tts'
 
+const isSpeechSynthesisAvailable = () =>
+  typeof window !== 'undefined' && 'speechSynthesis' in window
+
 export function useVoiceTest() {
   const { t, locale } = useI18n()
   const { $api } = useNuxtApp()
   const settingsStore = useSettingsStore()
 
   const isTestingVoice = ref(false)
-
   const speakWithWebSpeech = (text: string, voiceUri?: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = locale.value === 'ru' ? 'ru-RU' : 'en-US'
-      utterance.volume = settingsStore.volume
-      utterance.rate = settingsStore.rate
-      utterance.pitch = settingsStore.pitch
-
-      if (voiceUri) {
-        const voices = speechSynthesis.getVoices()
-        const selectedVoice = voices.find(v => v.voiceURI === voiceUri)
-        if (selectedVoice) {
-          utterance.voice = selectedVoice
-        }
-      }
-
-      speechSynthesis.speak(utterance)
+    if (!isSpeechSynthesisAvailable()) {
+      console.warn('Speech Synthesis not supported')
+      return
     }
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = locale.value === 'ru' ? 'ru-RU' : 'en-US'
+    utterance.volume = settingsStore.volume
+    utterance.rate = settingsStore.rate
+    utterance.pitch = settingsStore.pitch
+
+    if (voiceUri) {
+      const voices = speechSynthesis.getVoices()
+      const selectedVoice = voices.find(v => v.voiceURI === voiceUri)
+      if (selectedVoice) {
+        utterance.voice = selectedVoice
+      }
+    }
+
+    speechSynthesis.speak(utterance)
   }
 
   const testVoice = async (yandexVoice: string, browserVoice: string) => {
@@ -78,6 +83,11 @@ export function useVoiceLoader() {
   }
 
   const loadBrowserVoices = () => {
+    if (!isSpeechSynthesisAvailable()) {
+      browserVoices.value = []
+      return
+    }
+
     browserVoices.value = speechSynthesis.getVoices().filter(v =>
       v.lang.startsWith('ru') || v.lang.startsWith('en'),
     )
@@ -108,4 +118,3 @@ export function useVoiceLoader() {
     russianTtsVoices,
   }
 }
-
