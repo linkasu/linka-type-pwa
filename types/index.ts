@@ -65,7 +65,7 @@ export const DEFAULT_QUICKES = [
 
 export const DEFAULT_PREFERENCES: import('./api').UserPreferences = {
   darkTheme: false,
-  yandex: false,
+  yandex: true,
   volume: 1,
   rate: 1,
   pitch: 1,
@@ -76,4 +76,3 @@ export const DEFAULT_PREFERENCES: import('./api').UserPreferences = {
   typeSound: false,
   speakLastWord: false,
 }
-
