@@ -60,7 +60,7 @@ export interface Voice {
   name: string
   lang: string
   gender: 'male' | 'female'
-  engine: 'browser' | 'yandex'
+  engine: 'browser' | 'yandex' | 'sber'
 }
 
 export interface Question {

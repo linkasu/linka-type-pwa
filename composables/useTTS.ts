@@ -33,7 +33,7 @@ export const useTTS = () => {
       const data = await ttsApi.getVoices()
       yandexVoices.value = data.map(v => ({ id: v.id, name: v.name }))
     } catch (err) {
-      console.error('Failed to load Yandex voices:', err)
+      console.error('Failed to load TTS voices:', err)
     }
   }
 
@@ -175,4 +175,3 @@ export const useTTS = () => {
     loadYandexVoices,
   }
 }
-
