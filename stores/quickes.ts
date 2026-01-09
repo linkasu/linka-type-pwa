@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_QUICKES } from '~/types'
+import type { OfflineQueueItem } from '~/types/offline'
+import { useAuthStore } from '~/stores/auth'
+import { isOffline, shouldQueueOffline } from '~/utils/offline'
+import { addQueueItem, getQuickes as getCachedQuickes, setQuickes as setQuickesCache } from '~/utils/offlineDb'
 
 interface QuickesState {
   quickes: string[]
@@ -24,15 +28,35 @@ export const useQuickesStore = defineStore('quickes', {
     async fetchQuickes() {
       this.isLoading = true
       this.error = null
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+      let cached: string[] | null = null
+
+      if (import.meta.client && userId) {
+        cached = await getCachedQuickes(userId)
+        if (cached && cached.length > 0) {
+          this.setQuickes(cached)
+        }
+      }
+
+      if (isOffline()) {
+        this.isLoading = false
+        return
+      }
 
       try {
         const { $api } = useNuxtApp()
         const response = await $api.quickes.get()
         this.quickes = response.quickes
+        if (import.meta.client && userId) {
+          await setQuickesCache(userId, response.quickes)
+        }
       } catch (err: unknown) {
         const error = err as Error
-        this.error = error.message || 'Failed to fetch quickes'
-        // Keep defaults on error
+        if (!cached || !shouldQueueOffline(err)) {
+          this.error = error.message || 'Failed to fetch quickes'
+        }
+        // Keep defaults or cached on error
       } finally {
         this.isLoading = false
       }
@@ -47,11 +71,36 @@ export const useQuickesStore = defineStore('quickes', {
       
       // Optimistic update
       this.quickes = quickes
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+      if (import.meta.client && userId) {
+        await setQuickesCache(userId, quickes)
+      }
 
       try {
+        if (isOffline()) {
+          if (!userId) throw new Error('Missing user for offline update')
+          await addQueueItem({
+            userId,
+            op: 'quickes_update',
+            payload: { quickes },
+            createdAt: Date.now(),
+          } satisfies OfflineQueueItem)
+          return
+        }
+
         const { $api } = useNuxtApp()
         await $api.quickes.update({ quickes })
       } catch (err: unknown) {
+        if (shouldQueueOffline(err) && userId) {
+          await addQueueItem({
+            userId,
+            op: 'quickes_update',
+            payload: { quickes },
+            createdAt: Date.now(),
+          } satisfies OfflineQueueItem)
+          return
+        }
         // Rollback on error
         this.quickes = original
         const error = err as Error
@@ -76,6 +125,11 @@ export const useQuickesStore = defineStore('quickes', {
       while (this.quickes.length < QUICKES_COUNT) {
         this.quickes.push(DEFAULT_QUICKES[this.quickes.length] || '')
       }
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+      if (import.meta.client && userId) {
+        void setQuickesCache(userId, this.quickes)
+      }
     },
 
     resetToDefaults() {
@@ -83,4 +137,3 @@ export const useQuickesStore = defineStore('quickes', {
     },
   },
 })
-

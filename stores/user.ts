@@ -84,6 +84,11 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    applyPreferencesPatch(preferences: Partial<UserPreferences>) {
+      Object.assign(this.preferences, preferences)
+      this.hasRemotePreferences = true
+    },
+
     updateState(state: UserState) {
       this.inited = state.inited
       if (state.preferences) {

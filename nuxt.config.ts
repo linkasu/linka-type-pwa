@@ -126,7 +126,9 @@ export default defineNuxtConfig({
 
   pwa: {
     registerType: 'autoUpdate',
+    includeAssets: ['favicon.ico', 'icons/*.png'],
     manifest: {
+      id: '/',
       name: 'LINKa: напиши',
       short_name: 'LINKa',
       description: 'Приложение для коммуникации людей с нарушениями речи',
@@ -134,6 +136,8 @@ export default defineNuxtConfig({
       background_color: '#fbcc30',
       display: 'standalone',
       orientation: 'portrait',
+      scope: '/',
+      lang: 'ru',
       start_url: '/',
       icons: [
         {
@@ -156,6 +160,7 @@ export default defineNuxtConfig({
     },
     workbox: {
       navigateFallback: '/',
+      cleanupOutdatedCaches: true,
       globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       runtimeCaching: [
         {
@@ -163,6 +168,7 @@ export default defineNuxtConfig({
           handler: 'NetworkFirst',
           options: {
             cacheName: 'api-cache',
+            networkTimeoutSeconds: 3,
             expiration: {
               maxEntries: 100,
               maxAgeSeconds: 60 * 60 * 24,

@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_PREFERENCES } from '~/types'
 import type { UserPreferences } from '~/types/api'
+import type { OfflineQueueItem } from '~/types/offline'
+import { addQueueItem } from '~/utils/offlineDb'
+import { isOffline, shouldQueueOffline } from '~/utils/offline'
 
 interface SettingsState extends UserPreferences {
   locale: 'ru' | 'en'
@@ -156,13 +159,46 @@ export const useSettingsStore = defineStore('settings', {
           const { useAuthStore } = await import('./auth')
           const { useUserStore } = await import('./user')
           const authStore = useAuthStore()
+          const userStore = useUserStore()
 
-          if (!authStore.isAuthenticated) return
-          await useUserStore().updatePreferences(patch)
+          if (!authStore.user?.id) return
+          if (!authStore.isAuthenticated && !isOffline()) return
+          if (isOffline()) {
+            await addQueueItem({
+              userId: authStore.user.id,
+              op: 'user_prefs_update',
+              payload: { preferences: patch },
+              createdAt: Date.now(),
+            } satisfies OfflineQueueItem)
+            userStore.applyPreferencesPatch(patch)
+            return
+          }
+
+          await userStore.updatePreferences(patch)
         } catch (err) {
+          const { useAuthStore } = await import('./auth')
+          const { useUserStore } = await import('./user')
+          const authStore = useAuthStore()
+          const userStore = useUserStore()
+
+          if (shouldQueueOffline(err) && authStore.user?.id) {
+            await addQueueItem({
+              userId: authStore.user.id,
+              op: 'user_prefs_update',
+              payload: { preferences: patch },
+              createdAt: Date.now(),
+            } satisfies OfflineQueueItem)
+            userStore.applyPreferencesPatch(patch)
+            return
+          }
           console.warn('Failed to sync preferences:', err)
         }
       }, SYNC_DEBOUNCE_MS)
+    },
+
+    applySettingsPatch(patch: Partial<UserPreferences>) {
+      Object.assign(this, patch)
+      this.saveToStorage()
     },
   },
 })

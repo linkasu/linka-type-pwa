@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia'
 import type { User } from '~/types/api'
+import { clearUserData } from '~/utils/offlineDb'
+
+const AUTH_STORAGE_KEY = 'linka_auth'
 
 interface AuthState {
   user: User | null
@@ -21,6 +24,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.token && !!state.user,
     currentUser: (state) => state.user,
+    hasOfflineSession: (state) => !!state.user && !state.token,
   },
 
   actions: {
@@ -35,6 +39,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.token
         this.user = response.user
         this.initialized = true
+        this.saveToStorage()
         
         return response
       } catch (err: unknown) {
@@ -57,6 +62,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.token
         this.user = response.user
         this.initialized = true
+        this.saveToStorage()
 
         return response
       } catch (err: unknown) {
@@ -69,6 +75,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async logout() {
+      const userId = this.user?.id
       try {
         const { $api } = useNuxtApp()
         await $api.auth.logout()
@@ -80,6 +87,10 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.error = null
       this.initialized = true
+      this.clearStorage()
+      if (import.meta.client && userId) {
+        await clearUserData(userId)
+      }
     },
 
     async refreshToken() {
@@ -92,12 +103,14 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.token
         this.user = response.user
         this.initialized = true
+        this.saveToStorage()
         
         return true
       } catch {
         this.token = null
         this.user = null
         this.initialized = true
+        this.clearStorage()
         return false
       }
     },
@@ -109,6 +122,12 @@ export const useAuthStore = defineStore('auth', {
         this.initialized = true
         return false
       }
+
+      this.loadFromStorage()
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        this.initialized = true
+        return this.isAuthenticated
+      }
       
       return await this.refreshToken()
     },
@@ -119,12 +138,48 @@ export const useAuthStore = defineStore('auth', {
 
     setUser(user: User) {
       this.user = user
+      this.saveToStorage()
     },
 
     clearAuth() {
+      const userId = this.user?.id
       this.token = null
       this.user = null
       this.error = null
+      this.clearStorage()
+      if (import.meta.client && userId) {
+        void clearUserData(userId)
+      }
+    },
+
+    loadFromStorage() {
+      if (!import.meta.client) return
+      if (this.user) return
+      const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+      if (!stored) return
+      try {
+        const parsed = JSON.parse(stored) as { user?: User }
+        if (parsed.user) {
+          this.user = parsed.user
+        }
+      } catch {
+        // Ignore invalid storage
+      }
+    },
+
+    saveToStorage() {
+      if (!import.meta.client) return
+      if (!this.user) {
+        this.clearStorage()
+        return
+      }
+      const payload = { user: this.user }
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
+    },
+
+    clearStorage() {
+      if (!import.meta.client) return
+      localStorage.removeItem(AUTH_STORAGE_KEY)
     },
   },
 })
