@@ -99,5 +99,6 @@ const handleClick = (index: number) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--linka-text);
 }
 </style>
