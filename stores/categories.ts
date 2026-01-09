@@ -314,3 +314,4 @@ export const useCategoriesStore = defineStore('categories', {
     },
   },
 })
+
