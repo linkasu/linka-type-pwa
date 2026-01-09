@@ -61,7 +61,7 @@ const handleInput = (event: Event) => {
       </template>
     </VTextarea>
 
-    <div class="main-input-actions d-flex gap-2 mt-2">
+    <div class="main-input-actions d-flex">
       <VBtn
         color="primary"
         size="large"
@@ -101,6 +101,8 @@ const handleInput = (event: Event) => {
 <style scoped>
 .main-input-actions {
   align-items: stretch;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .main-input-btn {
