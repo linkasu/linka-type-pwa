@@ -178,6 +178,7 @@
     "predictor": "Predictor",
     "reader": "Reader Mode",
     "switchChat": "Switch chat",
+    "focusInput": "Focus text input",
     "focusQuickes": "Focus quick phrases",
     "focusBank": "Focus phrase bank",
     "toggleSpotlight": "Toggle focus mode",

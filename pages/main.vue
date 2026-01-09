@@ -22,6 +22,7 @@ const chats = ref(['', '', ''])
 const activeChat = useState<number>('activeChat', () => 0)
 const showMode = ref(false)
 const showDownload = ref(false)
+const mainInputRef = ref<{ focus: () => void } | null>(null)
 const quickesRef = ref<{ focus: () => void } | null>(null)
 const bankRef = ref<{ focus: () => void } | null>(null)
 
@@ -48,6 +49,10 @@ const toggleSpotlight = () => {
   showMode.value = !showMode.value
 }
 
+const focusMainInput = () => {
+  mainInputRef.value?.focus()
+}
+
 const focusQuickes = () => {
   quickesRef.value?.focus()
 }
@@ -59,6 +64,7 @@ const focusBank = () => {
 useMainKeyboard({
   activeChat,
   onToggleSpotlight: toggleSpotlight,
+  onFocusInput: focusMainInput,
   onFocusQuickes: focusQuickes,
   onFocusBank: focusBank,
 })
@@ -100,6 +106,7 @@ watch(() => settingsStore.yandex, (value) => {
   >
     <MainInput
       v-model="currentText"
+      ref="mainInputRef"
       :is-playing="isPlaying"
       :show-download="showDownload"
       :show-predictor="settingsStore.showPredictor"

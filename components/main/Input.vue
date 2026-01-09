@@ -18,6 +18,20 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
+const textareaRef = ref<any>(null)
+
+const focus = () => {
+  const target = textareaRef.value
+  if (!target) return
+  if (typeof target.focus === 'function') {
+    target.focus()
+    return
+  }
+  const el = target.$el?.querySelector?.('textarea') as HTMLTextAreaElement | undefined
+  el?.focus()
+}
+
+defineExpose({ focus })
 
 const handleEnter = () => {
   emit('say', false)
@@ -38,6 +52,7 @@ const handleInput = (event: Event) => {
     />
 
     <VTextarea
+      ref="textareaRef"
       :model-value="props.modelValue"
       :placeholder="t('main.placeholder')"
       rows="4"

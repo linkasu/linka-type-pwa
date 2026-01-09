@@ -1,6 +1,7 @@
 interface UseMainKeyboardOptions {
   activeChat: Ref<number>
   onToggleSpotlight: () => void
+  onFocusInput?: () => void
   onFocusQuickes?: () => void
   onFocusBank?: () => void
 }
@@ -9,12 +10,35 @@ export function useMainKeyboard(options: UseMainKeyboardOptions) {
   const {
     activeChat,
     onToggleSpotlight,
+    onFocusInput,
     onFocusQuickes,
     onFocusBank,
   } = options
 
   const handleKeydown = (event: KeyboardEvent) => {
+    const target = event.target as HTMLElement | null
+    const activeElement = document.activeElement as HTMLElement | null
+    const isEditable = (element: HTMLElement | null) => {
+      if (!element) return false
+      if (element.isContentEditable) return true
+      const tag = element.tagName
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+    }
     const isCtrlOrMeta = event.ctrlKey || event.metaKey
+
+    if (
+      event.key.toLowerCase() === 'i'
+      && !event.ctrlKey
+      && !event.metaKey
+      && !event.altKey
+      && !isEditable(target)
+      && !isEditable(activeElement)
+    ) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      onFocusInput?.()
+      return
+    }
 
     if (isCtrlOrMeta && event.code === 'KeyB') {
       event.preventDefault()

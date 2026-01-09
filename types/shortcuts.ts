@@ -6,6 +6,7 @@ export interface Shortcut {
 
 export const SHORTCUTS_DATA: Shortcut[] = [
   { keys: 'Ctrl / Cmd + ↑ / ↓', descriptionKey: 'shortcuts.switchChat', categoryKey: 'shortcuts.global' },
+  { keys: 'I', descriptionKey: 'shortcuts.focusInput', categoryKey: 'shortcuts.global' },
   { keys: 'Ctrl + 0', descriptionKey: 'shortcuts.focusQuickes', categoryKey: 'shortcuts.global' },
   { keys: 'Ctrl + ;', descriptionKey: 'shortcuts.focusBank', categoryKey: 'shortcuts.global' },
   { keys: 'Ctrl + B', descriptionKey: 'shortcuts.toggleSpotlight', categoryKey: 'shortcuts.global' },
