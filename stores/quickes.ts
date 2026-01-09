@@ -47,9 +47,9 @@ export const useQuickesStore = defineStore('quickes', {
       try {
         const { $api } = useNuxtApp()
         const response = await $api.quickes.get()
-        this.quickes = response.quickes
+        this.setQuickes(response)
         if (import.meta.client && userId) {
-          await setQuickesCache(userId, response.quickes)
+          await setQuickesCache(userId, this.quickes)
         }
       } catch (err: unknown) {
         const error = err as Error

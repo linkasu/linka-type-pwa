@@ -30,9 +30,7 @@ export interface Statement {
   created: number
 }
 
-export interface QuickPhrase {
-  quickes: string[]
-}
+export type QuickPhrase = string[]
 
 export interface UserState {
   inited: boolean

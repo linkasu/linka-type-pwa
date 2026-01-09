@@ -90,7 +90,13 @@ export const useRealtimeStore = defineStore('realtime', {
           statementsStore.removeStatement((change.data as { id: string }).id)
           break
         case 'quickes_updated':
-          quickesStore.setQuickes((change.data as import('~/types/api').QuickPhrase).quickes)
+          {
+            const data = change.data as import('~/types/api').QuickPhrase | { quickes?: string[] }
+            const quickes = Array.isArray(data) ? data : data.quickes
+            if (quickes) {
+              quickesStore.setQuickes(quickes)
+            }
+          }
           break
         case 'user_state_updated':
           userStore.updateState(change.data as import('~/types/api').UserState)

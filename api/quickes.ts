@@ -1,10 +1,10 @@
 import { getApiClient } from './client'
-import type { QuickPhrase, UpdateQuickesRequest } from '~/types/api'
+import type { UpdateQuickesRequest } from '~/types/api'
 
 export const quickesApi = {
-  async get(): Promise<QuickPhrase> {
+  async get(): Promise<string[]> {
     const client = getApiClient()
-    const response = await client.get<QuickPhrase>('/quickes')
+    const response = await client.get<string[]>('/quickes')
     return response.data
   },
 
@@ -13,4 +13,3 @@ export const quickesApi = {
     await client.put('/quickes', data)
   },
 }
-
