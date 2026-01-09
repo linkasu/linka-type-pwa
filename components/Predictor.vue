@@ -61,11 +61,22 @@ const selectPrediction = (prediction: string) => {
   predictions.value = []
 }
 
-// Keyboard shortcuts 1-5
+// Keyboard shortcuts Alt/Cmd+1-5
+const getShortcutNumber = (event: KeyboardEvent) => {
+  const keyNum = Number.parseInt(event.key, 10)
+  if (!Number.isNaN(keyNum)) return keyNum
+  const codeMatch = /^(Digit|Numpad)(\d)$/.exec(event.code)
+  return codeMatch ? Number.parseInt(codeMatch[2], 10) : NaN
+}
+
 const handleKeydown = (event: KeyboardEvent) => {
   if (predictions.value.length === 0) return
-  
-  const num = parseInt(event.key)
+
+  const usesAlt = event.altKey && !event.ctrlKey && !event.metaKey
+  const usesMeta = event.metaKey && !event.ctrlKey && !event.altKey
+  if (!usesAlt && !usesMeta) return
+
+  const num = getShortcutNumber(event)
   if (num >= 1 && num <= 5 && num <= predictions.value.length) {
     event.preventDefault()
     selectPrediction(predictions.value[num - 1])
@@ -87,6 +98,8 @@ onUnmounted(() => {
     class="predictor"
     role="region"
     :aria-label="t('a11y.predictorList')"
+    aria-live="polite"
+    :aria-busy="isLoading"
   >
     <div class="d-flex align-center mb-2">
       <VIcon
@@ -121,7 +134,7 @@ onUnmounted(() => {
         color="primary"
         size="small"
         class="prediction-btn"
-        :aria-keyshortcuts="`${index + 1}`"
+        :aria-keyshortcuts="`Alt+${index + 1} Meta+${index + 1}`"
         @click="selectPrediction(word)"
       >
         <span class="prediction-badge">{{ index + 1 }}</span>
