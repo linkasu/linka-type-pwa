@@ -10,6 +10,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const containerRef = ref<HTMLElement | null>(null)
 const isPasteMode = ref(false)
 const isReaderMode = ref(false)
 const isTextEditorMode = ref(false)
@@ -58,6 +59,7 @@ useBankKeyboard({
   currentItems,
   onItemSelect: handleItemSelect,
   onRandomStatement: handleRandomStatement,
+  containerRef,
 })
 
 const handleAdd = async (text: string) => {
@@ -99,13 +101,21 @@ const handleTextEditorSave = async (statements: string[]) => {
     console.error('Failed to save text editor changes:', err)
   }
 }
+
+const focus = () => {
+  containerRef.value?.focus()
+}
+
+defineExpose({ focus })
 </script>
 
 <template>
   <div
+    ref="containerRef"
     class="bank-container"
     role="region"
-    :aria-label="t('a11y.categoryList')"
+    :aria-label="isShowingCategories ? t('a11y.categoryList') : t('a11y.statementList')"
+    tabindex="0"
   >
     <BankHeader
       :is-showing-categories="isShowingCategories"

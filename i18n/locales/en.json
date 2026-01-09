@@ -11,6 +11,7 @@
   },
   "nav": {
     "home": "Home",
+    "backToMain": "Back to main",
     "settings": "Settings",
     "tutorial": "Tutorial",
     "shortcuts": "Shortcuts"
@@ -125,7 +126,31 @@
   },
   "tutorial": {
     "title": "Tutorial",
+    "prev": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "finish": "Finish",
     "close": "Close",
+    "welcome": {
+      "title": "Welcome!",
+      "content": "LINKa helps people with speech impairments communicate. Let's walk through the basics."
+    },
+    "typing": {
+      "title": "Text Input",
+      "content": "Enter text in the field and press Say or Enter. Use Ctrl+Enter for a new line."
+    },
+    "quickes": {
+      "title": "Quick Phrases",
+      "content": "Press Ctrl+0 to focus Quick Phrases, then use keys 1-6 for quick playback. You can edit phrases in settings."
+    },
+    "bank": {
+      "title": "Phrase Bank",
+      "content": "Press Ctrl+; to focus the Phrase Bank. Use 1-9, A-Z to select. Press R for random, V for paste mode."
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts",
+      "content": "Use shortcuts for speed: Ctrl+↑/↓ to switch chats, Ctrl+B for focus mode, Ctrl+0 for quick phrases, Ctrl+; for the phrase bank."
+    },
     "steps": {
       "1": {
         "title": "Introduction",
@@ -137,11 +162,11 @@
       },
       "3": {
         "title": "Quick Phrases",
-        "text": "Use keys 1-6 for quick playback"
+        "text": "Press Ctrl+0 to focus, then use keys 1-6 for quick playback"
       },
       "4": {
         "title": "Phrase Bank",
-        "text": "Save frequently used phrases in categories"
+        "text": "Press Ctrl+; to focus, then use 1-9, A-Z to select"
       }
     }
   },
@@ -150,7 +175,22 @@
     "global": "Global",
     "bank": "Phrase Bank",
     "quickes": "Quick Phrases",
+    "predictor": "Predictor",
     "reader": "Reader Mode",
+    "switchChat": "Switch chat",
+    "focusQuickes": "Focus quick phrases",
+    "focusBank": "Focus phrase bank",
+    "toggleSpotlight": "Toggle focus mode",
+    "speak": "Speak text",
+    "newLine": "New line",
+    "selectPrediction": "Select suggestion",
+    "speakQuicke": "Speak quick phrase (when quick phrases focused)",
+    "selectItem": "Select item (when phrase bank focused)",
+    "randomStatement": "Random phrase",
+    "togglePasteMode": "Toggle paste mode",
+    "back": "Back",
+    "playPause": "Play / Pause",
+    "navigate": "Navigate",
     "list": {
       "ctrlUpDown": "Switch chat",
       "ctrl0": "Focus quick phrases",
@@ -217,6 +257,7 @@
     "categoryList": "Category list",
     "statementList": "Phrase list",
     "quickesList": "Quick phrases",
-    "predictorList": "Input suggestions"
+    "predictorList": "Input suggestions",
+    "spotlightButton": "Focus mode"
   }
 }

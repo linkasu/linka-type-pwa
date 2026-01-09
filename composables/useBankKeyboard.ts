@@ -7,6 +7,7 @@ interface UseBankKeyboardOptions {
   currentItems: ComputedRef<(Category | Statement)[]>
   onItemSelect: (item: Category | Statement) => void
   onRandomStatement: () => void
+  containerRef: Ref<HTMLElement | null>
 }
 
 export function useBankKeyboard(options: UseBankKeyboardOptions) {
@@ -16,10 +17,16 @@ export function useBankKeyboard(options: UseBankKeyboardOptions) {
     currentItems,
     onItemSelect,
     onRandomStatement,
+    containerRef,
   } = options
 
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+    const container = containerRef.value
+    const target = event.target as Node | null
+    const activeElement = document.activeElement
+    const isInside = container
+      && ((target && container.contains(target)) || (activeElement && container.contains(activeElement)))
+    if (!isInside) {
       return
     }
 
@@ -59,4 +66,3 @@ export function useBankKeyboard(options: UseBankKeyboardOptions) {
     handleKeydown,
   }
 }
-

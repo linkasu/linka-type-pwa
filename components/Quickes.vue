@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useQuickesStore } from '~/stores/quickes'
-import { QWERTY_MAP } from '~/types'
 
 const emit = defineEmits<{
   click: [text: string]
@@ -10,12 +9,8 @@ const { t } = useI18n()
 const quickesStore = useQuickesStore()
 const containerRef = ref<HTMLElement | null>(null)
 
-// Handle keyboard shortcuts 1-6
+// Handle keyboard shortcuts 1-6 when focused
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-    return
-  }
-  
   const num = parseInt(event.key)
   if (num >= 1 && num <= 6) {
     const text = quickesStore.quickes[num - 1]
@@ -25,13 +20,11 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-})
+const focus = () => {
+  containerRef.value?.focus()
+}
 
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-})
+defineExpose({ focus })
 
 const handleClick = (index: number) => {
   const text = quickesStore.quickes[index]
@@ -47,6 +40,8 @@ const handleClick = (index: number) => {
     class="quickes-container"
     role="region"
     :aria-label="t('a11y.quickesList')"
+    tabindex="0"
+    @keydown="handleKeydown"
   >
     <div class="d-flex align-center mb-3">
       <VIcon
@@ -106,4 +101,3 @@ const handleClick = (index: number) => {
   white-space: nowrap;
 }
 </style>
-

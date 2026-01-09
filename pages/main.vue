@@ -22,6 +22,8 @@ const chats = ref(['', '', ''])
 const activeChat = ref(0)
 const showMode = ref(false)
 const showDownload = ref(false)
+const quickesRef = ref<{ focus: () => void } | null>(null)
+const bankRef = ref<{ focus: () => void } | null>(null)
 
 onMounted(async () => {
   await settingsStore.initialize()
@@ -46,9 +48,19 @@ const toggleSpotlight = () => {
   showMode.value = !showMode.value
 }
 
+const focusQuickes = () => {
+  quickesRef.value?.focus()
+}
+
+const focusBank = () => {
+  bankRef.value?.focus()
+}
+
 useMainKeyboard({
   activeChat,
   onToggleSpotlight: toggleSpotlight,
+  onFocusQuickes: focusQuickes,
+  onFocusBank: focusBank,
 })
 
 const onTextInput = (event: Event) => {
@@ -105,12 +117,14 @@ watch(() => settingsStore.yandex, (value) => {
 
     <Quickes
       v-if="settingsStore.showQuickes"
+      ref="quickesRef"
       class="mt-6"
       @click="handleQuickeClick"
     />
 
     <Bank
       v-if="settingsStore.showBank"
+      ref="bankRef"
       class="mt-6"
       @paste="handlePaste"
       @speak="handleSpeak"

@@ -7,7 +7,18 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const realtimeStore = useRealtimeStore()
+
+const isSettingsRoute = computed(() => route.path.startsWith('/settings'))
+const settingsLabel = computed(() =>
+  isSettingsRoute.value ? t('nav.backToMain') : t('nav.settings'),
+)
+
+const handleSettingsClick = () => {
+  router.push(isSettingsRoute.value ? '/main' : '/settings')
+}
 </script>
 
 <template>
@@ -62,8 +73,8 @@ const realtimeStore = useRealtimeStore()
 
     <VBtn
       icon
-      :aria-label="t('nav.settings')"
-      :to="'/settings'"
+      :aria-label="settingsLabel"
+      @click="handleSettingsClick"
     >
       <VIcon>mdi-cog</VIcon>
     </VBtn>
@@ -84,4 +95,3 @@ const realtimeStore = useRealtimeStore()
   }
 }
 </style>
-

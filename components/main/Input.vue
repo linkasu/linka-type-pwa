@@ -30,6 +30,13 @@ const handleInput = (event: Event) => {
 
 <template>
   <div class="main-input">
+    <Predictor
+      v-if="props.showPredictor"
+      :model-value="props.modelValue"
+      class="mb-4"
+      @update:model-value="emit('update:modelValue', $event)"
+    />
+
     <VTextarea
       :model-value="props.modelValue"
       :placeholder="t('main.placeholder')"
@@ -46,6 +53,7 @@ const handleInput = (event: Event) => {
           icon
           size="small"
           variant="text"
+          :aria-label="t('a11y.spotlightButton')"
           @click="emit('toggleSpotlight')"
         >
           <VIcon>mdi-fullscreen</VIcon>
@@ -85,13 +93,5 @@ const handleInput = (event: Event) => {
         <VIcon>mdi-delete</VIcon>
       </VBtn>
     </div>
-
-    <Predictor
-      v-if="props.showPredictor"
-      :model-value="props.modelValue"
-      class="mt-4"
-      @update:model-value="emit('update:modelValue', $event)"
-    />
   </div>
 </template>
-

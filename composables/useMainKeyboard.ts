@@ -1,17 +1,36 @@
 interface UseMainKeyboardOptions {
   activeChat: Ref<number>
   onToggleSpotlight: () => void
+  onFocusQuickes?: () => void
+  onFocusBank?: () => void
 }
 
 export function useMainKeyboard(options: UseMainKeyboardOptions) {
-  const { activeChat, onToggleSpotlight } = options
+  const {
+    activeChat,
+    onToggleSpotlight,
+    onFocusQuickes,
+    onFocusBank,
+  } = options
 
   const handleKeydown = (event: KeyboardEvent) => {
     const isCtrlOrMeta = event.ctrlKey || event.metaKey
 
-    if (isCtrlOrMeta && event.key.toLowerCase() === 'b') {
+    if (isCtrlOrMeta && event.code === 'KeyB') {
       event.preventDefault()
       onToggleSpotlight()
+      return
+    }
+
+    if (event.ctrlKey && event.code === 'Digit0') {
+      event.preventDefault()
+      onFocusQuickes?.()
+      return
+    }
+
+    if (event.ctrlKey && event.code === 'Semicolon') {
+      event.preventDefault()
+      onFocusBank?.()
       return
     }
 
@@ -36,4 +55,3 @@ export function useMainKeyboard(options: UseMainKeyboardOptions) {
     handleKeydown,
   }
 }
-

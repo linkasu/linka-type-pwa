@@ -8,12 +8,17 @@ definePageMeta({
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
+const router = useRouter()
 
 const activeTab = ref('voice')
 
 onMounted(() => {
   settingsStore.initialize()
 })
+
+const goToMain = () => {
+  router.push('/main')
+}
 </script>
 
 <template>
@@ -21,8 +26,19 @@ onMounted(() => {
     fluid
     class="pa-4"
   >
-    <div class="text-h5 mb-4">
-      {{ t('settings.title') }}
+    <div class="d-flex align-center flex-wrap gap-2 mb-4">
+      <VBtn
+        color="primary"
+        variant="tonal"
+        size="large"
+        prepend-icon="mdi-arrow-left"
+        @click="goToMain"
+      >
+        {{ t('nav.backToMain') }}
+      </VBtn>
+      <div class="text-h5">
+        {{ t('settings.title') }}
+      </div>
     </div>
 
     <VTabs
