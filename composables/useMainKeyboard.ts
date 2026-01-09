@@ -34,10 +34,10 @@ export function useMainKeyboard(options: UseMainKeyboardOptions) {
       return
     }
 
-    if (event.ctrlKey && event.key === 'ArrowUp') {
+    if (isCtrlOrMeta && event.key === 'ArrowUp') {
       event.preventDefault()
       activeChat.value = (activeChat.value + 2) % 3
-    } else if (event.ctrlKey && event.key === 'ArrowDown') {
+    } else if (isCtrlOrMeta && event.key === 'ArrowDown') {
       event.preventDefault()
       activeChat.value = (activeChat.value + 1) % 3
     }

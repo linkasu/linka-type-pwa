@@ -10,7 +10,9 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const realtimeStore = useRealtimeStore()
+const activeChat = useState<number>('activeChat', () => 0)
 
+const isMainRoute = computed(() => route.path === '/main')
 const isSettingsRoute = computed(() => route.path.startsWith('/settings'))
 const settingsLabel = computed(() =>
   isSettingsRoute.value ? t('nav.backToMain') : t('nav.settings'),
@@ -32,6 +34,30 @@ const handleSettingsClick = () => {
     />
 
     <VAppBarTitle>{{ t('app.name') }}</VAppBarTitle>
+
+    <div
+      v-if="isMainRoute"
+      class="chat-toggle ml-2"
+      role="group"
+      :aria-label="t('main.chat')"
+    >
+      <VBtnToggle
+        v-model="activeChat"
+        mandatory
+        density="compact"
+      >
+        <VBtn
+          v-for="i in 3"
+          :key="i"
+          :value="i - 1"
+          size="small"
+          variant="text"
+          :aria-label="`${t('main.chat')} ${i}`"
+        >
+          {{ i }}
+        </VBtn>
+      </VBtnToggle>
+    </div>
 
     <VSpacer />
 
@@ -82,6 +108,15 @@ const handleSettingsClick = () => {
 </template>
 
 <style scoped>
+.chat-toggle :deep(.v-btn) {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.chat-toggle :deep(.v-btn--active) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 .rotating {
   animation: rotate 1s linear infinite;
 }

@@ -19,7 +19,7 @@ const { speak, stop, isPlaying } = useTTS()
 const { handleTextInput } = useTypeSound()
 
 const chats = ref(['', '', ''])
-const activeChat = ref(0)
+const activeChat = useState<number>('activeChat', () => 0)
 const showMode = ref(false)
 const showDownload = ref(false)
 const quickesRef = ref<{ focus: () => void } | null>(null)
@@ -98,12 +98,6 @@ watch(() => settingsStore.yandex, (value) => {
     fluid
     class="pa-4"
   >
-    <MainChatTabs
-      v-model="activeChat"
-      :show-mode="showMode"
-      @close-spotlight="showMode = false"
-    />
-
     <MainInput
       v-model="currentText"
       :is-playing="isPlaying"
