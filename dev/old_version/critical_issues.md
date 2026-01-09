@@ -407,3 +407,4 @@ LOW (nice to have)
 - Невозможность масштабирования
 - Зависимость от Firebase pricing
 
+
