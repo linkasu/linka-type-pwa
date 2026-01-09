@@ -137,3 +137,4 @@ export const useQuickesStore = defineStore('quickes', {
     },
   },
 })
+
