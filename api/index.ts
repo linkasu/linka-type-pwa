@@ -55,3 +55,4 @@ export const api = {
       import('./predictor').then(m => m.predictorApi.complete(text, options)),
   },
 }
+
