@@ -24,7 +24,9 @@ watch(() => props.modelValue, async (text) => {
   }
 
   if (!text.trim()) {
+    activeRequestId++
     predictions.value = []
+    isLoading.value = false
     return
   }
 
@@ -108,7 +110,6 @@ onUnmounted(() => {
 
 <template>
   <div
-    v-if="predictions.length > 0 || isLoading"
     class="predictor"
     role="region"
     :aria-label="t('a11y.predictorList')"
@@ -138,7 +139,7 @@ onUnmounted(() => {
     </div>
 
     <div
-      v-else
+      v-else-if="predictions.length > 0"
       class="button-row"
     >
       <VBtn
@@ -154,6 +155,13 @@ onUnmounted(() => {
         <span class="prediction-badge">{{ index + 1 }}</span>
         {{ word }}
       </VBtn>
+    </div>
+
+    <div
+      v-else
+      class="text-caption text-medium-emphasis pa-2"
+    >
+      {{ t('predictor.noSuggestions') }}
     </div>
   </div>
 </template>
