@@ -76,3 +76,4 @@ export const DEFAULT_PREFERENCES: import('./api').UserPreferences = {
   typeSound: false,
   speakLastWord: false,
 }
+
