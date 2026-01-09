@@ -61,13 +61,13 @@ const handleInput = (event: Event) => {
       </template>
     </VTextarea>
 
-    <div class="d-flex gap-2 mt-2">
+    <div class="main-input-actions d-flex gap-2 mt-2">
       <VBtn
         color="primary"
         size="large"
         :prepend-icon="props.isPlaying ? 'mdi-stop' : 'mdi-volume-high'"
         :aria-label="props.isPlaying ? t('a11y.stopButton') : t('a11y.playButton')"
-        class="flex-grow-1"
+        class="main-input-btn flex-grow-1"
         @click="emit('say', false)"
       >
         {{ props.isPlaying ? t('main.stop') : t('main.say') }}
@@ -77,6 +77,7 @@ const handleInput = (event: Event) => {
         variant="outlined"
         size="large"
         icon
+        class="main-input-btn"
         :aria-label="t('main.download')"
         :disabled="!props.modelValue.trim()"
         @click="emit('say', true)"
@@ -87,6 +88,7 @@ const handleInput = (event: Event) => {
         variant="outlined"
         size="large"
         icon
+        class="main-input-btn"
         :aria-label="t('main.clear')"
         @click="emit('clear')"
       >
@@ -95,3 +97,18 @@ const handleInput = (event: Event) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.main-input-actions {
+  align-items: stretch;
+}
+
+.main-input-btn {
+  height: 52px;
+  min-height: 52px;
+}
+
+.main-input-btn.v-btn--icon {
+  width: 52px;
+}
+</style>
