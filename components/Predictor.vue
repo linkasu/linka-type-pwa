@@ -41,7 +41,7 @@ const fetchPredictions = async (text: string) => {
     const data = await $api.predictor.complete(text, { lang: 'ru', limit: 5 })
     if (requestId !== activeRequestId) return
     predictions.value = data.text || []
-    insertPosition.value = data.pos || text.length
+    insertPosition.value = Number.isFinite(data.pos) ? data.pos : 0
   } catch (err) {
     console.error('Predictor error:', err)
     if (requestId === activeRequestId) {
@@ -54,10 +54,24 @@ const fetchPredictions = async (text: string) => {
   }
 }
 
-const selectPrediction = (prediction: string) => {
+const buildPredictionText = (prediction: string) => {
   const text = props.modelValue
-  const newText = text.substring(0, insertPosition.value) + prediction
-  emit('update:modelValue', newText)
+  const pos = insertPosition.value
+  let base = text
+
+  if (pos < 0) {
+    base = text.slice(0, pos)
+  }
+
+  if (pos === 1) {
+    base += ' '
+  }
+
+  return base + prediction
+}
+
+const selectPrediction = (prediction: string) => {
+  emit('update:modelValue', buildPredictionText(prediction))
   predictions.value = []
 }
 
