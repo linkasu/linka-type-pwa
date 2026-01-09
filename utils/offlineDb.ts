@@ -320,8 +320,9 @@ export const getQuickes = async (userId: string): Promise<string[] | null> => {
 
 export const setQuickes = async (userId: string, quickes: string[]): Promise<void> => {
   if (!isIdbAvailable()) return
+  const safeQuickes = Array.isArray(quickes) ? Array.from(quickes) : []
   await withStore(STORES.quickes, 'readwrite', async (store) => {
-    store.put({ userId, quickes } satisfies CachedQuickes)
+    store.put({ userId, quickes: safeQuickes } satisfies CachedQuickes)
     return Promise.resolve()
   })
 }
