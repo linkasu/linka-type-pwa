@@ -127,41 +127,43 @@ onUnmounted(() => {
       <span class="text-caption text-medium-emphasis">{{ t('predictor.title') }}</span>
     </div>
 
-    <div
-      v-if="isLoading"
-      class="text-center pa-2"
-    >
-      <VProgressCircular
-        indeterminate
-        size="24"
-        color="primary"
-      />
-    </div>
-
-    <div
-      v-else-if="predictions.length > 0"
-      class="button-row"
-    >
-      <VBtn
-        v-for="(word, index) in predictions"
-        :key="index"
-        variant="tonal"
-        color="primary"
-        size="small"
-        class="prediction-btn"
-        :aria-keyshortcuts="`Alt+${index + 1} Meta+${index + 1}`"
-        @click="selectPrediction(word)"
+    <div class="predictor-body">
+      <div
+        v-if="isLoading"
+        class="predictor-loading"
       >
-        <span class="prediction-badge">{{ index + 1 }}</span>
-        {{ word }}
-      </VBtn>
-    </div>
+        <VProgressCircular
+          indeterminate
+          size="24"
+          color="primary"
+        />
+      </div>
 
-    <div
-      v-else
-      class="text-caption text-medium-emphasis pa-2"
-    >
-      {{ t('predictor.noSuggestions') }}
+      <div
+        v-else-if="predictions.length > 0"
+        class="button-row predictor-row"
+      >
+        <VBtn
+          v-for="(word, index) in predictions"
+          :key="index"
+          variant="tonal"
+          color="primary"
+          size="small"
+          class="prediction-btn"
+          :aria-keyshortcuts="`Alt+${index + 1} Meta+${index + 1}`"
+          @click="selectPrediction(word)"
+        >
+          <span class="prediction-badge">{{ index + 1 }}</span>
+          {{ word }}
+        </VBtn>
+      </div>
+
+      <div
+        v-else
+        class="predictor-empty text-caption text-medium-emphasis"
+      >
+        {{ t('predictor.noSuggestions') }}
+      </div>
     </div>
   </div>
 </template>
@@ -171,6 +173,23 @@ onUnmounted(() => {
   padding: 12px;
   background: var(--linka-surface, #f5f5f5);
   border-radius: 8px;
+}
+
+.predictor-body {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+}
+
+.predictor-row {
+  width: 100%;
+}
+
+.predictor-loading,
+.predictor-empty {
+  width: 100%;
+  text-align: center;
+  padding: 8px 0;
 }
 
 .prediction-btn {
