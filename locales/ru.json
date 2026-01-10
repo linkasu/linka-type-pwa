@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "Главная",
+    "chat": "Диалог",
     "settings": "Настройки",
     "tutorial": "Обучение",
     "shortcuts": "Горячие клавиши"
@@ -39,6 +40,34 @@
     "chat": "Чат",
     "chatSwitch": "Переключить чат"
   },
+  "chat": {
+    "title": "Диалог",
+    "chatsTitle": "Чаты",
+    "newChat": "Новый чат",
+    "untitled": "Новый диалог",
+    "emptyChat": "Нет сообщений",
+    "empty": "Пока нет сообщений",
+    "you": "Вы",
+    "speaker": "Собеседник",
+    "placeholder": "Введите фразу для озвучивания...",
+    "send": "Сказать",
+    "record": "Записать",
+    "stopRecord": "Стоп",
+    "clear": "Очистить",
+    "stopSpeech": "Остановить озвучивание",
+    "recording": "Запись...",
+    "suggestions": "Подсказки для ответа",
+    "errors": {
+      "loadChats": "Не удалось загрузить чаты",
+      "loadMessages": "Не удалось загрузить сообщения",
+      "createChat": "Не удалось создать чат",
+      "deleteChat": "Не удалось удалить чат",
+      "sendMessage": "Не удалось отправить сообщение",
+      "sendAudio": "Не удалось отправить запись",
+      "micUnsupported": "Запись недоступна в этом браузере",
+      "micDenied": "Нет доступа к микрофону"
+    }
+  },
   "quickes": {
     "title": "Быстрые фразы",
     "edit": "Редактировать",
@@ -69,12 +98,29 @@
     "back": "Назад",
     "empty": "Нет элементов",
     "newCategoryName": "Название категории",
-    "newStatementText": "Текст фразы"
+    "newStatementText": "Текст фразы",
+    "aiUse": "Использовать в контексте ИИ"
   },
   "predictor": {
     "title": "Подсказки",
     "loading": "Загрузка...",
     "noSuggestions": "Нет подсказок"
+  },
+  "dialog": {
+    "title": "Предложения ИИ",
+    "suggestionsReady": "Новые предложения: {count}",
+    "openSuggestions": "Открыть",
+    "noSuggestions": "Нет предложений",
+    "categoryLabel": "Категория",
+    "newCategory": "Новая категория",
+    "newCategoryLabel": "Название новой категории",
+    "unknownCategory": "Новая категория",
+    "errors": {
+      "categoryLabel": "Введите название категории",
+      "categoryRequired": "Выберите категорию",
+      "applyFailed": "Не удалось добавить фразу",
+      "dismissFailed": "Не удалось отклонить фразу"
+    }
   },
   "settings": {
     "title": "Настройки",
@@ -144,9 +190,29 @@
   "shortcuts": {
     "title": "Горячие клавиши",
     "global": "Глобальные",
+    "chat": "Диалог",
     "bank": "Банк фраз",
     "quickes": "Быстрые фразы",
+    "predictor": "Предиктор",
     "reader": "Режим чтения",
+    "switchChat": "Переключить чат",
+    "focusInput": "Фокус на поле ввода",
+    "focusQuickes": "Фокус на быстрые фразы",
+    "focusBank": "Фокус на банк фраз",
+    "speak": "Озвучить текст",
+    "newLine": "Новая строка",
+    "newChat": "Новый чат",
+    "toggleRecording": "Начать / остановить запись",
+    "stopRecording": "Остановить запись (без отправки)",
+    "selectPrediction": "Выбрать подсказку",
+    "speakQuicke": "Озвучить быструю фразу (при фокусе быстрых фраз)",
+    "selectItem": "Выбрать элемент (при фокусе банка фраз)",
+    "randomStatement": "Случайная фраза",
+    "togglePasteMode": "Переключить режим вставки",
+    "back": "Назад",
+    "playPause": "Воспроизведение / Пауза",
+    "navigate": "Навигация",
+    "toggleSpotlight": "Переключить режим фокуса",
     "list": {
       "ctrlUpDown": "Переключить чат",
       "ctrl0": "Фокус на быстрые фразы",
@@ -194,6 +260,7 @@
     "delete": "Удалить",
     "edit": "Редактировать",
     "add": "Добавить",
+    "dismiss": "Отклонить",
     "close": "Закрыть",
     "confirm": "Подтвердить",
     "retry": "Повторить"

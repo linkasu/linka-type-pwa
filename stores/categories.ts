@@ -90,7 +90,7 @@ export const useCategoriesStore = defineStore('categories', {
       }
     },
 
-    async createCategory(label: string): Promise<Category> {
+    async createCategory(label: string, aiUse = false): Promise<Category> {
       this.error = null
       const authStore = useAuthStore()
       const userId = authStore.user?.id
@@ -103,6 +103,7 @@ export const useCategoriesStore = defineStore('categories', {
             label,
             created: Date.now(),
             default: false,
+            aiUse,
           }
           this.categories.set(category.id, category)
           await upsertCategory(userId, category)
@@ -116,12 +117,13 @@ export const useCategoriesStore = defineStore('categories', {
         }
 
         const { $api } = useNuxtApp()
-        const category = await $api.categories.create({ label, created: Date.now() })
-        this.categories.set(category.id, category)
+        const category = await $api.categories.create({ label, created: Date.now(), aiUse })
+        const normalized = { ...category, aiUse: category.aiUse ?? aiUse ?? false }
+        this.categories.set(normalized.id, normalized)
         if (import.meta.client && userId) {
-          await upsertCategory(userId, category)
+          await upsertCategory(userId, normalized)
         }
-        return category
+        return normalized
       } catch (err: unknown) {
         if (shouldQueueOffline(err) && userId) {
           const category: Category = {
@@ -129,6 +131,7 @@ export const useCategoriesStore = defineStore('categories', {
             label,
             created: Date.now(),
             default: false,
+            aiUse,
           }
           this.categories.set(category.id, category)
           await upsertCategory(userId, category)
@@ -146,12 +149,17 @@ export const useCategoriesStore = defineStore('categories', {
       }
     },
 
-    async updateCategoryLabel(id: string, label: string): Promise<Category> {
+    async updateCategoryLabel(id: string, label: string, aiUse?: boolean): Promise<Category> {
       const original = this.categories.get(id)
       if (!original) throw new Error('Category not found')
+      const updatedCategory: Category = {
+        ...original,
+        label,
+        aiUse: aiUse ?? original.aiUse ?? false,
+      }
 
       // Optimistic update
-      this.categories.set(id, { ...original, label })
+      this.categories.set(id, updatedCategory)
 
       const authStore = useAuthStore()
       const userId = authStore.user?.id
@@ -159,33 +167,34 @@ export const useCategoriesStore = defineStore('categories', {
       try {
         if (isOffline()) {
           if (!userId) throw new Error('Missing user for offline update')
-          await upsertCategory(userId, { ...original, label })
+          await upsertCategory(userId, updatedCategory)
           await addQueueItem({
             userId,
             op: 'category_update',
-            payload: { id, label },
+            payload: { id, label, aiUse },
             createdAt: Date.now(),
           } satisfies OfflineQueueItem)
-          return { ...original, label }
+          return updatedCategory
         }
 
         const { $api } = useNuxtApp()
-        const updated = await $api.categories.update(id, { label })
-        this.categories.set(id, updated)
+        const updated = await $api.categories.update(id, { label, aiUse })
+        const normalized = { ...updated, aiUse: updated.aiUse ?? false }
+        this.categories.set(id, normalized)
         if (import.meta.client && userId) {
-          await upsertCategory(userId, updated)
+          await upsertCategory(userId, normalized)
         }
-        return updated
+        return normalized
       } catch (err: unknown) {
         if (shouldQueueOffline(err) && userId) {
-          await upsertCategory(userId, { ...original, label })
+          await upsertCategory(userId, updatedCategory)
           await addQueueItem({
             userId,
             op: 'category_update',
-            payload: { id, label },
+            payload: { id, label, aiUse },
             createdAt: Date.now(),
           } satisfies OfflineQueueItem)
-          return { ...original, label }
+          return updatedCategory
         }
         // Rollback on error
         this.categories.set(id, original)
@@ -243,11 +252,12 @@ export const useCategoriesStore = defineStore('categories', {
     },
 
     updateCategory(category: Category) {
-      this.categories.set(category.id, category)
+      const normalized = { ...category, aiUse: category.aiUse ?? false }
+      this.categories.set(category.id, normalized)
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
-        void upsertCategory(userId, category)
+        void upsertCategory(userId, normalized)
       }
     },
 
@@ -268,7 +278,7 @@ export const useCategoriesStore = defineStore('categories', {
     setFromList(categories: Category[]) {
       this.categories.clear()
       for (const category of categories) {
-        this.categories.set(category.id, category)
+        this.categories.set(category.id, { ...category, aiUse: category.aiUse ?? false })
       }
     },
 
@@ -285,10 +295,14 @@ export const useCategoriesStore = defineStore('categories', {
             break
           }
           case 'category_update': {
-            const payload = item.payload as { id: string; label: string }
+            const payload = item.payload as { id: string; label: string; aiUse?: boolean }
             const existing = this.categories.get(payload.id)
             if (existing) {
-              this.categories.set(payload.id, { ...existing, label: payload.label })
+              this.categories.set(payload.id, {
+                ...existing,
+                label: payload.label,
+                aiUse: payload.aiUse ?? existing.aiUse ?? false,
+              })
             }
             break
           }
@@ -305,7 +319,7 @@ export const useCategoriesStore = defineStore('categories', {
 
     async replaceCategoryId(tempId: string, category: Category) {
       this.categories.delete(tempId)
-      this.categories.set(category.id, category)
+      this.categories.set(category.id, { ...category, aiUse: category.aiUse ?? false })
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
@@ -314,4 +328,3 @@ export const useCategoriesStore = defineStore('categories', {
     },
   },
 })
-

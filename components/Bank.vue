@@ -62,9 +62,9 @@ useBankKeyboard({
   containerRef,
 })
 
-const handleAdd = async (text: string) => {
+const handleAdd = async (payload: { text: string; aiUse?: boolean }) => {
   try {
-    await addItem(text)
+    await addItem(payload.text, payload.aiUse)
   } catch (err) {
     console.error('Failed to add item:', err)
   }
@@ -83,10 +83,10 @@ const handleEdit = (item: Category | Statement) => {
   showEditDialog.value = true
 }
 
-const handleEditSave = async (text: string) => {
+const handleEditSave = async (payload: { text: string; aiUse?: boolean }) => {
   if (!editingItem.value) return
   try {
-    await updateItem(editingItem.value, text)
+    await updateItem(editingItem.value, payload.text, payload.aiUse)
     editingItem.value = null
   } catch (err) {
     console.error('Failed to edit item:', err)

@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "Home",
+    "chat": "Chat",
     "settings": "Settings",
     "tutorial": "Tutorial",
     "shortcuts": "Shortcuts"
@@ -39,6 +40,34 @@
     "chat": "Chat",
     "chatSwitch": "Switch chat"
   },
+  "chat": {
+    "title": "Dialog",
+    "chatsTitle": "Chats",
+    "newChat": "New chat",
+    "untitled": "New dialog",
+    "emptyChat": "No messages",
+    "empty": "No messages yet",
+    "you": "You",
+    "speaker": "Partner",
+    "placeholder": "Type a phrase to speak...",
+    "send": "Speak",
+    "record": "Record",
+    "stopRecord": "Stop",
+    "clear": "Clear",
+    "stopSpeech": "Stop speech",
+    "recording": "Recording...",
+    "suggestions": "Suggested replies",
+    "errors": {
+      "loadChats": "Failed to load chats",
+      "loadMessages": "Failed to load messages",
+      "createChat": "Failed to create chat",
+      "deleteChat": "Failed to delete chat",
+      "sendMessage": "Failed to send message",
+      "sendAudio": "Failed to send recording",
+      "micUnsupported": "Recording is not supported in this browser",
+      "micDenied": "Microphone access denied"
+    }
+  },
   "quickes": {
     "title": "Quick Phrases",
     "edit": "Edit",
@@ -69,12 +98,29 @@
     "back": "Back",
     "empty": "No items",
     "newCategoryName": "Category name",
-    "newStatementText": "Phrase text"
+    "newStatementText": "Phrase text",
+    "aiUse": "Use in AI context"
   },
   "predictor": {
     "title": "Suggestions",
     "loading": "Loading...",
     "noSuggestions": "No suggestions"
+  },
+  "dialog": {
+    "title": "AI suggestions",
+    "suggestionsReady": "New suggestions: {count}",
+    "openSuggestions": "Open",
+    "noSuggestions": "No suggestions",
+    "categoryLabel": "Category",
+    "newCategory": "New category",
+    "newCategoryLabel": "New category name",
+    "unknownCategory": "New category",
+    "errors": {
+      "categoryLabel": "Enter a category name",
+      "categoryRequired": "Choose a category",
+      "applyFailed": "Failed to add phrase",
+      "dismissFailed": "Failed to dismiss phrase"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -144,9 +190,29 @@
   "shortcuts": {
     "title": "Keyboard Shortcuts",
     "global": "Global",
+    "chat": "Dialog",
     "bank": "Phrase Bank",
     "quickes": "Quick Phrases",
+    "predictor": "Predictor",
     "reader": "Reader Mode",
+    "switchChat": "Switch chat",
+    "focusInput": "Focus text input",
+    "focusQuickes": "Focus quick phrases",
+    "focusBank": "Focus phrase bank",
+    "speak": "Speak text",
+    "newLine": "New line",
+    "newChat": "New chat",
+    "toggleRecording": "Start / stop recording",
+    "stopRecording": "Stop recording (discard)",
+    "selectPrediction": "Select suggestion",
+    "speakQuicke": "Speak quick phrase (when quick phrases focused)",
+    "selectItem": "Select item (when phrase bank focused)",
+    "randomStatement": "Random phrase",
+    "togglePasteMode": "Toggle paste mode",
+    "back": "Back",
+    "playPause": "Play / Pause",
+    "navigate": "Navigate",
+    "toggleSpotlight": "Toggle focus mode",
     "list": {
       "ctrlUpDown": "Switch chat",
       "ctrl0": "Focus quick phrases",
@@ -194,6 +260,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "add": "Add",
+    "dismiss": "Dismiss",
     "close": "Close",
     "confirm": "Confirm",
     "retry": "Retry"

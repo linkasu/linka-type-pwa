@@ -10,18 +10,21 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  save: [text: string]
+  save: [payload: { text: string; aiUse?: boolean }]
 }>()
 
 const { t } = useI18n()
 
 const itemText = ref('')
+const aiUse = ref(false)
 
 watch(() => props.modelValue, (open) => {
   if (open && props.mode === 'edit' && props.editingItem) {
     itemText.value = 'label' in props.editingItem ? props.editingItem.label : props.editingItem.text
+    aiUse.value = 'label' in props.editingItem ? props.editingItem.aiUse ?? false : false
   } else if (open && props.mode === 'add') {
     itemText.value = ''
+    aiUse.value = false
   }
 })
 
@@ -41,14 +44,19 @@ const fieldLabel = computed(() => {
 
 const handleSave = () => {
   if (!itemText.value.trim()) return
-  emit('save', itemText.value)
+  emit('save', {
+    text: itemText.value,
+    aiUse: props.isCategory ? aiUse.value : undefined,
+  })
   emit('update:modelValue', false)
   itemText.value = ''
+  aiUse.value = false
 }
 
 const handleClose = () => {
   emit('update:modelValue', false)
   itemText.value = ''
+  aiUse.value = false
 }
 </script>
 
@@ -66,6 +74,14 @@ const handleClose = () => {
           :label="fieldLabel"
           autofocus
           @keydown.enter="handleSave"
+        />
+        <VSwitch
+          v-if="props.isCategory"
+          v-model="aiUse"
+          :label="t('bank.aiUse')"
+          color="primary"
+          inset
+          hide-details="auto"
         />
       </VCardText>
       <VCardActions>
@@ -87,4 +103,3 @@ const handleClose = () => {
     </VCard>
   </VDialog>
 </template>
-

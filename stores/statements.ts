@@ -315,6 +315,15 @@ export const useStatementsStore = defineStore('statements', {
       categoryIds.add(statement.id)
     },
 
+    addStatementLocal(statement: Statement) {
+      this.addStatementToCategory(statement)
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+      if (import.meta.client && userId) {
+        void upsertStatement(userId, statement)
+      }
+    },
+
     async applyPendingQueue(userId: string, categoryId: string) {
       if (!import.meta.client) return
       const items = await getQueueItems(userId)
@@ -412,4 +421,3 @@ export const useStatementsStore = defineStore('statements', {
     },
   },
 })
-

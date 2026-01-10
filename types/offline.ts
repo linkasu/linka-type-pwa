@@ -17,6 +17,7 @@ export interface CategoryCreatePayload {
 export interface CategoryUpdatePayload {
   id: string
   label: string
+  aiUse?: boolean
 }
 
 export interface CategoryDeletePayload {

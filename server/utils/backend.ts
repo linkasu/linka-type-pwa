@@ -7,16 +7,19 @@ export async function backendRequest<T>(
   options: {
     method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     body?: unknown
+    rawBody?: string | ArrayBuffer | Uint8Array
     query?: Record<string, string | number | boolean>
     token?: string | null
     headers?: Record<string, string>
   } = {}
 ): Promise<T> {
-  const { method = 'GET', body, query, token, headers: customHeaders } = options
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...customHeaders,
+  const { method = 'GET', body, rawBody, query, token, headers: customHeaders } = options
+  const headers: Record<string, string> = { ...customHeaders }
+  const hasContentType = Object.keys(headers).some(
+    key => key.toLowerCase() === 'content-type'
+  )
+  if (!hasContentType && rawBody === undefined) {
+    headers['Content-Type'] = 'application/json'
   }
 
   if (token) {
@@ -27,7 +30,7 @@ export async function backendRequest<T>(
     const response = await ofetch<T>(`${BACKEND_URL}${path}`, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: rawBody !== undefined ? rawBody : body ? JSON.stringify(body) : undefined,
       query,
       timeout: 30000,
       retry: 0,
@@ -102,4 +105,3 @@ export function getTokenFromRequest(event: any): string | null {
 
   return null
 }
-

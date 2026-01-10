@@ -119,7 +119,10 @@ export const getCategories = async (userId: string): Promise<Category[]> => {
     'byUserId',
     IDBKeyRange.only(userId),
   )
-  return records.map(({ key: _key, userId: _userId, ...category }) => category)
+  return records.map(({ key: _key, userId: _userId, ...category }) => ({
+    ...category,
+    aiUse: category.aiUse ?? false,
+  }))
 }
 
 export const upsertCategory = async (userId: string, category: Category): Promise<void> => {

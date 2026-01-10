@@ -23,11 +23,11 @@ export function useBankItems() {
     }
   })
 
-  const addItem = async (text: string) => {
+  const addItem = async (text: string, aiUse?: boolean) => {
     if (!text.trim()) return
 
     if (isShowingCategories.value) {
-      await categoriesStore.createCategory(text)
+      await categoriesStore.createCategory(text, aiUse ?? false)
     } else if (selectedCategoryId.value) {
       await statementsStore.createStatement(selectedCategoryId.value, text)
     }
@@ -41,11 +41,11 @@ export function useBankItems() {
     }
   }
 
-  const updateItem = async (item: Category | Statement, newText: string) => {
+  const updateItem = async (item: Category | Statement, newText: string, aiUse?: boolean) => {
     if (!newText.trim()) return
 
     if ('label' in item) {
-      await categoriesStore.updateCategoryLabel(item.id, newText)
+      await categoriesStore.updateCategoryLabel(item.id, newText, aiUse)
     } else {
       await statementsStore.updateStatementText(item.id, newText)
     }

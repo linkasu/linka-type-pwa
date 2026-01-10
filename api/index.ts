@@ -8,6 +8,7 @@ export { globalApi } from './global'
 export { ttsApi } from './tts'
 export { onboardingApi } from './onboarding'
 export { predictorApi } from './predictor'
+export { dialogApi } from './dialog'
 
 // Combined API object for use in plugins
 export const api = {
@@ -54,5 +55,26 @@ export const api = {
     complete: (text: string, options?: import('./predictor').PredictorOptions) =>
       import('./predictor').then(m => m.predictorApi.complete(text, options)),
   },
+  dialog: {
+    listChats: () => import('./dialog').then(m => m.dialogApi.listChats()),
+    createChat: (data: import('~/types/api').CreateDialogChatRequest) =>
+      import('./dialog').then(m => m.dialogApi.createChat(data)),
+    deleteChat: (id: string) => import('./dialog').then(m => m.dialogApi.deleteChat(id)),
+    listMessages: (chatId: string, options?: import('./dialog').ListDialogMessagesOptions) =>
+      import('./dialog').then(m => m.dialogApi.listMessages(chatId, options)),
+    createMessage: (chatId: string, payload: import('~/types/api').CreateDialogMessageRequest) =>
+      import('./dialog').then(m => m.dialogApi.createMessage(chatId, payload)),
+    createMessageWithAudio: (
+      chatId: string,
+      payload: import('~/types/api').CreateDialogMessageRequest,
+      audio: Blob,
+      filename?: string,
+    ) => import('./dialog').then(m => m.dialogApi.createMessageWithAudio(chatId, payload, audio, filename)),
+    listSuggestions: (status?: string, limit?: number) =>
+      import('./dialog').then(m => m.dialogApi.listSuggestions(status, limit)),
+    applySuggestions: (items: import('~/types/api').DialogSuggestionApplyItem[]) =>
+      import('./dialog').then(m => m.dialogApi.applySuggestions(items)),
+    dismissSuggestions: (ids: string[]) =>
+      import('./dialog').then(m => m.dialogApi.dismissSuggestions(ids)),
+  },
 }
-

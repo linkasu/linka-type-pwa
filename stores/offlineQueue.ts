@@ -157,6 +157,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                 const created = await $api.categories.create({
                   label: payload.category.label,
                   created: payload.category.created,
+                  aiUse: payload.category.aiUse,
                 })
                 await categoriesStore.replaceCategoryId(payload.category.id, created)
                 await statementsStore.remapCategoryId(payload.category.id, created.id)
@@ -178,7 +179,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               case 'category_update': {
                 const payload = item.payload as CategoryUpdatePayload
                 const resolvedId = idMap.get(payload.id) ?? payload.id
-                const updated = await $api.categories.update(resolvedId, { label: payload.label })
+                const updated = await $api.categories.update(resolvedId, { label: payload.label, aiUse: payload.aiUse })
                 await categoriesStore.updateCategory(updated)
                 if (item.id !== undefined) {
                   await deleteQueueItem(item.id)

@@ -45,6 +45,8 @@ watch(
       @close="showTutorial = false"
     />
 
+    <DialogSuggestionQueue />
+
     <OfflineIndicator />
   </VApp>
 </template>

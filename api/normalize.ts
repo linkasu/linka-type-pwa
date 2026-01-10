@@ -6,6 +6,7 @@ type RawCategory = Partial<Category> & {
   created_at?: number
   is_default?: boolean
   default?: boolean | null
+  ai_use?: boolean
 }
 
 type RawStatement = Partial<Statement> & {
@@ -21,6 +22,7 @@ export function normalizeCategory(raw: RawCategory): Category {
     label: raw.label ?? '',
     created: raw.created ?? raw.created_at ?? 0,
     default: Boolean(isDefault),
+    aiUse: raw.aiUse ?? raw.ai_use ?? false,
     statementsCount: raw.statementsCount ?? raw.statements_count,
   }
 }

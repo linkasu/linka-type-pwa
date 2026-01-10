@@ -17,6 +17,7 @@ const authStore = useAuthStore()
 
 const menuItems = computed(() => [
   { title: t('nav.home'), icon: 'mdi-home', to: '/main' },
+  { title: t('nav.chat'), icon: 'mdi-message-text-outline', to: '/chat' },
   { title: t('nav.settings'), icon: 'mdi-cog', to: '/settings' },
   { title: t('nav.tutorial'), icon: 'mdi-school', action: () => emit('openTutorial') },
   { title: t('nav.shortcuts'), icon: 'mdi-keyboard', action: () => emit('openShortcuts') },
@@ -60,4 +61,3 @@ const handleLogout = async () => {
     </template>
   </VNavigationDrawer>
 </template>
-
