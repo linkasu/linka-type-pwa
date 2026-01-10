@@ -103,7 +103,7 @@ export const dialogApi = {
       `/dialog/chats/${chatId}/messages`,
       { params: options },
     )
-    return response.data.map(normalizeDialogMessage).reverse()
+    return response.data.map(normalizeDialogMessage)
   },
 
   async createMessage(

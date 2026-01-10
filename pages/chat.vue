@@ -37,6 +37,13 @@ let recorderStream: MediaStream | null = null
 let recorderChunks: Blob[] = []
 let recordingTimer: number | null = null
 let shouldSendRecording = true
+let recordingMode: 'ogg' | 'wav' = 'ogg'
+let audioContext: AudioContext | null = null
+let sourceNode: MediaStreamAudioSourceNode | null = null
+let processorNode: ScriptProcessorNode | null = null
+let zeroGain: GainNode | null = null
+let wavChunks: Float32Array[] = []
+let wavSampleRate = 48000
 
 const focusInput = () => {
   const target = inputRef.value
@@ -102,7 +109,6 @@ const loadMessages = async (chatId: string) => {
     const list = await $api.dialog.listMessages(chatId, { limit: 200 })
     messages.value = list
     quickSuggestions.value = []
-    await nextTick()
     scrollToBottom()
   } catch (err: unknown) {
     const failure = err as Error
@@ -113,8 +119,12 @@ const loadMessages = async (chatId: string) => {
 }
 
 const scrollToBottom = () => {
-  if (!messageListRef.value) return
-  messageListRef.value.scrollTop = messageListRef.value.scrollHeight
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      if (!messageListRef.value) return
+      messageListRef.value.scrollTop = messageListRef.value.scrollHeight
+    })
+  })
 }
 
 const updateActiveChatMeta = (timestamp: number) => {
@@ -184,7 +194,6 @@ const sendTypedMessage = async () => {
     updateActiveChatMeta(result.message.created)
     inputText.value = ''
     quickSuggestions.value = []
-    await nextTick()
     scrollToBottom()
   } catch (err: unknown) {
     const failure = err as Error
@@ -200,20 +209,110 @@ const sendSuggestion = async (text: string) => {
   await sendTypedMessage()
 }
 
+const RECORD_MIME_TYPE = 'audio/ogg;codecs=opus'
+
 const pickMimeType = () => {
   if (typeof MediaRecorder === 'undefined') return ''
-  const types = [
-    'audio/webm;codecs=opus',
-    'audio/webm',
-    'audio/ogg;codecs=opus',
-    'audio/ogg',
-  ]
-  return types.find(type => MediaRecorder.isTypeSupported(type)) ?? ''
+  if (MediaRecorder.isTypeSupported(RECORD_MIME_TYPE)) return RECORD_MIME_TYPE
+  const fallbacks = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg']
+  return fallbacks.find(type => MediaRecorder.isTypeSupported(type)) ?? ''
 }
 
 const stopStream = () => {
   recorderStream?.getTracks().forEach(track => track.stop())
   recorderStream = null
+}
+
+const cleanupWavNodes = async () => {
+  if (processorNode) {
+    processorNode.disconnect()
+    processorNode.onaudioprocess = null
+    processorNode = null
+  }
+  if (sourceNode) {
+    sourceNode.disconnect()
+    sourceNode = null
+  }
+  if (zeroGain) {
+    zeroGain.disconnect()
+    zeroGain = null
+  }
+  if (audioContext) {
+    try {
+      await audioContext.close()
+    } catch {
+      // ignore close errors
+    }
+    audioContext = null
+  }
+}
+
+const writeWavString = (view: DataView, offset: number, value: string) => {
+  for (let i = 0; i < value.length; i += 1) {
+    view.setUint8(offset + i, value.charCodeAt(i))
+  }
+}
+
+const encodeWav = (chunks: Float32Array[], sampleRate: number): Blob => {
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+  const buffer = new ArrayBuffer(44 + totalLength * 2)
+  const view = new DataView(buffer)
+
+  writeWavString(view, 0, 'RIFF')
+  view.setUint32(4, 36 + totalLength * 2, true)
+  writeWavString(view, 8, 'WAVE')
+  writeWavString(view, 12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  writeWavString(view, 36, 'data')
+  view.setUint32(40, totalLength * 2, true)
+
+  let offset = 44
+  for (const chunk of chunks) {
+    for (let i = 0; i < chunk.length; i += 1) {
+      const sample = Math.max(-1, Math.min(1, chunk[i]))
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true)
+      offset += 2
+    }
+  }
+
+  return new Blob([buffer], { type: 'audio/wav' })
+}
+
+const startWavRecording = async () => {
+  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+  if (!AudioCtx || !recorderStream) {
+    recordingError.value = t('chat.errors.micUnsupported')
+    return
+  }
+
+  audioContext = new AudioCtx()
+  await audioContext.resume()
+  wavSampleRate = audioContext.sampleRate
+  wavChunks = []
+
+  sourceNode = audioContext.createMediaStreamSource(recorderStream)
+  processorNode = audioContext.createScriptProcessor(4096, 1, 1)
+  zeroGain = audioContext.createGain()
+  zeroGain.gain.value = 0
+
+  processorNode.onaudioprocess = (event) => {
+    const input = event.inputBuffer.getChannelData(0)
+    wavChunks.push(new Float32Array(input))
+  }
+
+  sourceNode.connect(processorNode)
+  processorNode.connect(zeroGain)
+  zeroGain.connect(audioContext.destination)
+
+  recordingMode = 'wav'
+  isRecording.value = true
+  startRecordingTimer()
 }
 
 const startRecordingTimer = () => {
@@ -247,40 +346,52 @@ const startRecording = async () => {
   try {
     recorderStream = await navigator.mediaDevices.getUserMedia({ audio: true })
     recordingMimeType.value = pickMimeType()
-    const options = recordingMimeType.value ? { mimeType: recordingMimeType.value } : undefined
-    recorder = new MediaRecorder(recorderStream, options)
-    recorderChunks = []
 
-    recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        recorderChunks.push(event.data)
-      }
-    }
-
-    recorder.onstop = async () => {
-      const recorderInstance = recorder
-      stopStream()
-      stopRecordingTimer()
-      isRecording.value = false
-      recorder = null
-
-      if (!shouldSendRecording) {
-        recorderChunks = []
-        return
-      }
-
-      const type = recorderInstance?.mimeType || recordingMimeType.value || 'audio/webm'
-      const blob = new Blob(recorderChunks, { type })
+    if (recordingMimeType.value && MediaRecorder.isTypeSupported(recordingMimeType.value)) {
+      recorder = new MediaRecorder(recorderStream, { mimeType: recordingMimeType.value })
       recorderChunks = []
-      if (!blob.size) {
-        return
-      }
-      await sendAudioMessage(blob, type)
-    }
 
-    recorder.start()
-    isRecording.value = true
-    startRecordingTimer()
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recorderChunks.push(event.data)
+        }
+      }
+
+      recorder.onstop = async () => {
+        const recorderInstance = recorder
+        stopStream()
+        stopRecordingTimer()
+        isRecording.value = false
+        recorder = null
+
+        if (!shouldSendRecording) {
+          recorderChunks = []
+          return
+        }
+
+        const type = recorderInstance?.mimeType || recordingMimeType.value || RECORD_MIME_TYPE
+        const blob = new Blob(recorderChunks, { type })
+        recorderChunks = []
+        if (!blob.size) {
+          return
+        }
+        await sendAudioMessage(blob, type)
+      }
+
+      recorder.onerror = () => {
+        recordingError.value = t('chat.errors.sendAudio')
+        isRecording.value = false
+        recorder = null
+        stopStream()
+      }
+
+      recordingMode = 'ogg'
+      recorder.start()
+      isRecording.value = true
+      startRecordingTimer()
+    } else {
+      await startWavRecording()
+    }
   } catch (err: unknown) {
     stopStream()
     const failure = err as Error
@@ -289,9 +400,25 @@ const startRecording = async () => {
 }
 
 const stopRecording = (send = true) => {
-  if (!recorder || recorder.state !== 'recording') return
+  if (!isRecording.value) return
   shouldSendRecording = send
-  recorder.stop()
+
+  if (recordingMode === 'ogg') {
+    if (!recorder || recorder.state !== 'recording') return
+    recorder.stop()
+    return
+  }
+
+  isRecording.value = false
+  stopRecordingTimer()
+  const blob = encodeWav(wavChunks, wavSampleRate)
+  wavChunks = []
+  stopStream()
+  cleanupWavNodes().finally(() => {
+    if (shouldSendRecording && blob.size > 0) {
+      void sendAudioMessage(blob, 'audio/wav')
+    }
+  })
 }
 
 const toggleRecording = () => {
@@ -336,7 +463,6 @@ const sendAudioMessage = async (blob: Blob, mimeType: string) => {
     messages.value.push(result.message)
     updateActiveChatMeta(result.message.created)
     quickSuggestions.value = result.suggestions ?? []
-    await nextTick()
     scrollToBottom()
   } catch (err: unknown) {
     const failure = err as Error
@@ -365,11 +491,23 @@ watch(inputText, (value, oldValue) => {
   handleTextInput(value, oldValue)
 })
 
+const selectSuggestion = (index: number) => {
+  if (index >= 0 && index < quickSuggestions.value.length) {
+    void sendSuggestion(quickSuggestions.value[index])
+  }
+}
+
+const clearInput = () => {
+  inputText.value = ''
+}
+
 useChatKeyboard({
-  onFocusInput: focusInput,
   onToggleRecording: toggleRecording,
   onNewChat: createChat,
   onStopRecording: stopRecordingAndDiscard,
+  onSelectSuggestion: selectSuggestion,
+  onStopSpeech: stop,
+  onClear: clearInput,
 })
 
 onMounted(async () => {
@@ -380,6 +518,7 @@ onUnmounted(() => {
   stopRecordingAndDiscard()
   stopStream()
   stopRecordingTimer()
+  void cleanupWavNodes()
 })
 </script>
 
@@ -535,16 +674,17 @@ onUnmounted(() => {
             class="chat-suggestions"
           >
             <div class="text-caption text-medium-emphasis mb-2">
-              {{ t('chat.suggestions') }}
+              {{ t('chat.suggestions') }} <span class="suggestion-hint">(Alt/Cmd + 1-5)</span>
             </div>
             <div class="suggestion-chips">
               <VChip
-                v-for="(suggestion, index) in quickSuggestions"
+                v-for="(suggestion, index) in quickSuggestions.slice(0, 5)"
                 :key="`${suggestion}-${index}`"
                 class="suggestion-chip"
                 variant="outlined"
                 @click="sendSuggestion(suggestion)"
               >
+                <span class="suggestion-number">{{ index + 1 }}</span>
                 {{ suggestion }}
               </VChip>
             </div>
@@ -572,6 +712,7 @@ onUnmounted(() => {
                 :disabled="!inputText.trim() || isSending"
                 @click="sendTypedMessage"
               >
+                <VIcon start>mdi-send</VIcon>
                 {{ t('chat.send') }}
               </VBtn>
 
@@ -585,6 +726,7 @@ onUnmounted(() => {
                   {{ isRecording ? 'mdi-stop-circle-outline' : 'mdi-microphone' }}
                 </VIcon>
                 {{ isRecording ? t('chat.stopRecord') : t('chat.record') }}
+                <span class="hotkey-hint">⌘R</span>
               </VBtn>
 
               <VBtn
@@ -592,7 +734,7 @@ onUnmounted(() => {
                 size="large"
                 icon
                 :aria-label="t('chat.clear')"
-                @click="inputText = ''"
+                @click="clearInput"
               >
                 <VIcon>mdi-delete</VIcon>
               </VBtn>
@@ -609,20 +751,29 @@ onUnmounted(() => {
               </VBtn>
             </div>
 
-            <div
-              v-if="isRecording"
-              class="recording-indicator"
-            >
-              <VIcon color="error">mdi-record</VIcon>
-              <span>{{ t('chat.recording') }}</span>
-              <span class="recording-time">{{ formatDuration(recordingDuration) }}</span>
-            </div>
-
-            <div
-              v-if="recordingError"
-              class="text-error text-caption mt-2"
-            >
-              {{ recordingError }}
+            <div class="chat-status-bar">
+              <div
+                v-if="isRecording"
+                class="recording-indicator"
+              >
+                <VIcon color="error" size="small">mdi-record</VIcon>
+                <span>{{ t('chat.recording') }}</span>
+                <span class="recording-time">{{ formatDuration(recordingDuration) }}</span>
+              </div>
+              <div
+                v-else-if="recordingError"
+                class="text-error text-caption"
+              >
+                {{ recordingError }}
+              </div>
+              <div
+                v-else
+                class="hotkey-bar"
+              >
+                <span class="hotkey-item"><kbd>⌘R</kbd> {{ t('chat.record') }}</span>
+                <span class="hotkey-item"><kbd>Enter</kbd> {{ t('chat.send') }}</span>
+                <span class="hotkey-item"><kbd>Esc</kbd> {{ t('actions.cancel') }}</span>
+              </div>
             </div>
           </div>
         </VCard>
@@ -633,35 +784,42 @@ onUnmounted(() => {
 
 <style scoped>
 .chat-page {
-  min-height: calc(100vh - 64px);
+  height: calc(100vh - 64px);
+  overflow: hidden;
 }
 
 .chat-list-body {
-  max-height: 70vh;
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
 }
 
 .chat-panel {
   display: flex;
   flex-direction: column;
-  min-height: 70vh;
+  height: calc(100vh - 96px);
+  max-height: calc(100vh - 96px);
 }
 
 .chat-body {
   flex: 1;
+  min-height: 0;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: hidden;
 }
 
 .chat-messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   gap: 12px;
   padding-right: 4px;
+  scroll-behavior: smooth;
 }
 
 .chat-message {
@@ -699,6 +857,7 @@ onUnmounted(() => {
 }
 
 .chat-suggestions {
+  flex-shrink: 0;
   padding: 12px 16px 4px;
 }
 
@@ -712,7 +871,26 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
+.suggestion-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  border-radius: 4px;
+  background: rgba(var(--v-theme-primary), 0.15);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.suggestion-hint {
+  opacity: 0.6;
+  font-size: 0.7rem;
+}
+
 .chat-input {
+  flex-shrink: 0;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -723,18 +901,79 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  align-items: stretch;
+}
+
+.chat-actions .v-btn {
+  height: 52px;
+  min-height: 52px;
+}
+
+.chat-actions .v-btn--icon {
+  width: 52px;
+}
+
+.chat-actions .v-btn:not(.v-btn--icon) {
+  flex: 1;
+  min-width: 120px;
+}
+
+.chat-status-bar {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
 }
 
 .recording-indicator {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.85rem;
-  color: rgba(var(--v-theme-on-surface), 0.7);
+  color: rgb(var(--v-theme-error));
+  animation: pulse-recording 1.5s infinite;
 }
 
 .recording-time {
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.hotkey-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.5);
+}
+
+.hotkey-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hotkey-item kbd,
+.hotkey-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(var(--v-theme-on-surface), 0.08);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.hotkey-hint {
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+@keyframes pulse-recording {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .chat-loading {
@@ -744,8 +983,34 @@ onUnmounted(() => {
   color: rgba(var(--v-theme-on-surface), 0.7);
 }
 @media (max-width: 959px) {
+  .chat-page {
+    height: auto;
+    min-height: calc(100vh - 64px);
+    overflow: visible;
+  }
+
   .chat-list-body {
+    max-height: 30vh;
+  }
+
+  .chat-panel {
+    height: auto;
+    min-height: 60vh;
+    max-height: none;
+  }
+
+  .chat-body {
     max-height: 40vh;
+    overflow: hidden;
+  }
+
+  .chat-messages {
+    max-height: 35vh;
+  }
+
+  .chat-actions .v-btn:not(.v-btn--icon) {
+    min-width: 100px;
+    flex: 1;
   }
 }
 </style>

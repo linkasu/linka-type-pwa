@@ -1,57 +1,63 @@
 interface UseChatKeyboardOptions {
-  onFocusInput?: () => void
   onToggleRecording?: () => void
   onNewChat?: () => void
   onStopRecording?: () => void
+  onSelectSuggestion?: (index: number) => void
+  onStopSpeech?: () => void
+  onClear?: () => void
 }
 
 export function useChatKeyboard(options: UseChatKeyboardOptions) {
   const {
-    onFocusInput,
     onToggleRecording,
     onNewChat,
     onStopRecording,
+    onSelectSuggestion,
+    onStopSpeech,
+    onClear,
   } = options
 
   const handleKeydown = (event: KeyboardEvent) => {
-    const target = event.target as HTMLElement | null
-    const activeElement = document.activeElement as HTMLElement | null
-    const isEditable = (element: HTMLElement | null) => {
-      if (!element) return false
-      if (element.isContentEditable) return true
-      const tag = element.tagName
-      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
-    }
     const isCtrlOrMeta = event.ctrlKey || event.metaKey
-    const editable = isEditable(target) || isEditable(activeElement)
+    const isAltOrMeta = event.altKey || event.metaKey
 
-    if (
-      event.key.toLowerCase() === 'i'
-      && !event.ctrlKey
-      && !event.metaKey
-      && !event.altKey
-      && !editable
-    ) {
-      event.preventDefault()
-      event.stopImmediatePropagation()
-      onFocusInput?.()
-      return
-    }
-
+    // Ctrl/Cmd + N - new chat
     if (isCtrlOrMeta && event.code === 'KeyN') {
       event.preventDefault()
       onNewChat?.()
       return
     }
 
-    if (event.code === 'KeyR' && !event.ctrlKey && !event.metaKey && !event.altKey && !editable) {
+    // Ctrl/Cmd + R - toggle recording
+    if (isCtrlOrMeta && event.code === 'KeyR') {
       event.preventDefault()
       onToggleRecording?.()
       return
     }
 
-    if (event.key === 'Escape' && !editable) {
+    // Escape - stop recording and speech
+    if (event.key === 'Escape') {
+      event.preventDefault()
       onStopRecording?.()
+      onStopSpeech?.()
+      return
+    }
+
+    // Alt/Cmd + 1-5 - select suggestion
+    if (isAltOrMeta && !event.ctrlKey) {
+      const digit = parseInt(event.key, 10)
+      if (digit >= 1 && digit <= 5) {
+        event.preventDefault()
+        onSelectSuggestion?.(digit - 1)
+        return
+      }
+    }
+
+    // Ctrl/Cmd + Backspace - clear input
+    if (isCtrlOrMeta && event.key === 'Backspace') {
+      event.preventDefault()
+      onClear?.()
+      return
     }
   }
 
