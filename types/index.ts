@@ -28,6 +28,7 @@ export interface BankState {
 export interface AppSettings {
   darkTheme: boolean
   showPredictor: boolean
+  showSpotlightPredictor: boolean
   showQuickes: boolean
   showBank: boolean
   saveOnSay: boolean
@@ -70,10 +71,10 @@ export const DEFAULT_PREFERENCES: import('./api').UserPreferences = {
   rate: 1,
   pitch: 1,
   showPredictor: true,
+  showSpotlightPredictor: true,
   showQuickes: true,
   showBank: true,
   saveOnSay: false,
   typeSound: false,
   speakLastWord: false,
 }
-

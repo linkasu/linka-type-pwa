@@ -22,6 +22,13 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
       />
 
       <VSwitch
+        :model-value="settingsStore.showSpotlightPredictor"
+        :label="t('settings.adaptiveSettings.showSpotlightPredictor')"
+        color="primary"
+        @update:model-value="settingsStore.updateSettings({ showSpotlightPredictor: $event })"
+      />
+
+      <VSwitch
         :model-value="settingsStore.showQuickes"
         :label="t('settings.adaptiveSettings.showQuickes')"
         color="primary"
@@ -80,4 +87,3 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
     </VCardText>
   </VCard>
 </template>
-

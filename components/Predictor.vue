@@ -1,7 +1,14 @@
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: string
-}>()
+  variant?: 'default' | 'spotlight'
+  compact?: boolean
+  showTitle?: boolean
+}>(), {
+  variant: 'default',
+  compact: false,
+  showTitle: true,
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -14,6 +21,15 @@ const predictions = ref<string[]>([])
 const isLoading = ref(false)
 const insertPosition = ref(0)
 let activeRequestId = 0
+const rootClasses = computed(() => ({
+  predictor: true,
+  'predictor--spotlight': props.variant === 'spotlight',
+  'predictor--compact': props.compact,
+}))
+const buttonVariant = computed(() => (props.variant === 'spotlight' ? 'text' : 'tonal'))
+const buttonSize = computed(() => (props.compact ? 'x-small' : 'small'))
+const progressSize = computed(() => (props.compact ? 18 : 24))
+const iconSize = computed(() => (props.compact ? 16 : 18))
 
 // Debounced fetch
 let fetchTimeout: ReturnType<typeof setTimeout> | null = null
@@ -110,21 +126,24 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="predictor"
+    :class="rootClasses"
     role="region"
     :aria-label="t('a11y.predictorList')"
     aria-live="polite"
     :aria-busy="isLoading"
   >
-    <div class="d-flex align-center mb-2">
+    <div
+      v-if="props.showTitle"
+      class="predictor-header d-flex align-center mb-2"
+    >
       <VIcon
-        size="small"
+        :size="iconSize"
         class="mr-1"
         color="primary"
       >
         mdi-lightbulb-outline
       </VIcon>
-      <span class="text-caption text-medium-emphasis">{{ t('predictor.title') }}</span>
+      <span class="predictor-title text-caption text-medium-emphasis">{{ t('predictor.title') }}</span>
     </div>
 
     <div class="predictor-body">
@@ -134,7 +153,7 @@ onUnmounted(() => {
       >
         <VProgressCircular
           indeterminate
-          size="24"
+          :size="progressSize"
           color="primary"
         />
       </div>
@@ -146,9 +165,9 @@ onUnmounted(() => {
         <VBtn
           v-for="(word, index) in predictions"
           :key="index"
-          variant="tonal"
+          :variant="buttonVariant"
           color="primary"
-          size="small"
+          :size="buttonSize"
           class="prediction-btn"
           :aria-keyshortcuts="`Alt+${index + 1} Meta+${index + 1}`"
           @click="selectPrediction(word)"
@@ -173,6 +192,14 @@ onUnmounted(() => {
   padding: 12px;
   background: var(--linka-surface, #f5f5f5);
   border-radius: 8px;
+}
+
+.predictor-header {
+  gap: 4px;
+}
+
+.predictor-title {
+  line-height: 1.2;
 }
 
 .predictor-body {
@@ -211,5 +238,69 @@ onUnmounted(() => {
   justify-content: center;
   font-size: 11px;
   font-weight: bold;
+}
+
+.predictor--spotlight {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+}
+
+.predictor--spotlight .prediction-btn {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.predictor--spotlight .prediction-btn:hover {
+  background: rgba(255, 255, 255, 0.26) !important;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.predictor--spotlight .predictor-title {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.predictor--spotlight .prediction-badge {
+  color: #141414;
+}
+
+.predictor--spotlight .predictor-empty {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.predictor--compact {
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.predictor--compact .predictor-body {
+  min-height: 40px;
+}
+
+.predictor--compact .predictor-loading,
+.predictor--compact .predictor-empty {
+  padding: 4px 0;
+}
+
+.predictor--compact .predictor-row {
+  gap: 6px;
+  padding: 0;
+}
+
+.predictor--compact .prediction-btn {
+  min-height: 32px;
+  padding-left: 26px;
+  font-size: 13px;
+}
+
+.predictor--compact .prediction-badge {
+  left: 5px;
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
 }
 </style>

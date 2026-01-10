@@ -109,7 +109,7 @@ watch(() => settingsStore.yandex, (value) => {
       ref="mainInputRef"
       :is-playing="isPlaying"
       :show-download="showDownload"
-      :show-predictor="settingsStore.showPredictor"
+      :show-predictor="settingsStore.showPredictor && !showMode"
       @say="handleSay"
       @clear="currentText = ''"
       @toggle-spotlight="toggleSpotlight"

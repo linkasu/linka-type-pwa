@@ -21,6 +21,7 @@ const PREFERENCE_KEYS: Array<keyof UserPreferences> = [
   'rate',
   'pitch',
   'showPredictor',
+  'showSpotlightPredictor',
   'showQuickes',
   'showBank',
   'saveOnSay',

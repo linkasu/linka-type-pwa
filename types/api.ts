@@ -46,6 +46,7 @@ export interface UserPreferences {
   rate: number
   pitch: number
   showPredictor: boolean
+  showSpotlightPredictor: boolean
   showQuickes: boolean
   showBank: boolean
   saveOnSay: boolean

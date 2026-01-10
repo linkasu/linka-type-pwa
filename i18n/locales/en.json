@@ -102,6 +102,7 @@
     "adaptiveSettings": {
       "title": "Interface Settings",
       "showPredictor": "Show predictor",
+      "showSpotlightPredictor": "Show spotlight predictor (desktop)",
       "showQuickes": "Show quick phrases",
       "showBank": "Show phrase bank",
       "saveOnSay": "Save on speak",

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDisplay } from 'vuetify'
+import { useSettingsStore } from '~/stores/settings'
+
 const props = defineProps<{
   modelValue: boolean
   text: string
@@ -11,6 +14,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const settingsStore = useSettingsStore()
+const { lgAndUp } = useDisplay()
+const showSpotlightPredictor = computed(() => settingsStore.showSpotlightPredictor && lgAndUp.value)
 
 const spotlightTextarea = ref<HTMLTextAreaElement | null>(null)
 
@@ -22,9 +28,23 @@ watch(() => props.modelValue, (open) => {
   }
 })
 
+const isPredictionShortcut = (event: KeyboardEvent) => {
+  const usesAlt = event.altKey && !event.ctrlKey && !event.metaKey
+  const usesMeta = event.metaKey && !event.ctrlKey && !event.altKey
+  if (!usesAlt && !usesMeta) return false
+  const keyNum = Number.parseInt(event.key, 10)
+  if (!Number.isNaN(keyNum)) return keyNum >= 1 && keyNum <= 5
+  const codeMatch = /^(Digit|Numpad)(\d)$/.exec(event.code)
+  if (!codeMatch) return false
+  const codeNum = Number.parseInt(codeMatch[2], 10)
+  return codeNum >= 1 && codeNum <= 5
+}
+
 const handleKeydown = (event: KeyboardEvent) => {
   const isCtrlOrMeta = event.ctrlKey || event.metaKey
-  event.stopPropagation()
+  if (!isPredictionShortcut(event)) {
+    event.stopPropagation()
+  }
 
   if (event.key === 'Escape') {
     event.preventDefault()
@@ -54,16 +74,36 @@ const handleKeydown = (event: KeyboardEvent) => {
     @update:model-value="emit('update:modelValue', $event)"
   >
     <div class="spotlight-container">
-      <textarea
-        ref="spotlightTextarea"
-        :value="props.text"
-        class="spotlight-textarea"
-        :placeholder="t('main.placeholder')"
-        @input="emit('update:text', ($event.target as HTMLTextAreaElement).value)"
-        @keydown="handleKeydown"
-      />
-      <div class="spotlight-hint">
-        Esc - {{ t('reader.close') }} | Ctrl+Enter - {{ t('main.say') }} | Ctrl+B - {{ t('reader.close') }}
+      <div class="spotlight-stage">
+        <textarea
+          ref="spotlightTextarea"
+          :value="props.text"
+          class="spotlight-textarea"
+          :placeholder="t('main.placeholder')"
+          @input="emit('update:text', ($event.target as HTMLTextAreaElement).value)"
+          @keydown="handleKeydown"
+        />
+      </div>
+
+      <div
+        class="spotlight-footer"
+        :class="{ 'spotlight-footer--solo': !showSpotlightPredictor }"
+      >
+        <div
+          v-if="showSpotlightPredictor"
+          class="spotlight-predictor"
+        >
+          <Predictor
+            :model-value="props.text"
+            variant="spotlight"
+            compact
+            :show-title="false"
+            @update:model-value="emit('update:text', $event)"
+          />
+        </div>
+        <div class="spotlight-hint">
+          Esc - {{ t('reader.close') }} | Ctrl+Enter - {{ t('main.say') }} | Ctrl+B - {{ t('reader.close') }}
+        </div>
       </div>
     </div>
   </VDialog>
@@ -72,13 +112,21 @@ const handleKeydown = (event: KeyboardEvent) => {
 <style scoped>
 .spotlight-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #000;
+  inset: 0;
+  padding: 16px;
+  gap: 12px;
   display: flex;
   flex-direction: column;
+  background:
+    radial-gradient(70% 60% at 50% 0%, rgba(251, 204, 48, 0.08), rgba(0, 0, 0, 0) 70%),
+    radial-gradient(60% 50% at 10% 0%, rgba(25, 115, 119, 0.12), rgba(0, 0, 0, 0) 65%),
+    #000;
+}
+
+.spotlight-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 .spotlight-textarea {
@@ -87,11 +135,12 @@ const handleKeydown = (event: KeyboardEvent) => {
   width: 100%;
   height: 100%;
   color: #fff;
-  background-color: #000;
-  font-size: 10vh;
-  line-height: 1.2em;
-  border: 3px solid #fff;
-  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.65);
+  font-size: clamp(32px, 8vh, 96px);
+  line-height: 1.15em;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 24px;
+  padding: 28px;
   box-sizing: border-box;
   outline: none;
   font-family: inherit;
@@ -103,10 +152,30 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 .spotlight-hint {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
+  font-size: 12px;
+  text-align: right;
+  padding: 8px 0;
+}
+
+.spotlight-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.spotlight-footer--solo {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.spotlight-footer--solo .spotlight-hint {
   text-align: center;
-  padding: 10px;
-  background-color: #000;
+}
+
+.spotlight-predictor {
+  width: 100%;
+  max-width: 720px;
 }
 </style>
 
@@ -123,4 +192,3 @@ const handleKeydown = (event: KeyboardEvent) => {
   margin: 0 !important;
 }
 </style>
-
