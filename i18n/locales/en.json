@@ -63,6 +63,7 @@
     "clear": "Clear",
     "stopSpeech": "Stop speech",
     "recording": "Recording...",
+    "pushToTalk": "Hold to record",
     "suggestions": "Suggested replies",
     "errors": {
       "loadChats": "Failed to load chats",

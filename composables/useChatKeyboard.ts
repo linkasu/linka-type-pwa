@@ -5,6 +5,8 @@ interface UseChatKeyboardOptions {
   onSelectSuggestion?: (index: number) => void
   onStopSpeech?: () => void
   onClear?: () => void
+  onStartRecording?: () => void
+  onStopRecordingAndSend?: () => void
 }
 
 export function useChatKeyboard(options: UseChatKeyboardOptions) {
@@ -15,7 +17,18 @@ export function useChatKeyboard(options: UseChatKeyboardOptions) {
     onSelectSuggestion,
     onStopSpeech,
     onClear,
+    onStartRecording,
+    onStopRecordingAndSend,
   } = options
+
+  let spaceHeld = false
+
+  const isInputFocused = () => {
+    const active = document.activeElement
+    if (!active) return false
+    const tag = active.tagName.toLowerCase()
+    return tag === 'input' || tag === 'textarea' || (active as HTMLElement).isContentEditable
+  }
 
   const handleKeydown = (event: KeyboardEvent) => {
     const isCtrlOrMeta = event.ctrlKey || event.metaKey
@@ -28,8 +41,8 @@ export function useChatKeyboard(options: UseChatKeyboardOptions) {
       return
     }
 
-    // Ctrl/Cmd + R - toggle recording
-    if (isCtrlOrMeta && event.code === 'KeyR') {
+    // Meta + L - toggle recording
+    if (event.metaKey && event.code === 'KeyL') {
       event.preventDefault()
       onToggleRecording?.()
       return
@@ -59,17 +72,37 @@ export function useChatKeyboard(options: UseChatKeyboardOptions) {
       onClear?.()
       return
     }
+
+    // Space - push-to-talk (only when not in input)
+    if (event.code === 'Space' && !isInputFocused() && !spaceHeld) {
+      event.preventDefault()
+      spaceHeld = true
+      onStartRecording?.()
+      return
+    }
+  }
+
+  const handleKeyup = (event: KeyboardEvent) => {
+    // Space release - stop recording and send
+    if (event.code === 'Space' && spaceHeld) {
+      event.preventDefault()
+      spaceHeld = false
+      onStopRecordingAndSend?.()
+    }
   }
 
   onMounted(() => {
     window.addEventListener('keydown', handleKeydown)
+    window.addEventListener('keyup', handleKeyup)
   })
 
   onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown)
+    window.removeEventListener('keyup', handleKeyup)
   })
 
   return {
     handleKeydown,
+    handleKeyup,
   }
 }

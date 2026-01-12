@@ -13,7 +13,7 @@ export const SHORTCUTS_DATA: Shortcut[] = [
   { keys: 'Enter', descriptionKey: 'shortcuts.speak', categoryKey: 'shortcuts.global' },
   { keys: 'Ctrl + Enter', descriptionKey: 'shortcuts.newLine', categoryKey: 'shortcuts.global' },
   { keys: 'Ctrl / Cmd + N', descriptionKey: 'shortcuts.newChat', categoryKey: 'shortcuts.chat' },
-  { keys: 'Ctrl / Cmd + R', descriptionKey: 'shortcuts.toggleRecording', categoryKey: 'shortcuts.chat' },
+  { keys: 'Cmd + L', descriptionKey: 'shortcuts.toggleRecording', categoryKey: 'shortcuts.chat' },
   { keys: 'Enter', descriptionKey: 'shortcuts.sendMessage', categoryKey: 'shortcuts.chat' },
   { keys: 'Alt / Cmd + 1-5', descriptionKey: 'shortcuts.selectSuggestion', categoryKey: 'shortcuts.chat' },
   { keys: 'Ctrl / Cmd + Backspace', descriptionKey: 'shortcuts.clearInput', categoryKey: 'shortcuts.chat' },

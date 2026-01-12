@@ -108,7 +108,14 @@ const loadMessages = async (chatId: string) => {
   try {
     const list = await $api.dialog.listMessages(chatId, { limit: 200 })
     messages.value = list
-    quickSuggestions.value = []
+
+    // Restore pending suggestions for this chat
+    const pendingSuggestions = await $api.dialog.listSuggestions('pending', 50)
+    const chatSuggestions = pendingSuggestions
+      .filter(s => s.chatId === chatId)
+      .map(s => s.text)
+    quickSuggestions.value = chatSuggestions.slice(0, 5)
+
     scrollToBottom()
   } catch (err: unknown) {
     const failure = err as Error
@@ -508,6 +515,8 @@ useChatKeyboard({
   onSelectSuggestion: selectSuggestion,
   onStopSpeech: stop,
   onClear: clearInput,
+  onStartRecording: startRecording,
+  onStopRecordingAndSend: () => stopRecording(true),
 })
 
 onMounted(async () => {
@@ -726,7 +735,7 @@ onUnmounted(() => {
                   {{ isRecording ? 'mdi-stop-circle-outline' : 'mdi-microphone' }}
                 </VIcon>
                 {{ isRecording ? t('chat.stopRecord') : t('chat.record') }}
-                <span class="hotkey-hint">⌘R</span>
+                <span class="hotkey-hint">⌘L</span>
               </VBtn>
 
               <VBtn
@@ -770,7 +779,8 @@ onUnmounted(() => {
                 v-else
                 class="hotkey-bar"
               >
-                <span class="hotkey-item"><kbd>⌘R</kbd> {{ t('chat.record') }}</span>
+                <span class="hotkey-item"><kbd>Space</kbd> {{ t('chat.pushToTalk') }}</span>
+                <span class="hotkey-item"><kbd>⌘L</kbd> {{ t('chat.record') }}</span>
                 <span class="hotkey-item"><kbd>Enter</kbd> {{ t('chat.send') }}</span>
                 <span class="hotkey-item"><kbd>Esc</kbd> {{ t('actions.cancel') }}</span>
               </div>
