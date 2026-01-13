@@ -93,6 +93,13 @@ export async function backendRequest<T>(
 }
 
 export function getTokenFromRequest(event: any): string | null {
+  // First check X-Auth-Token header (used to avoid YC serverless Authorization interception)
+  const xAuthToken = event.node.req.headers['x-auth-token']
+  if (xAuthToken && typeof xAuthToken === 'string') {
+    return xAuthToken
+  }
+
+  // Fallback to Authorization header for backward compatibility
   const authHeader = event.node.req.headers.authorization
   if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7)

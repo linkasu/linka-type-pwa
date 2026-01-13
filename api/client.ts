@@ -29,7 +29,8 @@ export function createApiClient(
     (config: RequestConfig) => {
       const token = getToken()
       if (token && !config._skipAuth) {
-        config.headers.Authorization = `Bearer ${token}`
+        // Use X-Auth-Token instead of Authorization to avoid YC serverless interception
+        config.headers['X-Auth-Token'] = token
       }
       return config
     },
@@ -66,7 +67,7 @@ export function createApiClient(
           setToken(response.token)
           setUser(response.user)
           
-          originalRequest.headers.Authorization = `Bearer ${response.token}`
+          originalRequest.headers['X-Auth-Token'] = response.token
           return client(originalRequest)
         } catch (refreshError) {
           refreshPromise = null

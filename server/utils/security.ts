@@ -36,9 +36,27 @@ export function assertSameOrigin(event: H3Event) {
 }
 
 export function isSecureRequest(event: H3Event): boolean {
+  // Check x-forwarded-proto first
   const proto = getHeader(event, 'x-forwarded-proto')
   if (proto) {
     return proto === 'https'
   }
-  return Boolean(event.node.req.socket.encrypted)
+
+  // Check if socket is encrypted
+  if (event.node.req.socket.encrypted) {
+    return true
+  }
+
+  // For Yandex Cloud Serverless - check host for yandexcloud.net domain
+  const host = getHeader(event, 'host') || getHeader(event, 'x-forwarded-host') || ''
+  if (host.includes('yandexcloud.net') || host.includes('containers.yandexcloud.net')) {
+    return true
+  }
+
+  // Default to secure in production (non-localhost)
+  if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
+    return true
+  }
+
+  return false
 }

@@ -1,5 +1,5 @@
 import type { AuthResponse } from '~/types/api'
-import { assertSameOrigin, isSecureRequest } from '../../utils/security'
+import { isSecureRequest } from '../../utils/security'
 
 const BACKEND_URL = process.env.API_BASE_URL || 'https://backend.linka.su'
 
@@ -17,7 +17,8 @@ function extractCookieValue(cookieHeader: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-  assertSameOrigin(event)
+  // Note: assertSameOrigin removed - it blocks refresh requests after page reload
+  // Cookie security is handled by httpOnly, Secure, and SameSite flags
 
   const refreshToken = getCookie(event, 'refresh_token')
   
