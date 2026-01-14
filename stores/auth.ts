@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { User } from '~/types/api'
 import { clearUserData } from '~/utils/offlineDb'
+import { useAnalytics } from '~/composables/useAnalytics'
 
 const AUTH_STORAGE_KEY = 'linka_auth'
 
@@ -35,12 +36,19 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { $api } = useNuxtApp()
         const response = await $api.auth.login({ email, password })
-        
+
         this.token = response.token
         this.user = response.user
         this.initialized = true
         this.saveToStorage()
-        
+
+        // Track login event
+        if (import.meta.client) {
+          const { trackLogin, setAnalyticsUserId } = useAnalytics()
+          setAnalyticsUserId(response.user.id)
+          trackLogin()
+        }
+
         return response
       } catch (err: unknown) {
         const error = err as Error
@@ -64,6 +72,13 @@ export const useAuthStore = defineStore('auth', {
         this.initialized = true
         this.saveToStorage()
 
+        // Track register event
+        if (import.meta.client) {
+          const { trackRegister, setAnalyticsUserId } = useAnalytics()
+          setAnalyticsUserId(response.user.id)
+          trackRegister()
+        }
+
         return response
       } catch (err: unknown) {
         const error = err as Error
@@ -76,13 +91,21 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       const userId = this.user?.id
+
+      // Track logout event before clearing state
+      if (import.meta.client) {
+        const { trackLogout, setAnalyticsUserId } = useAnalytics()
+        trackLogout()
+        setAnalyticsUserId(null)
+      }
+
       try {
         const { $api } = useNuxtApp()
         await $api.auth.logout()
       } catch {
         // ignore logout errors
       }
-      
+
       this.token = null
       this.user = null
       this.error = null
@@ -95,16 +118,20 @@ export const useAuthStore = defineStore('auth', {
 
     async refreshToken() {
       if (!import.meta.client) return false
-      
+
       try {
         const { $api } = useNuxtApp()
         const response = await $api.auth.refresh()
-        
+
         this.token = response.token
         this.user = response.user
         this.initialized = true
         this.saveToStorage()
-        
+
+        // Set user ID for analytics on successful refresh
+        const { setAnalyticsUserId } = useAnalytics()
+        setAnalyticsUserId(response.user.id)
+
         return true
       } catch {
         this.token = null

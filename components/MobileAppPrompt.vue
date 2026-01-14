@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useAnalytics } from '~/composables/useAnalytics'
+
 const { t } = useI18n()
+const { trackMobileAppPrompt, trackMobileAppLinkClicked } = useAnalytics()
 
 const STORAGE_KEY = 'mobileAppPromptDismissed'
 const APP_STORE_URL = 'https://apps.apple.com/us/app/linka-%D0%BD%D0%B0%D0%BF%D0%B8%D1%88%D0%B8/id6754614216'
@@ -39,11 +42,14 @@ onMounted(() => {
     // Small delay to not show immediately on page load
     setTimeout(() => {
       isVisible.value = true
+      const platform = isIOS.value ? 'ios' : 'android'
+      trackMobileAppPrompt(platform)
     }, 2000)
   }
 })
 
-const openLink = (url: string) => {
+const openLink = (url: string, platform: 'ios' | 'android') => {
+  trackMobileAppLinkClicked(platform)
   window.open(url, '_blank')
   dismiss()
 }
@@ -77,7 +83,7 @@ const dismiss = () => {
           color="primary"
           class="mb-3"
           prepend-icon="mdi-apple"
-          @click="openLink(APP_STORE_URL)"
+          @click="openLink(APP_STORE_URL, 'ios')"
         >
           {{ t('mobileApp.appStore') }}
         </VBtn>
@@ -87,7 +93,7 @@ const dismiss = () => {
           color="success"
           class="mb-3"
           prepend-icon="mdi-google-play"
-          @click="openLink(PLAY_STORE_URL)"
+          @click="openLink(PLAY_STORE_URL, 'android')"
         >
           {{ t('mobileApp.playStore') }}
         </VBtn>

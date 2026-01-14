@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useQuickesStore } from '~/stores/quickes'
+import { useAnalytics } from '~/composables/useAnalytics'
 
 const emit = defineEmits<{
   click: [text: string]
@@ -7,6 +8,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const quickesStore = useQuickesStore()
+const { trackQuickesSay } = useAnalytics()
 const containerRef = ref<HTMLElement | null>(null)
 
 // Handle keyboard shortcuts 1-6 when focused
@@ -29,6 +31,7 @@ defineExpose({ focus })
 const handleClick = (index: number) => {
   const text = quickesStore.quickes[index]
   if (text) {
+    trackQuickesSay(text, index)
     emit('click', text)
   }
 }

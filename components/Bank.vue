@@ -4,6 +4,7 @@ import { useBankKeyboard } from '~/composables/useBankKeyboard'
 import { useTTS } from '~/composables/useTTS'
 import { useStatementsStore } from '~/stores/statements'
 import { useSettingsStore } from '~/stores/settings'
+import { useAnalytics } from '~/composables/useAnalytics'
 import { preloadPhrases, generateCacheKey, isCached } from '~/utils/ttsCache'
 import { ttsApi } from '~/api/tts'
 import type { Category, Statement } from '~/types/api'
@@ -31,6 +32,14 @@ const cachingCategoryName = ref('')
 
 const statementsStore = useStatementsStore()
 const settingsStore = useSettingsStore()
+const {
+  trackBankCategorySelect,
+  trackBankStatementSelect,
+  trackCategoryCacheStarted,
+  trackCategoryCacheCompleted,
+  trackReaderModeOpened,
+  trackTextEditorOpened,
+} = useAnalytics()
 
 const {
   selectedCategoryId,
@@ -46,8 +55,10 @@ const {
 
 const handleItemSelect = (item: Category | Statement) => {
   if (isCategory(item)) {
+    trackBankCategorySelect(item.id)
     selectedCategoryId.value = item.id
   } else {
+    trackBankStatementSelect(item.id, isPasteMode.value)
     if (isPasteMode.value) {
       emit('paste', item.text)
     } else {
@@ -130,6 +141,8 @@ const handleCacheCategory = async (category: Category) => {
     const voice = settingsStore.yandexVoice || 'alena'
     const phrases = statements.map(s => s.text)
 
+    trackCategoryCacheStarted(category.id, phrases.length)
+
     isCaching.value = true
     cachingCategoryName.value = category.label
     cachingProgress.value = 0
@@ -152,6 +165,8 @@ const handleCacheCategory = async (category: Category) => {
         cachingTotal.value = total
       }
     )
+
+    trackCategoryCacheCompleted(category.id, phrases.length)
   } catch (err) {
     console.error('Failed to cache category:', err)
   } finally {

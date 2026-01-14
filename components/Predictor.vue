@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAnalytics } from '~/composables/useAnalytics'
+
 const props = withDefaults(defineProps<{
   modelValue: string
   variant?: 'default' | 'spotlight'
@@ -16,6 +18,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { $api } = useNuxtApp()
+const { trackPredicatorUse } = useAnalytics()
 
 const predictions = ref<string[]>([])
 const isLoading = ref(false)
@@ -88,7 +91,8 @@ const buildPredictionText = (prediction: string) => {
   return base + prediction
 }
 
-const selectPrediction = (prediction: string) => {
+const selectPrediction = (prediction: string, index?: number) => {
+  trackPredicatorUse(prediction, index ?? predictions.value.indexOf(prediction))
   emit('update:modelValue', buildPredictionText(prediction))
   predictions.value = []
 }

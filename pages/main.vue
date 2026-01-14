@@ -5,6 +5,7 @@ import { useQuickesStore } from '~/stores/quickes'
 import { useTTS } from '~/composables/useTTS'
 import { useMainKeyboard } from '~/composables/useMainKeyboard'
 import { useTypeSound } from '~/composables/useTypeSound'
+import { useAnalytics } from '~/composables/useAnalytics'
 
 definePageMeta({
   layout: 'app',
@@ -17,6 +18,7 @@ const categoriesStore = useCategoriesStore()
 const quickesStore = useQuickesStore()
 const { speak, stop, isPlaying } = useTTS()
 const { handleTextInput } = useTypeSound()
+const { trackSay, trackSpotlight } = useAnalytics()
 
 const chats = ref(['', '', ''])
 const activeChat = useState<number>('activeChat', () => 0)
@@ -47,6 +49,7 @@ const currentText = computed({
 
 const toggleSpotlight = () => {
   showMode.value = !showMode.value
+  trackSpotlight(showMode.value ? 'open' : 'close')
 }
 
 const focusMainInput = () => {
@@ -78,6 +81,7 @@ const handleSay = (download = false) => {
   if (isPlaying.value) {
     stop()
   } else {
+    trackSay(currentText.value.length, download)
     speak(currentText.value, { download })
   }
 }

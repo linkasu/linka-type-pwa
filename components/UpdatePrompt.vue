@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useAnalytics } from '~/composables/useAnalytics'
+
 const { t } = useI18n()
+const { trackUpdatePromptShown, trackUpdateAccepted } = useAnalytics()
 
 const showUpdate = ref(false)
 const registration = ref<ServiceWorkerRegistration | null>(null)
@@ -31,6 +34,7 @@ onMounted(() => {
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (event.data?.type === 'SW_UPDATE_AVAILABLE') {
       showUpdate.value = true
+      trackUpdatePromptShown()
     }
   })
 
@@ -38,6 +42,7 @@ onMounted(() => {
   navigator.serviceWorker.ready.then((reg) => {
     if (reg.waiting) {
       showUpdate.value = true
+      trackUpdatePromptShown()
     }
 
     reg.addEventListener('updatefound', () => {
@@ -47,6 +52,7 @@ onMounted(() => {
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
           showUpdate.value = true
+          trackUpdatePromptShown()
         }
       })
     })
@@ -54,6 +60,7 @@ onMounted(() => {
 })
 
 const handleUpdate = () => {
+  trackUpdateAccepted()
   if (registration.value?.waiting) {
     registration.value.waiting.postMessage({ type: 'SKIP_WAITING' })
   }

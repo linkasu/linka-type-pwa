@@ -4,6 +4,7 @@ import type { UserPreferences } from '~/types/api'
 import type { OfflineQueueItem } from '~/types/offline'
 import { addQueueItem } from '~/utils/offlineDb'
 import { isOffline, shouldQueueOffline } from '~/utils/offline'
+import { useAnalytics } from '~/composables/useAnalytics'
 
 interface SettingsState extends UserPreferences {
   locale: 'ru' | 'en'
@@ -95,6 +96,11 @@ export const useSettingsStore = defineStore('settings', {
       this.yandexVoice = undefined
       Object.assign(this, { ...DEFAULT_PREFERENCES, ...preferences })
       this.saveToStorage()
+
+      // Sync user properties after loading preferences
+      if (import.meta.client) {
+        this.syncAnalyticsUserProperties()
+      }
     },
 
     saveToStorage() {
@@ -107,12 +113,53 @@ export const useSettingsStore = defineStore('settings', {
       Object.assign(this, settings)
       this.saveToStorage()
       this.queuePreferenceSync(pickPreferences(settings))
+
+      // Track settings changes
+      if (import.meta.client) {
+        const { trackSettingsChanged, updateUserProperties } = useAnalytics()
+        for (const [key, value] of Object.entries(settings)) {
+          if (value !== undefined) {
+            trackSettingsChanged(key, value as string | boolean | number)
+          }
+        }
+        this.syncAnalyticsUserProperties()
+      }
+    },
+
+    syncAnalyticsUserProperties() {
+      if (!import.meta.client) return
+      const { updateUserProperties, isPwa, detectPlatform } = useAnalytics()
+      updateUserProperties({
+        voice_engine: this.yandex ? 'yandex' : 'browser',
+        voice_uri: this.voiceUri,
+        yandex_voice: this.yandexVoice,
+        show_predictor: this.showPredictor,
+        show_spotlight_predictor: this.showSpotlightPredictor,
+        show_quickes: this.showQuickes,
+        show_bank: this.showBank,
+        speak_last_word: this.speakLastWord,
+        save_on_say: this.saveOnSay,
+        type_sound: this.typeSound,
+        dark_theme: this.darkTheme,
+        locale: this.locale,
+        volume: this.volume,
+        rate: this.rate,
+        pitch: this.pitch,
+        is_pwa: isPwa(),
+        platform: detectPlatform(),
+      })
     },
 
     toggleDarkTheme() {
       this.darkTheme = !this.darkTheme
       this.saveToStorage()
       this.queuePreferenceSync({ darkTheme: this.darkTheme })
+
+      if (import.meta.client) {
+        const { trackSettingsChanged } = useAnalytics()
+        trackSettingsChanged('darkTheme', this.darkTheme)
+        this.syncAnalyticsUserProperties()
+      }
     },
 
     setLocale(locale: 'ru' | 'en') {
@@ -128,12 +175,28 @@ export const useSettingsStore = defineStore('settings', {
       if (settings.yandexVoice !== undefined) this.yandexVoice = settings.yandexVoice
       this.saveToStorage()
       this.queuePreferenceSync(pickPreferences(settings))
+
+      if (import.meta.client) {
+        const { trackSettingsChanged } = useAnalytics()
+        for (const [key, value] of Object.entries(settings)) {
+          if (value !== undefined) {
+            trackSettingsChanged(key, value as string | number)
+          }
+        }
+        this.syncAnalyticsUserProperties()
+      }
     },
 
     toggleYandexTTS() {
       this.yandex = !this.yandex
       this.saveToStorage()
       this.queuePreferenceSync({ yandex: this.yandex })
+
+      if (import.meta.client) {
+        const { trackSettingsChanged } = useAnalytics()
+        trackSettingsChanged('yandex', this.yandex)
+        this.syncAnalyticsUserProperties()
+      }
     },
 
     resetToDefaults() {
