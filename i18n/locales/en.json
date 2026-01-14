@@ -310,6 +310,18 @@
     "confirm": "Confirm",
     "retry": "Retry"
   },
+  "update": {
+    "available": "A new version is available",
+    "now": "Update",
+    "later": "Later"
+  },
+  "mobileApp": {
+    "title": "Download LINKa",
+    "description": "We noticed you're using LINKa on a mobile device. For a better experience, we recommend installing the native app.",
+    "appStore": "Download on App Store",
+    "playStore": "Get it on Google Play",
+    "continue": "Continue in browser"
+  },
   "a11y": {
     "skipNav": "Skip to content",
     "menuButton": "Open menu",

@@ -48,5 +48,9 @@ watch(
     <DialogSuggestionQueue />
 
     <OfflineIndicator />
+
+    <UpdatePrompt />
+
+    <MobileAppPrompt />
   </VApp>
 </template>
