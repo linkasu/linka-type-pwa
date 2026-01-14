@@ -592,11 +592,12 @@ onUnmounted(() => {
                   <VBtn
                     icon
                     variant="text"
-                    color="error"
+                    size="small"
+                    class="chat-delete-btn"
                     :aria-label="t('actions.delete')"
                     @click.stop="deleteChat(chat.id)"
                   >
-                    <VIcon>mdi-trash-can-outline</VIcon>
+                    <VIcon size="small">mdi-trash-can-outline</VIcon>
                   </VBtn>
                 </template>
               </VListItem>
@@ -690,7 +691,8 @@ onUnmounted(() => {
                 v-for="(suggestion, index) in quickSuggestions.slice(0, 5)"
                 :key="`${suggestion}-${index}`"
                 class="suggestion-chip"
-                variant="outlined"
+                variant="flat"
+                color="accent"
                 @click="sendSuggestion(suggestion)"
               >
                 <span class="suggestion-number">{{ index + 1 }}</span>
@@ -857,13 +859,24 @@ onUnmounted(() => {
   max-width: min(85%, 520px);
   padding: 10px 14px;
   border-radius: 16px;
-  background: rgba(var(--v-theme-surface-variant), 0.7);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background: #f0f0f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   white-space: pre-wrap;
 }
 
 .chat-message.is-user .message-bubble {
-  background: rgba(var(--v-theme-primary), 0.15);
+  background: rgba(var(--v-theme-primary), 0.12);
+  border: 1px solid rgba(var(--v-theme-primary), 0.2);
+}
+
+.chat-delete-btn {
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.chat-delete-btn:hover {
+  opacity: 1;
+  color: rgb(var(--v-theme-error));
 }
 
 .chat-suggestions {
@@ -888,9 +901,10 @@ onUnmounted(() => {
   width: 20px;
   height: 20px;
   margin-right: 6px;
-  border-radius: 4px;
-  background: rgba(var(--v-theme-primary), 0.15);
-  font-size: 0.75rem;
+  border-radius: 50%;
+  background: var(--linka-primary, #197377);
+  color: white;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 

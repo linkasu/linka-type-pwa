@@ -119,14 +119,14 @@ watch(() => settingsStore.yandex, (value) => {
     <Quickes
       v-if="settingsStore.showQuickes"
       ref="quickesRef"
-      class="mt-6"
+      class="mt-4"
       @click="handleQuickeClick"
     />
 
     <Bank
       v-if="settingsStore.showBank"
       ref="bankRef"
-      class="mt-6"
+      class="mt-4"
       @paste="handlePaste"
       @speak="handleSpeak"
     />
