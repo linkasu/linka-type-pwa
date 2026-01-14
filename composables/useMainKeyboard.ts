@@ -26,8 +26,9 @@ export function useMainKeyboard(options: UseMainKeyboardOptions) {
     }
     const isCtrlOrMeta = event.ctrlKey || event.metaKey
 
+    // Use event.code for layout-independent key detection
     if (
-      event.key.toLowerCase() === 'i'
+      event.code === 'KeyI'
       && !event.ctrlKey
       && !event.metaKey
       && !event.altKey
