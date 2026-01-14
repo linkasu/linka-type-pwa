@@ -134,7 +134,7 @@ onUnmounted(() => {
   >
     <div
       v-if="props.showTitle"
-      class="predictor-header d-flex align-center mb-2"
+      class="predictor-header d-flex align-center"
     >
       <VIcon
         :size="iconSize"
@@ -189,13 +189,14 @@ onUnmounted(() => {
 
 <style scoped>
 .predictor {
-  padding: 12px;
+  padding: 8px 12px;
   background: var(--linka-surface, #f5f5f5);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .predictor-header {
   gap: 4px;
+  margin-bottom: 6px;
 }
 
 .predictor-title {
@@ -203,7 +204,7 @@ onUnmounted(() => {
 }
 
 .predictor-body {
-  min-height: 56px;
+  height: 32px;
   display: flex;
   align-items: center;
 }
@@ -212,11 +213,14 @@ onUnmounted(() => {
   width: 100%;
 }
 
-.predictor-loading,
-.predictor-empty {
+.predictor-loading {
   width: 100%;
   text-align: center;
-  padding: 8px 0;
+}
+
+.predictor-empty {
+  font-size: 13px;
+  opacity: 0.5;
 }
 
 .prediction-btn {

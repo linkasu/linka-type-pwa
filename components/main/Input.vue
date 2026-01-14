@@ -47,7 +47,7 @@ const handleInput = (event: Event) => {
     <Predictor
       v-if="props.showPredictor"
       :model-value="props.modelValue"
-      class="mb-4"
+      class="mb-3"
       @update:model-value="emit('update:modelValue', $event)"
     />
 
@@ -114,18 +114,36 @@ const handleInput = (event: Event) => {
 </template>
 
 <style scoped>
+.main-input :deep(.v-field) {
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.main-input :deep(.v-field:focus-within) {
+  box-shadow: 0 0 0 3px rgba(25, 115, 119, 0.15);
+}
+
 .main-input-actions {
   align-items: stretch;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .main-input-btn {
-  height: 52px;
-  min-height: 52px;
+  height: 48px;
+  min-height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .main-input-btn.v-btn--icon {
-  width: 52px;
+  width: 48px;
+  border-color: rgba(var(--v-theme-primary), 0.25);
+  background: rgba(var(--v-theme-primary), 0.04);
+}
+
+.main-input-btn.v-btn--icon:hover {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  background: rgba(var(--v-theme-primary), 0.08);
 }
 </style>

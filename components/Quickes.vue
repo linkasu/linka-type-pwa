@@ -72,26 +72,41 @@ const handleClick = (index: number) => {
 </template>
 
 <style scoped>
+.quickes-container {
+  background: linear-gradient(135deg, rgba(251, 204, 48, 0.08) 0%, rgba(251, 204, 48, 0.15) 100%);
+  border: 1px solid rgba(251, 204, 48, 0.25);
+}
+
 .quickes-btn {
   position: relative;
   justify-content: flex-start;
   text-transform: none;
-  min-height: 48px;
-  padding-left: 40px;
+  min-height: 44px;
+  padding-left: 38px;
+  background: rgba(251, 204, 48, 0.18) !important;
+  border: 1px solid rgba(251, 204, 48, 0.3);
+  transition: all 0.2s ease;
+}
+
+.quickes-btn:hover {
+  background: rgba(251, 204, 48, 0.28) !important;
+  border-color: rgba(251, 204, 48, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(251, 204, 48, 0.2);
 }
 
 .quickes-badge {
   position: absolute;
   left: 8px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   background: var(--linka-primary, #197377);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
 }
 
@@ -100,5 +115,6 @@ const handleClick = (index: number) => {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--linka-text);
+  font-weight: 500;
 }
 </style>
