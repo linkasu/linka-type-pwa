@@ -107,7 +107,9 @@
     "empty": "No items",
     "newCategoryName": "Category name",
     "newStatementText": "Phrase text",
-    "aiUse": "Use in AI context"
+    "aiUse": "Use in AI context",
+    "cacheCategory": "Cache audio",
+    "cachingTitle": "Caching audio..."
   },
   "predictor": {
     "title": "Suggestions",

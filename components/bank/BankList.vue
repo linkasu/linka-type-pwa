@@ -11,6 +11,7 @@ const emit = defineEmits<{
   select: [item: Category | Statement]
   edit: [item: Category | Statement]
   delete: [item: Category | Statement]
+  cache: [item: Category]
 }>()
 
 const { t } = useI18n()
@@ -44,6 +45,19 @@ const getItemLabel = (item: Category | Statement): string => {
         {{ getItemLabel(item) }}
       </VListItemTitle>
       <template #append>
+        <VBtn
+          v-if="props.isShowingCategories"
+          icon
+          variant="text"
+          size="small"
+          color="primary"
+          :aria-label="t('bank.cacheCategory')"
+          @click.stop="emit('cache', item as Category)"
+        >
+          <VIcon size="small">
+            mdi-download
+          </VIcon>
+        </VBtn>
         <VBtn
           icon
           variant="text"
