@@ -1,5 +1,17 @@
 import { ttsApi } from '~/api/tts'
 import { useSettingsStore } from '~/stores/settings'
+import {
+  generateCacheKey,
+  getCachedAudio,
+  saveToCache,
+  getCacheInfo,
+  clearCache,
+  getCacheEnabled,
+  setCacheEnabled,
+  getCacheSizeLimitMb,
+  setCacheSizeLimitMb,
+  type TtsCacheInfo,
+} from '~/utils/ttsCache'
 
 export interface TTSOptions {
   download?: boolean
@@ -68,11 +80,25 @@ export const useTTS = () => {
       isPlaying.value = true
       options.onStart?.()
 
-      const blob = await ttsApi.synthesize({
-        text,
-        voice: settingsStore.yandexVoice || 'alena',
-        speed: settingsStore.rate,
-      })
+      const voice = settingsStore.yandexVoice || 'alena'
+      const cacheKey = generateCacheKey(text, voice)
+
+      // Try to get from cache first
+      let blob = await getCachedAudio(cacheKey)
+
+      if (!blob) {
+        // Not in cache, fetch from API
+        blob = await ttsApi.synthesize({
+          text,
+          voice,
+          speed: settingsStore.rate,
+        })
+
+        // Save to cache in background (don't await)
+        saveToCache(cacheKey, text, voice, blob).catch(() => {
+          // Ignore cache save errors
+        })
+      }
 
       if (options.download) {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -173,5 +199,12 @@ export const useTTS = () => {
     speakLastWord,
     loadVoices,
     loadYandexVoices,
+    // TTS cache functions
+    getCacheInfo,
+    clearCache,
+    getCacheEnabled,
+    setCacheEnabled,
+    getCacheSizeLimitMb,
+    setCacheSizeLimitMb,
   }
 }
