@@ -144,7 +144,15 @@
       "pitch": "Pitch",
       "yandexTTS": "Use online TTS (Yandex, Sber)",
       "test": "Test voice",
-      "testText": "Hello! This is a test message."
+      "testText": "Hello! This is a test message.",
+      "cache": {
+        "title": "Audio Cache",
+        "enabled": "Cache audio",
+        "used": "Used",
+        "files": "files",
+        "sizeLimit": "Size limit",
+        "clear": "Clear cache"
+      }
     },
     "adaptiveSettings": {
       "title": "Interface Settings",
