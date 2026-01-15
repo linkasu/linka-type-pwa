@@ -25,7 +25,9 @@ const emailRules = [
 
 const passwordRules = [
   (v: string) => !!v || t('auth.password') + ' обязателен',
-  (v: string) => v.length >= 6 || 'Минимум 6 символов',
+  (v: string) => v.length >= 8 || 'Минимум 8 символов',
+  (v: string) => /[a-zA-Zа-яА-Я]/.test(v) || 'Должен содержать буквы',
+  (v: string) => /[0-9]/.test(v) || 'Должен содержать цифры',
 ]
 
 const confirmRules = [

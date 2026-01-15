@@ -1,5 +1,3 @@
-import { logEvent } from 'firebase/analytics'
-
 export default defineNuxtRouteMiddleware((to, from) => {
   // Only track on client side
   if (!import.meta.client) return
@@ -8,9 +6,12 @@ export default defineNuxtRouteMiddleware((to, from) => {
   if (to.path === from.path) return
 
   // Use nextTick to ensure analytics is initialized
-  nextTick(() => {
+  nextTick(async () => {
     const { $analytics } = useNuxtApp()
     if (!$analytics) return
+
+    // Dynamic import to avoid server-side issues
+    const { logEvent } = await import('firebase/analytics')
 
     logEvent($analytics, 'page_view', {
       page_title: (to.meta.title as string) || to.name?.toString() || to.path,

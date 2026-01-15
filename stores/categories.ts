@@ -257,7 +257,9 @@ export const useCategoriesStore = defineStore('categories', {
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
-        void upsertCategory(userId, normalized)
+        upsertCategory(userId, normalized).catch((err) => {
+          console.error('Failed to cache category:', err)
+        })
       }
     },
 
@@ -266,7 +268,9 @@ export const useCategoriesStore = defineStore('categories', {
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
-        void deleteCategoryCache(userId, id)
+        deleteCategoryCache(userId, id).catch((err) => {
+          console.error('Failed to delete category cache:', err)
+        })
       }
     },
 

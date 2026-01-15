@@ -266,7 +266,9 @@ export const useStatementsStore = defineStore('statements', {
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
-        void upsertStatement(userId, statement)
+        upsertStatement(userId, statement).catch((err) => {
+          console.error('Failed to cache statement:', err)
+        })
       }
     },
 
@@ -279,7 +281,9 @@ export const useStatementsStore = defineStore('statements', {
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
-        void deleteStatementCache(userId, id)
+        deleteStatementCache(userId, id).catch((err) => {
+          console.error('Failed to delete statement cache:', err)
+        })
       }
     },
 
@@ -320,7 +324,9 @@ export const useStatementsStore = defineStore('statements', {
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
-        void upsertStatement(userId, statement)
+        upsertStatement(userId, statement).catch((err) => {
+          console.error('Failed to cache statement locally:', err)
+        })
       }
     },
 

@@ -5,6 +5,9 @@ import { useAnalytics } from '~/composables/useAnalytics'
 
 const AUTH_STORAGE_KEY = 'linka_auth'
 
+// Promise lock to prevent race conditions in initializeAuth
+let initializePromise: Promise<boolean> | null = null
+
 interface AuthState {
   user: User | null
   token: string | null
@@ -144,19 +147,32 @@ export const useAuthStore = defineStore('auth', {
 
     async initializeAuth() {
       if (this.initialized) return this.isAuthenticated
-      
+
       if (!import.meta.client) {
         this.initialized = true
         return false
       }
 
-      this.loadFromStorage()
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        this.initialized = true
-        return this.isAuthenticated
+      // Use promise lock to prevent race conditions
+      if (initializePromise) {
+        return initializePromise
       }
-      
-      return await this.refreshToken()
+
+      initializePromise = (async () => {
+        try {
+          this.loadFromStorage()
+          if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            this.initialized = true
+            return this.isAuthenticated
+          }
+
+          return await this.refreshToken()
+        } finally {
+          initializePromise = null
+        }
+      })()
+
+      return initializePromise
     },
 
     setToken(token: string) {
@@ -175,7 +191,9 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       this.clearStorage()
       if (import.meta.client && userId) {
-        void clearUserData(userId)
+        clearUserData(userId).catch((err) => {
+          console.error('Failed to clear user data:', err)
+        })
       }
     },
 

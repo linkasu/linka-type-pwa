@@ -76,6 +76,8 @@ export const useTTS = () => {
   const speakYandex = async (text: string, options: TTSOptions = {}) => {
     stop()
 
+    let audioUrl: string | null = null
+
     try {
       isPlaying.value = true
       options.onStart?.()
@@ -105,25 +107,32 @@ export const useTTS = () => {
         downloadAudio(blob, `linka-${timestamp}.mp3`)
       }
 
-      const audioUrl = URL.createObjectURL(blob)
+      audioUrl = URL.createObjectURL(blob)
       currentAudio = new Audio(audioUrl)
       currentAudio.volume = settingsStore.volume
 
+      // Store audioUrl in closure for cleanup
+      const urlToRevoke = audioUrl
+
       currentAudio.onended = () => {
         isPlaying.value = false
-        URL.revokeObjectURL(audioUrl)
+        URL.revokeObjectURL(urlToRevoke)
         options.onEnd?.()
       }
 
       currentAudio.onerror = () => {
         isPlaying.value = false
-        URL.revokeObjectURL(audioUrl)
+        URL.revokeObjectURL(urlToRevoke)
         options.onError?.(new Error('Audio playback error'))
       }
 
       await currentAudio.play()
     } catch (err) {
       isPlaying.value = false
+      // Cleanup audio URL on error to prevent memory leak
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl)
+      }
       options.onError?.(err instanceof Error ? err : new Error('TTS error'))
     }
   }

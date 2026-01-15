@@ -9,10 +9,14 @@ export default defineNuxtPlugin(async () => {
   await offlineQueue.hydrate()
 
   if (navigator.onLine) {
-    void offlineQueue.flush()
+    offlineQueue.flush().catch((err) => {
+      console.error('Failed to flush offline queue:', err)
+    })
   }
 
   window.addEventListener('online', () => {
-    void offlineQueue.flush()
+    offlineQueue.flush().catch((err) => {
+      console.error('Failed to flush offline queue on reconnect:', err)
+    })
   })
 })

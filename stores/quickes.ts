@@ -128,7 +128,9 @@ export const useQuickesStore = defineStore('quickes', {
       const authStore = useAuthStore()
       const userId = authStore.user?.id
       if (import.meta.client && userId) {
-        void setQuickesCache(userId, this.quickes)
+        setQuickesCache(userId, this.quickes).catch((err) => {
+          console.error('Failed to cache quickes:', err)
+        })
       }
     },
 

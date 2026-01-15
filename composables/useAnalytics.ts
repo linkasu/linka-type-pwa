@@ -1,14 +1,14 @@
-import {
-  logEvent,
-  setUserProperties,
-  setUserId,
-  setAnalyticsCollectionEnabled,
-} from 'firebase/analytics'
 import type {
   AnalyticsEventName,
   AnalyticsEventParams,
   AnalyticsUserProperties,
 } from '~/types/analytics'
+
+// Dynamic import helper for firebase/analytics (client-only)
+const getFirebaseAnalytics = async () => {
+  if (!import.meta.client) return null
+  return await import('firebase/analytics')
+}
 
 export const useAnalytics = () => {
   const { $analytics } = useNuxtApp()
@@ -17,7 +17,7 @@ export const useAnalytics = () => {
   const isEnabled = computed(() => !!$analytics)
 
   // Track generic event with type safety
-  const trackEvent = <T extends AnalyticsEventName>(
+  const trackEvent = async <T extends AnalyticsEventName>(
     eventName: T,
     params?: AnalyticsEventParams[T]
   ) => {
@@ -29,8 +29,11 @@ export const useAnalytics = () => {
     }
 
     try {
+      const firebaseAnalytics = await getFirebaseAnalytics()
+      if (!firebaseAnalytics) return
+
       // Cast to string for Firebase's logEvent which accepts custom event names
-      logEvent($analytics, eventName as string, params as Record<string, unknown>)
+      firebaseAnalytics.logEvent($analytics, eventName as string, params as Record<string, unknown>)
       if (import.meta.dev) {
         console.log('[Analytics]', eventName, params)
       }
@@ -145,21 +148,27 @@ export const useAnalytics = () => {
   }
 
   // Set user ID from auth
-  const setAnalyticsUserId = (userId: string | null) => {
+  const setAnalyticsUserId = async (userId: string | null) => {
     if (!$analytics) return
-    setUserId($analytics, userId)
+    const firebaseAnalytics = await getFirebaseAnalytics()
+    if (!firebaseAnalytics) return
+    firebaseAnalytics.setUserId($analytics, userId)
   }
 
   // Update user properties
-  const updateUserProperties = (properties: Partial<AnalyticsUserProperties>) => {
+  const updateUserProperties = async (properties: Partial<AnalyticsUserProperties>) => {
     if (!$analytics) return
-    setUserProperties($analytics, properties as Record<string, unknown>)
+    const firebaseAnalytics = await getFirebaseAnalytics()
+    if (!firebaseAnalytics) return
+    firebaseAnalytics.setUserProperties($analytics, properties as Record<string, unknown>)
   }
 
   // Consent management
-  const setConsent = (granted: boolean) => {
+  const setConsent = async (granted: boolean) => {
     if (!$analytics) return
-    setAnalyticsCollectionEnabled($analytics, granted)
+    const firebaseAnalytics = await getFirebaseAnalytics()
+    if (!firebaseAnalytics) return
+    firebaseAnalytics.setAnalyticsCollectionEnabled($analytics, granted)
     localStorage.setItem('analytics_consent', granted ? 'granted' : 'denied')
   }
 
