@@ -4,6 +4,11 @@ import { useTypeSound } from '~/composables/useTypeSound'
 import { useChatKeyboard } from '~/composables/useChatKeyboard'
 import type { DialogChat, DialogMessage } from '~/types/api'
 
+type ChatSuggestion = {
+  id?: string
+  text: string
+}
+
 definePageMeta({
   layout: 'app',
   middleware: ['auth', 'setup'],
@@ -17,7 +22,7 @@ const { handleTextInput } = useTypeSound()
 const chats = ref<DialogChat[]>([])
 const activeChatId = ref<string | null>(null)
 const messages = ref<DialogMessage[]>([])
-const quickSuggestions = ref<string[]>([])
+const quickSuggestions = ref<ChatSuggestion[]>([])
 
 const isLoadingChats = ref(false)
 const isLoadingMessages = ref(false)
@@ -102,19 +107,29 @@ const loadChats = async () => {
   }
 }
 
+const loadChatSuggestions = async (chatId: string): Promise<boolean> => {
+  try {
+    const pendingSuggestions = await $api.dialog.listSuggestions('pending', 200)
+    const chatSuggestions = pendingSuggestions
+      .filter(s => s.chatId === chatId)
+      .map(s => ({ id: s.id, text: s.text }))
+      .slice(0, 5)
+    quickSuggestions.value = chatSuggestions
+    return true
+  } catch (err: unknown) {
+    console.error('Failed to load suggestions:', err)
+    quickSuggestions.value = []
+    return false
+  }
+}
+
 const loadMessages = async (chatId: string) => {
   isLoadingMessages.value = true
   error.value = null
   try {
     const list = await $api.dialog.listMessages(chatId, { limit: 200 })
     messages.value = list
-
-    // Restore pending suggestions for this chat
-    const pendingSuggestions = await $api.dialog.listSuggestions('pending', 50)
-    const chatSuggestions = pendingSuggestions
-      .filter(s => s.chatId === chatId)
-      .map(s => s.text)
-    quickSuggestions.value = chatSuggestions.slice(0, 5)
+    await loadChatSuggestions(chatId)
 
     scrollToBottom()
   } catch (err: unknown) {
@@ -177,11 +192,11 @@ const deleteChat = async (chatId: string) => {
   }
 }
 
-const sendTypedMessage = async () => {
-  if (!activeChatId.value) return
+const sendTypedMessage = async (): Promise<boolean> => {
+  if (!activeChatId.value) return false
   const text = inputText.value.trim()
-  if (!text) return
-  if (isSending.value) return
+  if (!text) return false
+  if (isSending.value) return false
 
   isSending.value = true
   error.value = null
@@ -200,20 +215,55 @@ const sendTypedMessage = async () => {
     messages.value.push(result.message)
     updateActiveChatMeta(result.message.created)
     inputText.value = ''
-    quickSuggestions.value = []
     scrollToBottom()
+    return true
   } catch (err: unknown) {
     const failure = err as Error
     error.value = failure.message || t('chat.errors.sendMessage')
+    return false
   } finally {
     isSending.value = false
   }
 }
 
-const sendSuggestion = async (text: string) => {
-  inputText.value = text
+const resolveSuggestionId = async (text: string): Promise<string | null> => {
+  if (!activeChatId.value) return null
+  try {
+    const pendingSuggestions = await $api.dialog.listSuggestions('pending', 200)
+    const match = pendingSuggestions.find(
+      suggestion => suggestion.chatId === activeChatId.value && suggestion.text === text,
+    )
+    return match?.id ?? null
+  } catch (err: unknown) {
+    console.error('Failed to resolve suggestion id:', err)
+    return null
+  }
+}
+
+const dismissSuggestion = async (suggestion: ChatSuggestion) => {
+  const hadId = Boolean(suggestion.id)
+  const suggestionId = suggestion.id ?? (await resolveSuggestionId(suggestion.text))
+  if (!suggestionId) return
+
+  try {
+    await $api.dialog.dismissSuggestions([suggestionId])
+    if (hadId) {
+      quickSuggestions.value = quickSuggestions.value.filter(item => item.id !== suggestionId)
+    } else {
+      quickSuggestions.value = quickSuggestions.value.filter(item => item.text !== suggestion.text)
+    }
+  } catch (err: unknown) {
+    console.error('Failed to dismiss suggestion:', err)
+  }
+}
+
+const sendSuggestion = async (suggestion: ChatSuggestion) => {
+  inputText.value = suggestion.text
   await nextTick()
-  await sendTypedMessage()
+  const sent = await sendTypedMessage()
+  if (sent) {
+    await dismissSuggestion(suggestion)
+  }
 }
 
 const RECORD_MIME_TYPE = 'audio/ogg;codecs=opus'
@@ -469,7 +519,10 @@ const sendAudioMessage = async (blob: Blob, mimeType: string) => {
     )
     messages.value.push(result.message)
     updateActiveChatMeta(result.message.created)
-    quickSuggestions.value = result.suggestions ?? []
+    const loaded = await loadChatSuggestions(activeChatId.value)
+    if (!loaded && result.suggestions?.length) {
+      quickSuggestions.value = result.suggestions.map(text => ({ text }))
+    }
     scrollToBottom()
   } catch (err: unknown) {
     const failure = err as Error
@@ -484,6 +537,7 @@ watch(activeChatId, (chatId) => {
     void loadMessages(chatId)
   } else {
     messages.value = []
+    quickSuggestions.value = []
   }
 })
 
@@ -689,14 +743,14 @@ onUnmounted(() => {
             <div class="suggestion-chips">
               <VChip
                 v-for="(suggestion, index) in quickSuggestions.slice(0, 5)"
-                :key="`${suggestion}-${index}`"
+                :key="suggestion.id ?? `${suggestion.text}-${index}`"
                 class="suggestion-chip"
                 variant="flat"
                 color="accent"
                 @click="sendSuggestion(suggestion)"
               >
                 <span class="suggestion-number">{{ index + 1 }}</span>
-                {{ suggestion }}
+                {{ suggestion.text }}
               </VChip>
             </div>
           </div>

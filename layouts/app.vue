@@ -45,8 +45,6 @@ watch(
       @close="showTutorial = false"
     />
 
-    <DialogSuggestionQueue />
-
     <OfflineIndicator />
 
     <UpdatePrompt />
