@@ -190,14 +190,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBaseUrl: process.env.API_BASE_URL || 'https://backend.linka.su',
-      // Firebase Analytics - credentials must be provided via environment variables
-      firebaseApiKey: process.env.FIREBASE_API_KEY || '',
-      firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || '',
-      firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',
-      firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET || '',
-      firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
-      firebaseAppId: process.env.FIREBASE_APP_ID || '',
-      firebaseMeasurementId: process.env.FIREBASE_MEASUREMENT_ID || '',
+      // Firebase Analytics (public keys - safe to hardcode)
+      firebaseApiKey: process.env.FIREBASE_API_KEY || 'AIzaSyBHwz_IGbuPDX6CUCnc-tj2wPdimgmoGZc',
+      firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || 'distypepro-android.firebaseapp.com',
+      firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'distypepro-android',
+      firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'distypepro-android.appspot.com',
+      firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '800888317067',
+      firebaseAppId: process.env.FIREBASE_APP_ID || '1:800888317067:web:a8594b3e24f430cf',
+      firebaseMeasurementId: process.env.FIREBASE_MEASUREMENT_ID || 'G-RM812X3EM4',
     },
   },
 

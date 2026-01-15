@@ -32,6 +32,13 @@ yc serverless container revision deploy \
   --concurrency 4 \
   --service-account-id ${SERVICE_ACCOUNT_ID} \
   --environment API_BASE_URL=https://backend.linka.su \
+  --environment FIREBASE_API_KEY=AIzaSyBHwz_IGbuPDX6CUCnc-tj2wPdimgmoGZc \
+  --environment FIREBASE_AUTH_DOMAIN=distypepro-android.firebaseapp.com \
+  --environment FIREBASE_PROJECT_ID=distypepro-android \
+  --environment FIREBASE_STORAGE_BUCKET=distypepro-android.appspot.com \
+  --environment FIREBASE_MESSAGING_SENDER_ID=800888317067 \
+  --environment FIREBASE_APP_ID=1:800888317067:web:a8594b3e24f430cf \
+  --environment FIREBASE_MEASUREMENT_ID=G-RM812X3EM4 \
   --folder-id ${FOLDER_ID}
 
 echo "✅ Deployment completed!"
