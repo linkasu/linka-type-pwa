@@ -15,6 +15,7 @@ jobs:
       YC_CONTAINER_NAME: ${{ secrets.YC_CONTAINER_NAME }}
       YC_SERVICE_ACCOUNT_ID: ${{ secrets.YC_SERVICE_ACCOUNT_ID }}
       YC_IMAGE_NAME: ${{ vars.YC_IMAGE_NAME || 'linka-type-pwa-v2' }}
+      YC_SA_KEY_JSON: ${{ secrets.YC_SA_KEY_JSON }}
       API_BASE_URL: ${{ secrets.API_BASE_URL }}
       FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
       FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -27,11 +28,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup YC CLI
-        uses: yandex-cloud/setup-yc@v3
-        with:
-          service-account-key: ${{ secrets.YC_SA_KEY_JSON }}
-          folder-id: ${{ secrets.YC_FOLDER_ID }}
+      - name: Install YC CLI
+        run: |
+          set -euo pipefail
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /usr/local/yandex-cloud -a
+          echo "/usr/local/yandex-cloud/bin" >> "$GITHUB_PATH"
+
+      - name: Configure YC CLI
+        run: |
+          set -euo pipefail
+          printf '%s' "$YC_SA_KEY_JSON" > /tmp/yc-sa-key.json
+          yc config profile create ci || true
+          yc config set service-account-key /tmp/yc-sa-key.json
+          yc config set folder-id "$YC_FOLDER_ID"
 
       - name: Configure Docker auth
         run: yc container registry configure-docker
