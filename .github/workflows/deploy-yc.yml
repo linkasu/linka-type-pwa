@@ -31,8 +31,8 @@ jobs:
       - name: Install YC CLI
         run: |
           set -euo pipefail
-          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /usr/local/yandex-cloud -a
-          echo "/usr/local/yandex-cloud/bin" >> "$GITHUB_PATH"
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -a
+          echo "$HOME/yandex-cloud/bin" >> "$GITHUB_PATH"
 
       - name: Configure YC CLI
         run: |
