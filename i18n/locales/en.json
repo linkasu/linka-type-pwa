@@ -24,6 +24,12 @@
     "email": "Email",
     "password": "Password",
     "forgotPassword": "Forgot password?",
+    "resetPasswordTitle": "Reset password",
+    "resetPasswordDescription": "We will send a password reset link to your email.",
+    "resetPasswordSend": "Send reset link",
+    "resetPasswordSent": "Password reset link sent. Check your inbox.",
+    "resetPasswordError": "Failed to send reset link.",
+    "resetPasswordInvalidEmail": "Enter a valid email address",
     "loginError": "Login error. Check your email and password.",
     "registerSuccess": "Registration successful!",
     "logoutSuccess": "You have been signed out"

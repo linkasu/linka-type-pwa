@@ -1,4 +1,4 @@
-import type { LoginRequest, AuthResponse } from '~/types/api'
+import type { LoginRequest, AuthResponse, ResetPasswordRequest } from '~/types/api'
 
 async function fetchWithCredentials<T>(url: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(url, {
@@ -42,6 +42,13 @@ export const authApi = {
   async logout(): Promise<void> {
     await fetchWithCredentials<void>('/api/auth/logout', {
       method: 'POST',
+    })
+  },
+
+  async resetPassword(data: ResetPasswordRequest): Promise<void> {
+    await fetchWithCredentials('/api/auth/reset', {
+      method: 'POST',
+      body: JSON.stringify(data),
     })
   },
 }

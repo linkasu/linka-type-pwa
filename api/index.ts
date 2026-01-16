@@ -14,6 +14,11 @@ export { dialogApi } from './dialog'
 export const api = {
   auth: {
     login: (data: import('~/types/api').LoginRequest) => import('./auth').then(m => m.authApi.login(data)),
+    register: (data: import('~/types/api').LoginRequest) => import('./auth').then(m => m.authApi.register(data)),
+    refresh: () => import('./auth').then(m => m.authApi.refresh()),
+    logout: () => import('./auth').then(m => m.authApi.logout()),
+    resetPassword: (data: import('~/types/api').ResetPasswordRequest) =>
+      import('./auth').then(m => m.authApi.resetPassword(data)),
   },
   categories: {
     getAll: () => import('./categories').then(m => m.categoriesApi.getAll()),

@@ -24,6 +24,12 @@
     "email": "Email",
     "password": "Пароль",
     "forgotPassword": "Забыли пароль?",
+    "resetPasswordTitle": "Сброс пароля",
+    "resetPasswordDescription": "Мы отправим ссылку для сброса пароля на вашу почту.",
+    "resetPasswordSend": "Отправить ссылку",
+    "resetPasswordSent": "Ссылка для сброса отправлена. Проверьте почту.",
+    "resetPasswordError": "Не удалось отправить ссылку.",
+    "resetPasswordInvalidEmail": "Введите корректный email",
     "loginError": "Ошибка входа. Проверьте email и пароль.",
     "registerSuccess": "Регистрация успешна!",
     "logoutSuccess": "Вы вышли из системы"

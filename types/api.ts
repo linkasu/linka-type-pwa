@@ -11,6 +11,10 @@ export interface AuthResponse {
   user: User
 }
 
+export interface ResetPasswordRequest {
+  email: string
+}
+
 export interface Category {
   id: string
   label: string

@@ -119,6 +119,22 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async resetPassword(email: string) {
+      this.isLoading = true
+      this.error = null
+
+      try {
+        const { $api } = useNuxtApp()
+        await $api.auth.resetPassword({ email })
+      } catch (err: unknown) {
+        const error = err as Error
+        this.error = error.message || 'Password reset failed'
+        throw error
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     async refreshToken() {
       if (!import.meta.client) return false
 

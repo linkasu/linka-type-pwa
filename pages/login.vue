@@ -15,6 +15,11 @@ const password = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
+const showResetDialog = ref(false)
+const resetEmail = ref('')
+const resetMessage = ref('')
+const resetError = ref('')
+const isResetting = ref(false)
 
 const emailRules = [
   (v: string) => !!v || t('auth.email') + ' обязателен',
@@ -48,6 +53,34 @@ const handleSubmit = async () => {
     errorMessage.value = error.message || t('auth.loginError')
   } finally {
     isLoading.value = false
+  }
+}
+
+const openResetDialog = () => {
+  resetEmail.value = email.value
+  resetMessage.value = ''
+  resetError.value = ''
+  showResetDialog.value = true
+}
+
+const handleReset = async () => {
+  if (!resetEmail.value || !/.+@.+\..+/.test(resetEmail.value)) {
+    resetError.value = t('auth.resetPasswordInvalidEmail')
+    return
+  }
+
+  isResetting.value = true
+  resetError.value = ''
+  resetMessage.value = ''
+
+  try {
+    await authStore.resetPassword(resetEmail.value)
+    resetMessage.value = t('auth.resetPasswordSent')
+  } catch (err: unknown) {
+    const error = err as Error
+    resetError.value = error.message || t('auth.resetPasswordError')
+  } finally {
+    isResetting.value = false
   }
 }
 </script>
@@ -103,6 +136,7 @@ const handleSubmit = async () => {
         variant="text"
         color="primary"
         size="small"
+        @click="openResetDialog"
       >
         {{ t('auth.forgotPassword') }}
       </VBtn>
@@ -116,6 +150,56 @@ const handleSubmit = async () => {
         {{ t('auth.register') }}
       </VBtn>
     </div>
+
+    <VDialog v-model="showResetDialog" max-width="420">
+      <VCard>
+        <VCardTitle>{{ t('auth.resetPasswordTitle') }}</VCardTitle>
+        <VCardText>
+          <div class="text-body-2 mb-4">{{ t('auth.resetPasswordDescription') }}</div>
+
+          <VAlert
+            v-if="resetMessage"
+            type="success"
+            variant="tonal"
+            class="mb-3"
+          >
+            {{ resetMessage }}
+          </VAlert>
+
+          <VAlert
+            v-if="resetError"
+            type="error"
+            variant="tonal"
+            class="mb-3"
+          >
+            {{ resetError }}
+          </VAlert>
+
+          <VTextField
+            v-model="resetEmail"
+            :label="t('auth.email')"
+            type="email"
+            prepend-inner-icon="mdi-email"
+            autocomplete="email"
+          />
+        </VCardText>
+        <VCardActions class="justify-end">
+          <VBtn
+            variant="text"
+            color="secondary"
+            @click="showResetDialog = false"
+          >
+            {{ t('actions.cancel') }}
+          </VBtn>
+          <VBtn
+            color="primary"
+            :loading="isResetting"
+            @click="handleReset"
+          >
+            {{ t('auth.resetPasswordSend') }}
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </VForm>
 </template>
-
