@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: LINKa Type Frontend Gateway
+  version: 0.1.0
+servers:
+  - url: https://type.linka.su
+x-yc-apigateway:
+  service_account_id: "aje5mol7phn3quv189jc"
+paths:
+  /:
+    get:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: GET
+      responses:
+        "200":
+          description: OK
+    post:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: POST
+      responses:
+        "200":
+          description: OK
+    put:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: PUT
+      responses:
+        "200":
+          description: OK
+    patch:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: PATCH
+      responses:
+        "200":
+          description: OK
+    delete:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: DELETE
+      responses:
+        "200":
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: OPTIONS
+      responses:
+        "200":
+          description: OK
+  /{proxy+}:
+    parameters:
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: GET
+      responses:
+        "200":
+          description: OK
+    post:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: POST
+      responses:
+        "200":
+          description: OK
+    put:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: PUT
+      responses:
+        "200":
+          description: OK
+    patch:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: PATCH
+      responses:
+        "200":
+          description: OK
+    delete:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: DELETE
+      responses:
+        "200":
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: "bbak2usvd9decvtc8sfm"
+        service_account_id: "aje5mol7phn3quv189jc"
+        httpMethod: OPTIONS
+      responses:
+        "200":
+          description: OK

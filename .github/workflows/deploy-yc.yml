@@ -1,0 +1,70 @@
+name: Deploy to Yandex Cloud
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
+      YC_REGISTRY_ID: ${{ secrets.YC_REGISTRY_ID }}
+      YC_CONTAINER_NAME: ${{ secrets.YC_CONTAINER_NAME }}
+      YC_SERVICE_ACCOUNT_ID: ${{ secrets.YC_SERVICE_ACCOUNT_ID }}
+      YC_IMAGE_NAME: ${{ vars.YC_IMAGE_NAME || 'linka-type-pwa-v2' }}
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+      FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+      FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+      FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+      FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup YC CLI
+        uses: yandex-cloud/setup-yc@v3
+        with:
+          service-account-key: ${{ secrets.YC_SA_KEY_JSON }}
+          folder-id: ${{ secrets.YC_FOLDER_ID }}
+
+      - name: Configure Docker auth
+        run: yc container registry configure-docker
+
+      - name: Build and push image
+        run: |
+          set -euo pipefail
+          IMAGE_TAG="${GITHUB_SHA::7}"
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> "$GITHUB_ENV"
+          docker build --platform linux/amd64 \
+            -t "cr.yandex/${YC_REGISTRY_ID}/${YC_IMAGE_NAME}:${IMAGE_TAG}" \
+            -t "cr.yandex/${YC_REGISTRY_ID}/${YC_IMAGE_NAME}:latest" \
+            .
+          docker push "cr.yandex/${YC_REGISTRY_ID}/${YC_IMAGE_NAME}:${IMAGE_TAG}"
+          docker push "cr.yandex/${YC_REGISTRY_ID}/${YC_IMAGE_NAME}:latest"
+
+      - name: Deploy new revision
+        run: |
+          set -euo pipefail
+          yc serverless container revision deploy \
+            --container-name "${YC_CONTAINER_NAME}" \
+            --image "cr.yandex/${YC_REGISTRY_ID}/${YC_IMAGE_NAME}:${IMAGE_TAG}" \
+            --cores 1 \
+            --memory 512M \
+            --execution-timeout 60s \
+            --concurrency 4 \
+            --service-account-id "${YC_SERVICE_ACCOUNT_ID}" \
+            --environment API_BASE_URL="${API_BASE_URL}" \
+            --environment FIREBASE_API_KEY="${FIREBASE_API_KEY}" \
+            --environment FIREBASE_AUTH_DOMAIN="${FIREBASE_AUTH_DOMAIN}" \
+            --environment FIREBASE_PROJECT_ID="${FIREBASE_PROJECT_ID}" \
+            --environment FIREBASE_STORAGE_BUCKET="${FIREBASE_STORAGE_BUCKET}" \
+            --environment FIREBASE_MESSAGING_SENDER_ID="${FIREBASE_MESSAGING_SENDER_ID}" \
+            --environment FIREBASE_APP_ID="${FIREBASE_APP_ID}" \
+            --environment FIREBASE_MEASUREMENT_ID="${FIREBASE_MEASUREMENT_ID}" \
+            --folder-id "${YC_FOLDER_ID}"
