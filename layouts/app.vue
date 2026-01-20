@@ -47,6 +47,8 @@ watch(
 
     <OfflineIndicator />
 
+    <ConflictResolver />
+
     <UpdatePrompt />
 
     <MobileAppPrompt />

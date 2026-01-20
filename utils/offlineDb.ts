@@ -1,14 +1,15 @@
-import type { Category, Statement } from '~/types/api'
+import type { Category, Statement, UserPreferences } from '~/types/api'
 import type { OfflineQueueItem } from '~/types/offline'
 
 const DB_NAME = 'linka-offline'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 const STORES = {
   categories: 'categories',
   statements: 'statements',
   quickes: 'quickes',
   queue: 'queue',
+  userState: 'userState',
 }
 
 interface CachedCategory extends Category {
@@ -24,6 +25,13 @@ interface CachedStatement extends Statement {
 interface CachedQuickes {
   userId: string
   quickes: string[]
+}
+
+interface CachedUserState {
+  userId: string
+  inited: boolean
+  preferences: UserPreferences
+  updatedAt: number
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null
@@ -78,6 +86,10 @@ const openDb = async (): Promise<IDBDatabase> => {
           autoIncrement: true,
         })
         store.createIndex('byUserId', 'userId', { unique: false })
+      }
+
+      if (!db.objectStoreNames.contains(STORES.userState)) {
+        db.createObjectStore(STORES.userState, { keyPath: 'userId' })
       }
     }
 
@@ -330,6 +342,33 @@ export const setQuickes = async (userId: string, quickes: string[]): Promise<voi
   })
 }
 
+export const getUserState = async (
+  userId: string,
+): Promise<{ inited: boolean; preferences: UserPreferences } | null> => {
+  if (!isIdbAvailable()) return null
+  return withStore(STORES.userState, 'readonly', async (store) => {
+    const record = await requestToPromise<CachedUserState | undefined>(store.get(userId))
+    if (!record) return null
+    return { inited: record.inited, preferences: record.preferences }
+  })
+}
+
+export const setUserState = async (
+  userId: string,
+  state: { inited: boolean; preferences: UserPreferences },
+): Promise<void> => {
+  if (!isIdbAvailable()) return
+  await withStore(STORES.userState, 'readwrite', async (store) => {
+    store.put({
+      userId,
+      inited: state.inited,
+      preferences: state.preferences,
+      updatedAt: Date.now(),
+    } satisfies CachedUserState)
+    return Promise.resolve()
+  })
+}
+
 export const addQueueItem = async (item: OfflineQueueItem): Promise<number | null> => {
   if (!isIdbAvailable()) return null
   return withStore(STORES.queue, 'readwrite', async (store) => {
@@ -397,6 +436,10 @@ export const clearUserData = async (userId: string): Promise<void> => {
     return Promise.resolve()
   })
   await withStore(STORES.quickes, 'readwrite', async (store) => {
+    store.delete(userId)
+    return Promise.resolve()
+  })
+  await withStore(STORES.userState, 'readwrite', async (store) => {
     store.delete(userId)
     return Promise.resolve()
   })

@@ -171,7 +171,7 @@ export const useCategoriesStore = defineStore('categories', {
           await addQueueItem({
             userId,
             op: 'category_update',
-            payload: { id, label, aiUse },
+            payload: { id, label, aiUse, originalLabel: original.label, originalAiUse: original.aiUse },
             createdAt: Date.now(),
           } satisfies OfflineQueueItem)
           return updatedCategory
@@ -191,7 +191,7 @@ export const useCategoriesStore = defineStore('categories', {
           await addQueueItem({
             userId,
             op: 'category_update',
-            payload: { id, label, aiUse },
+            payload: { id, label, aiUse, originalLabel: original.label, originalAiUse: original.aiUse },
             createdAt: Date.now(),
           } satisfies OfflineQueueItem)
           return updatedCategory

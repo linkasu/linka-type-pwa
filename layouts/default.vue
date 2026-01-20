@@ -19,6 +19,8 @@ watch(
     <VMain>
       <slot />
     </VMain>
+    <OfflineIndicator />
+    <ConflictResolver />
   </VApp>
 </template>
 

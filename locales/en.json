@@ -251,11 +251,26 @@
     "validation": "Please check your input",
     "serverError": "Server error. Please try again later."
   },
+  "conflict": {
+    "title": "Sync Conflict",
+    "description": "This item was changed both locally and on the server",
+    "deletedRemotely": "This item was deleted on the server while you were offline",
+    "localVersion": "Your version",
+    "remoteVersion": "Server version",
+    "useLocal": "Use mine",
+    "useRemote": "Use server",
+    "category": "Category",
+    "statement": "Phrase",
+    "conflictCount": "{count} conflict | {count} conflicts"
+  },
   "status": {
     "online": "Online",
     "offline": "Offline",
+    "offlineWithPending": "Offline — changes will sync when online",
     "syncing": "Syncing...",
     "synced": "Synced",
+    "pendingSync": "{count} change pending | {count} changes pending",
+    "syncError": "Sync error",
     "playing": "Playing...",
     "stopped": "Stopped",
     "loading": "Loading..."
@@ -269,7 +284,8 @@
     "dismiss": "Dismiss",
     "close": "Close",
     "confirm": "Confirm",
-    "retry": "Retry"
+    "retry": "Retry",
+    "syncNow": "Sync now"
   },
   "a11y": {
     "skipNav": "Skip to content",

@@ -172,7 +172,7 @@ export const useStatementsStore = defineStore('statements', {
           await addQueueItem({
             userId,
             op: 'statement_update',
-            payload: { id, text },
+            payload: { id, text, originalText: original.text },
             createdAt: Date.now(),
           } satisfies OfflineQueueItem)
           return { ...original, text }
@@ -191,7 +191,7 @@ export const useStatementsStore = defineStore('statements', {
           await addQueueItem({
             userId,
             op: 'statement_update',
-            payload: { id, text },
+            payload: { id, text, originalText: original.text },
             createdAt: Date.now(),
           } satisfies OfflineQueueItem)
           return { ...original, text }

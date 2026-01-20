@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { Category, Statement } from '~/types/api'
 import type {
   CategoryCreatePayload,
   CategoryUpdatePayload,
@@ -9,9 +10,12 @@ import type {
   QuickesUpdatePayload,
   UserPrefsUpdatePayload,
   OfflineQueueItem,
+  SyncConflict,
+  CategoryUpdatePayloadWithOriginal,
+  StatementUpdatePayloadWithOriginal,
 } from '~/types/offline'
 import { getQueueItems, deleteQueueItem, updateQueueItem } from '~/utils/offlineDb'
-import { shouldQueueOffline, isOffline } from '~/utils/offline'
+import { shouldQueueOffline, isOffline, generateTempId } from '~/utils/offline'
 import { useAuthStore } from './auth'
 import { useCategoriesStore } from './categories'
 import { useStatementsStore } from './statements'
@@ -95,6 +99,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
     pendingCount: 0,
     isFlushing: false,
     lastError: null as string | null,
+    conflicts: [] as SyncConflict[],
   }),
 
   actions: {
@@ -108,6 +113,90 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
       }
       const items = await getQueueItems(userId)
       this.pendingCount = items.length
+    },
+
+    async resolveConflict(conflictId: string, resolution: 'local' | 'remote') {
+      const conflict = this.conflicts.find((c) => c.id === conflictId)
+      if (!conflict) return
+
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+      if (!userId) return
+
+      const { $api } = useNuxtApp()
+      const categoriesStore = useCategoriesStore()
+      const statementsStore = useStatementsStore()
+
+      try {
+        if (resolution === 'local') {
+          // Apply local change to server
+          if (conflict.entityType === 'category') {
+            if (conflict.conflictType === 'update_delete') {
+              // Re-create the category with local data
+              const payload = conflict.localChange.payload as CategoryUpdatePayload
+              const created = await $api.categories.create({ label: payload.label, aiUse: payload.aiUse })
+              await categoriesStore.replaceCategoryId(conflict.entityId, created)
+            } else {
+              const payload = conflict.localChange.payload as CategoryUpdatePayload
+              const updated = await $api.categories.update(conflict.entityId, { label: payload.label, aiUse: payload.aiUse })
+              await categoriesStore.updateCategory(updated)
+            }
+          } else if (conflict.entityType === 'statement') {
+            if (conflict.conflictType === 'update_delete') {
+              // Re-create the statement with local data
+              const payload = conflict.localChange.payload as StatementUpdatePayload
+              const original = statementsStore.getById(conflict.entityId)
+              if (original) {
+                const created = await $api.statements.create({ categoryId: original.categoryId, text: payload.text })
+                await statementsStore.replaceStatementId(conflict.entityId, created)
+              }
+            } else {
+              const payload = conflict.localChange.payload as StatementUpdatePayload
+              const updated = await $api.statements.update(conflict.entityId, { text: payload.text })
+              await statementsStore.updateStatement(updated)
+            }
+          }
+        } else {
+          // Accept remote data, discard local change
+          if (conflict.entityType === 'category') {
+            if (conflict.conflictType === 'update_delete') {
+              // Remove local category as it's deleted on server
+              categoriesStore.removeCategory(conflict.entityId)
+            } else if (conflict.remoteData) {
+              // Update local store with remote data
+              categoriesStore.updateCategory(conflict.remoteData as Category)
+            }
+          } else if (conflict.entityType === 'statement') {
+            if (conflict.conflictType === 'update_delete') {
+              // Remove local statement as it's deleted on server
+              statementsStore.removeStatement(conflict.entityId)
+            } else if (conflict.remoteData) {
+              // Update local store with remote data
+              statementsStore.updateStatement(conflict.remoteData as Statement)
+            }
+          }
+        }
+
+        // Remove from queue
+        if (conflict.localChange.id !== undefined) {
+          await deleteQueueItem(conflict.localChange.id)
+          this.pendingCount -= 1
+        }
+
+        // Remove conflict from list
+        this.conflicts = this.conflicts.filter((c) => c.id !== conflictId)
+      } catch (err: unknown) {
+        const error = err as Error
+        this.lastError = error.message || 'Failed to resolve conflict'
+      }
+    },
+
+    dismissConflict(conflictId: string) {
+      this.conflicts = this.conflicts.filter((c) => c.id !== conflictId)
+    },
+
+    clearConflicts() {
+      this.conflicts = []
     },
 
     async flush() {
@@ -177,8 +266,46 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                 break
               }
               case 'category_update': {
-                const payload = item.payload as CategoryUpdatePayload
+                const payload = item.payload as CategoryUpdatePayloadWithOriginal
                 const resolvedId = idMap.get(payload.id) ?? payload.id
+
+                // Check for conflicts by fetching current server state
+                if (payload.originalLabel !== undefined) {
+                  try {
+                    const current = await $api.categories.get(resolvedId)
+                    // Conflict: server has different value than our original
+                    if (current.label !== payload.originalLabel || current.aiUse !== payload.originalAiUse) {
+                      this.conflicts.push({
+                        id: generateTempId('conflict'),
+                        entityType: 'category',
+                        entityId: resolvedId,
+                        conflictType: 'update_update',
+                        localChange: item,
+                        remoteData: current,
+                        localData: { ...current, label: payload.label, aiUse: payload.aiUse ?? current.aiUse } as Category,
+                        createdAt: Date.now(),
+                      })
+                      // Skip this item, wait for conflict resolution
+                      continue
+                    }
+                  } catch (fetchErr: unknown) {
+                    const fetchError = fetchErr as { response?: { status?: number } }
+                    if (fetchError.response?.status === 404) {
+                      // Category was deleted on server
+                      this.conflicts.push({
+                        id: generateTempId('conflict'),
+                        entityType: 'category',
+                        entityId: resolvedId,
+                        conflictType: 'update_delete',
+                        localChange: item,
+                        createdAt: Date.now(),
+                      })
+                      continue
+                    }
+                    throw fetchErr
+                  }
+                }
+
                 const updated = await $api.categories.update(resolvedId, { label: payload.label, aiUse: payload.aiUse })
                 await categoriesStore.updateCategory(updated)
                 if (item.id !== undefined) {
@@ -224,8 +351,46 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                 break
               }
               case 'statement_update': {
-                const payload = item.payload as StatementUpdatePayload
+                const payload = item.payload as StatementUpdatePayloadWithOriginal
                 const resolvedId = idMap.get(payload.id) ?? payload.id
+
+                // Check for conflicts by fetching current server state
+                if (payload.originalText !== undefined) {
+                  try {
+                    const current = await $api.statements.get(resolvedId)
+                    // Conflict: server has different value than our original
+                    if (current.text !== payload.originalText) {
+                      this.conflicts.push({
+                        id: generateTempId('conflict'),
+                        entityType: 'statement',
+                        entityId: resolvedId,
+                        conflictType: 'update_update',
+                        localChange: item,
+                        remoteData: current,
+                        localData: { ...current, text: payload.text } as Statement,
+                        createdAt: Date.now(),
+                      })
+                      // Skip this item, wait for conflict resolution
+                      continue
+                    }
+                  } catch (fetchErr: unknown) {
+                    const fetchError = fetchErr as { response?: { status?: number } }
+                    if (fetchError.response?.status === 404) {
+                      // Statement was deleted on server
+                      this.conflicts.push({
+                        id: generateTempId('conflict'),
+                        entityType: 'statement',
+                        entityId: resolvedId,
+                        conflictType: 'update_delete',
+                        localChange: item,
+                        createdAt: Date.now(),
+                      })
+                      continue
+                    }
+                    throw fetchErr
+                  }
+                }
+
                 const updated = await $api.statements.update(resolvedId, { text: payload.text })
                 await statementsStore.updateStatement(updated)
                 if (item.id !== undefined) {

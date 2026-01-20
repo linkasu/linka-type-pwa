@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import type { UserState, UserPreferences } from '~/types/api'
 import { DEFAULT_PREFERENCES } from '~/types'
+import { getUserState, setUserState } from '~/utils/offlineDb'
+import { isOffline } from '~/utils/offline'
 
 interface UserStoreState {
   inited: boolean | null
@@ -29,6 +31,32 @@ export const useUserStore = defineStore('user', {
       this.isLoading = true
       this.error = null
 
+      // Get userId from auth store
+      const { useAuthStore } = await import('./auth')
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+
+      // 1. Try loading from IndexedDB cache first
+      if (import.meta.client && userId) {
+        try {
+          const cached = await getUserState(userId)
+          if (cached) {
+            this.inited = cached.inited
+            this.preferences = { ...DEFAULT_PREFERENCES, ...cached.preferences }
+            this.hasRemotePreferences = Object.keys(cached.preferences).length > 0
+          }
+        } catch {
+          // Ignore cache errors
+        }
+      }
+
+      // 2. If offline — exit without error (use cached data)
+      if (import.meta.client && isOffline()) {
+        this.isLoading = false
+        return
+      }
+
+      // 3. Fetch from server and save to cache
       try {
         const { $api } = useNuxtApp()
         const state = await $api.user.getState()
@@ -42,7 +70,20 @@ export const useUserStore = defineStore('user', {
           const { useSettingsStore } = await import('./settings')
           useSettingsStore().applyUserPreferences(this.preferences)
         }
+
+        // Save to cache
+        if (import.meta.client && userId) {
+          await setUserState(userId, {
+            inited: state.inited,
+            preferences: this.preferences,
+          })
+        }
       } catch (err: unknown) {
+        // If we have cached data, don't throw error for network failures
+        if (this.inited !== null) {
+          this.isLoading = false
+          return
+        }
         const error = err as Error
         this.error = error.message || 'Failed to fetch user state'
         throw error
@@ -56,6 +97,17 @@ export const useUserStore = defineStore('user', {
         const { $api } = useNuxtApp()
         await $api.user.updateState({ inited: true })
         this.inited = true
+
+        // Save to cache
+        const { useAuthStore } = await import('./auth')
+        const authStore = useAuthStore()
+        const userId = authStore.user?.id
+        if (import.meta.client && userId) {
+          await setUserState(userId, {
+            inited: true,
+            preferences: this.preferences,
+          })
+        }
       } catch (err: unknown) {
         const error = err as Error
         this.error = error.message || 'Failed to update user state'
@@ -66,9 +118,22 @@ export const useUserStore = defineStore('user', {
     async updatePreferences(preferences: Partial<UserPreferences>) {
       const original = { ...this.preferences }
       const originalHasRemote = this.hasRemotePreferences
-      
+
       // Optimistic update
       Object.assign(this.preferences, preferences)
+
+      // Get userId
+      const { useAuthStore } = await import('./auth')
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+
+      // Update cache immediately (optimistic)
+      if (import.meta.client && userId && this.inited !== null) {
+        await setUserState(userId, {
+          inited: this.inited,
+          preferences: this.preferences,
+        })
+      }
 
       try {
         const { $api } = useNuxtApp()
@@ -78,6 +143,13 @@ export const useUserStore = defineStore('user', {
         // Rollback on error
         this.preferences = original
         this.hasRemotePreferences = originalHasRemote
+        // Rollback cache
+        if (import.meta.client && userId && this.inited !== null) {
+          await setUserState(userId, {
+            inited: this.inited,
+            preferences: original,
+          })
+        }
         const error = err as Error
         this.error = error.message || 'Failed to update preferences'
         throw error

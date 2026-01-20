@@ -1,5 +1,7 @@
 import type { Category, Statement, UserPreferences } from '~/types/api'
 
+export type { Category, Statement }
+
 export type OfflineOperation =
   | 'category_create'
   | 'category_update'
@@ -62,4 +64,31 @@ export interface OfflineQueueItem {
   op: OfflineOperation
   payload: OfflinePayload
   createdAt: number
+}
+
+// Conflict resolution types
+export type ConflictType =
+  | 'update_update'  // Both local and remote modified the same entity
+  | 'update_delete'  // Locally modified, deleted on server
+  | 'delete_update'  // Locally deleted, modified on server
+
+export interface SyncConflict {
+  id: string
+  entityType: 'category' | 'statement'
+  entityId: string
+  conflictType: ConflictType
+  localChange: OfflineQueueItem
+  remoteData?: Category | Statement
+  localData?: Category | Statement
+  createdAt: number
+}
+
+// Extended payload types with original values for conflict detection
+export interface CategoryUpdatePayloadWithOriginal extends CategoryUpdatePayload {
+  originalLabel?: string
+  originalAiUse?: boolean
+}
+
+export interface StatementUpdatePayloadWithOriginal extends StatementUpdatePayload {
+  originalText?: string
 }
