@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint:size": "tsx scripts/check-file-size.ts"
+    "lint:size": "tsx scripts/check-file-size.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.12.1",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^25.0.3",
     "eslint": "^9.39.2",
     "prettier": "^3.7.4",

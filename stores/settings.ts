@@ -187,8 +187,10 @@ export const useSettingsStore = defineStore('settings', {
       }
     },
 
-    toggleYandexTTS() {
-      this.yandex = !this.yandex
+    setYandexTTS(enabled: boolean) {
+      if (this.yandex === enabled) return
+
+      this.yandex = enabled
       this.saveToStorage()
       this.queuePreferenceSync({ yandex: this.yandex })
 
@@ -197,6 +199,10 @@ export const useSettingsStore = defineStore('settings', {
         trackSettingsChanged('yandex', this.yandex)
         this.syncAnalyticsUserProperties()
       }
+    },
+
+    toggleYandexTTS() {
+      this.setYandexTTS(!this.yandex)
     },
 
     resetToDefaults() {

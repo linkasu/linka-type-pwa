@@ -98,3 +98,19 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Testing
+
+E2E tests are written with Playwright.
+
+Install Playwright browsers once:
+
+```bash
+npx playwright install chromium
+```
+
+Run E2E tests:
+
+```bash
+npm run test:e2e
+```

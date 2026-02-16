@@ -11,9 +11,14 @@ const settingsStore = useSettingsStore()
 const router = useRouter()
 
 const activeTab = ref('voice')
+const isInitializing = ref(true)
 
-onMounted(() => {
-  settingsStore.initialize()
+onMounted(async () => {
+  try {
+    await settingsStore.initialize()
+  } finally {
+    isInitializing.value = false
+  }
 })
 
 const goToMain = () => {
@@ -41,53 +46,58 @@ const goToMain = () => {
       </div>
     </div>
 
-    <VTabs
-      v-model="activeTab"
-      color="primary"
-      class="mb-4"
-    >
-      <VTab value="voice">
-        <VIcon start>
-          mdi-volume-high
-        </VIcon>
-        {{ t('settings.voice') }}
-      </VTab>
-      <VTab value="adaptive">
-        <VIcon start>
-          mdi-tune
-        </VIcon>
-        {{ t('settings.adaptive') }}
-      </VTab>
-      <VTab value="import">
-        <VIcon start>
-          mdi-download
-        </VIcon>
-        {{ t('settings.import') }}
-      </VTab>
-      <VTab value="account">
-        <VIcon start>
-          mdi-account
-        </VIcon>
-        {{ t('settings.account') }}
-      </VTab>
-    </VTabs>
+    <div v-if="isInitializing" class="d-flex justify-center py-8">
+      <VProgressCircular indeterminate color="primary" />
+    </div>
+    <template v-else>
+      <VTabs
+        v-model="activeTab"
+        color="primary"
+        class="mb-4"
+      >
+        <VTab value="voice">
+          <VIcon start>
+            mdi-volume-high
+          </VIcon>
+          {{ t('settings.voice') }}
+        </VTab>
+        <VTab value="adaptive">
+          <VIcon start>
+            mdi-tune
+          </VIcon>
+          {{ t('settings.adaptive') }}
+        </VTab>
+        <VTab value="import">
+          <VIcon start>
+            mdi-download
+          </VIcon>
+          {{ t('settings.import') }}
+        </VTab>
+        <VTab value="account">
+          <VIcon start>
+            mdi-account
+          </VIcon>
+          {{ t('settings.account') }}
+        </VTab>
+      </VTabs>
 
-    <VWindow v-model="activeTab">
-      <VWindowItem value="voice">
-        <SettingsVoiceSettingsTab />
-      </VWindowItem>
+      <VWindow v-model="activeTab">
+        <VWindowItem value="voice">
+          <SettingsVoiceSettingsTab />
+        </VWindowItem>
 
-      <VWindowItem value="adaptive">
-        <SettingsAdaptiveSettingsTab />
-      </VWindowItem>
+        <VWindowItem value="adaptive">
+          <SettingsAdaptiveSettingsTab />
+        </VWindowItem>
 
-      <VWindowItem value="import">
-        <SettingsImportTab />
-      </VWindowItem>
+        <VWindowItem value="import">
+          <SettingsImportTab />
+        </VWindowItem>
 
-      <VWindowItem value="account">
-        <SettingsAccountTab />
-      </VWindowItem>
-    </VWindow>
+        <VWindowItem value="account">
+          <SettingsAccountTab />
+        </VWindowItem>
+      </VWindow>
+    </template>
   </VContainer>
 </template>

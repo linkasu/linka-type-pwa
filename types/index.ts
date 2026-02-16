@@ -67,6 +67,8 @@ export const DEFAULT_QUICKES = [
 export const DEFAULT_PREFERENCES: import('./api').UserPreferences = {
   darkTheme: false,
   yandex: true,
+  voiceUri: undefined,
+  yandexVoice: undefined,
   volume: 1,
   rate: 1,
   pitch: 1,

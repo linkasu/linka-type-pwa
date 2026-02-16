@@ -24,14 +24,15 @@ const {
   setCacheSizeLimitMb,
 } = useTTS()
 
-const selectedTtsVoice = ref(settingsStore.yandexVoice || 'alena')
-const selectedBrowserVoice = ref(settingsStore.voiceUri || '')
+const selectedTtsVoice = computed<string>(() => settingsStore.yandexVoice || 'alena')
+const selectedBrowserVoice = computed<string>(() => settingsStore.voiceUri || '')
 const hasSpeechSynthesis = ref(false)
 
 // TTS Cache state
 const cacheInfo = ref<TtsCacheInfo | null>(null)
 const isClearingCache = ref(false)
 const cacheSizeLimit = ref(500)
+let removeVoicesChangedListener: (() => void) | null = null
 
 const loadCacheInfo = async () => {
   cacheInfo.value = await getCacheInfo()
@@ -58,6 +59,22 @@ const handleClearCache = async () => {
   }
 }
 
+const ensureDefaultBrowserVoice = () => {
+  if (settingsStore.yandex || settingsStore.voiceUri) return
+  const firstVoiceUri = browserVoices.value[0]?.voiceURI
+  if (firstVoiceUri) {
+    settingsStore.setVoiceSettings({ voiceUri: firstVoiceUri })
+  }
+}
+
+const handleTtsVoiceChange = (voice: string) => {
+  settingsStore.setVoiceSettings({ yandexVoice: voice })
+}
+
+const handleBrowserVoiceChange = (uri: string) => {
+  settingsStore.setVoiceSettings({ voiceUri: uri })
+}
+
 onMounted(() => {
   loadTtsVoices()
   loadCacheInfo()
@@ -67,20 +84,28 @@ onMounted(() => {
   }
 
   hasSpeechSynthesis.value = true
-  loadBrowserVoices()
-  speechSynthesis.onvoiceschanged = loadBrowserVoices
+  const handleVoicesChanged = () => {
+    loadBrowserVoices()
+    ensureDefaultBrowserVoice()
+  }
 
-  if (!selectedBrowserVoice.value && browserVoices.value.length > 0) {
-    selectedBrowserVoice.value = browserVoices.value[0].voiceURI
+  loadBrowserVoices()
+  ensureDefaultBrowserVoice()
+  speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged)
+  removeVoicesChangedListener = () => {
+    speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged)
   }
 })
 
-watch(selectedBrowserVoice, (uri) => {
-  settingsStore.setVoiceSettings({ voiceUri: uri })
+onBeforeUnmount(() => {
+  removeVoicesChangedListener?.()
+  removeVoicesChangedListener = null
 })
 
-watch(selectedTtsVoice, (voice) => {
-  settingsStore.setVoiceSettings({ yandexVoice: voice })
+watch(() => settingsStore.yandex, (isYandex) => {
+  if (!isYandex) {
+    ensureDefaultBrowserVoice()
+  }
 })
 
 const handleTestVoice = () => {
@@ -97,26 +122,30 @@ const handleTestVoice = () => {
         :label="t('settings.voiceSettings.yandexTTS')"
         color="primary"
         class="mb-4"
-        @update:model-value="settingsStore.toggleYandexTTS()"
+        @update:model-value="settingsStore.setYandexTTS(Boolean($event))"
       />
 
       <VSelect
         v-if="settingsStore.yandex"
-        v-model="selectedTtsVoice"
+        :model-value="selectedTtsVoice"
         :items="russianTtsVoices"
         :label="t('settings.voiceSettings.selectVoice')"
         :loading="isLoadingVoices"
+        item-title="title"
+        item-value="value"
         class="mb-4"
+        @update:model-value="handleTtsVoiceChange"
       />
 
       <VSelect
         v-else-if="hasSpeechSynthesis"
-        v-model="selectedBrowserVoice"
+        :model-value="selectedBrowserVoice"
         :items="browserVoices"
         :label="t('settings.voiceSettings.selectVoice')"
         item-title="name"
         item-value="voiceURI"
         class="mb-4"
+        @update:model-value="handleBrowserVoiceChange"
       />
       <VAlert
         v-else

@@ -19,6 +19,8 @@ logs
 .idea
 ui-*.png
 credits.txt
+test-results/
+playwright-report/
 
 # Local env files
 .env
