@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useSettingsStore } from '~/stores/settings'
 import { useTheme } from 'vuetify'
+import LayoutHeader from '~/components/layout/LayoutHeader.vue'
+import LayoutDrawer from '~/components/layout/LayoutDrawer.vue'
 
 const settingsStore = useSettingsStore()
 const theme = useTheme()
@@ -12,7 +14,7 @@ const showTutorial = ref(false)
 watch(
   () => settingsStore.darkTheme,
   (isDark) => {
-    theme.change(isDark ? 'dark' : 'light')
+    theme.global.name.value = isDark ? 'dark' : 'light'
   },
   { immediate: true },
 )

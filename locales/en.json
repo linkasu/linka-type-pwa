@@ -1,4 +1,10 @@
 {
+  "$vuetify": {
+    "input": {
+      "appendAction": "Show/Hide"
+    },
+    "close": "Close"
+  },
   "app": {
     "name": "LINKa: type",
     "description": "Communication app"
@@ -6,6 +12,7 @@
   "nav": {
     "home": "Home",
     "chat": "Chat",
+    "backToMain": "Back to main",
     "settings": "Settings",
     "tutorial": "Tutorial",
     "shortcuts": "Shortcuts"
@@ -62,6 +69,7 @@
     "clear": "Clear",
     "stopSpeech": "Stop speech",
     "recording": "Recording...",
+    "pushToTalk": "Hold to record",
     "suggestions": "Suggested replies",
     "errors": {
       "loadChats": "Failed to load chats",
@@ -94,10 +102,13 @@
     "addStatement": "Add phrase",
     "editCategory": "Edit category",
     "editStatement": "Edit phrase",
+    "categoryName": "Category name",
+    "statementText": "Phrase text",
     "deleteCategory": "Delete category",
     "deleteStatement": "Delete phrase",
     "confirmDelete": "Are you sure you want to delete?",
     "pasteMode": "Paste mode",
+    "reader": "Reader mode",
     "readMode": "Read mode",
     "textEditor": "Text editor",
     "random": "Random phrase",
@@ -105,7 +116,9 @@
     "empty": "No items",
     "newCategoryName": "Category name",
     "newStatementText": "Phrase text",
-    "aiUse": "Use in AI context"
+    "aiUse": "Use in AI context",
+    "cacheCategory": "Cache audio",
+    "cachingTitle": "Caching audio..."
   },
   "predictor": {
     "title": "Suggestions",
@@ -143,7 +156,16 @@
       "yandexTTS": "Use online TTS (Yandex, Sber)",
       "test": "Test voice",
       "testText": "Hello! This is a test message.",
-      "speechSynthesisUnavailable": "Your browser does not support speech synthesis via the Web Speech API."
+      "fallbackVoices": "Unable to load voice list from server, using built-in voices.",
+      "speechSynthesisUnavailable": "This browser does not support speech synthesis via Web Speech API.",
+      "cache": {
+        "title": "Audio Cache",
+        "enabled": "Cache audio",
+        "used": "Used",
+        "files": "files",
+        "sizeLimit": "Size limit",
+        "clear": "Clear cache"
+      }
     },
     "adaptiveSettings": {
       "title": "Interface Settings",
@@ -166,6 +188,19 @@
     "accountSettings": {
       "title": "Account",
       "email": "Email",
+      "deviceId": "Device ID",
+      "onlineMode": "Online",
+      "offlineMode": "Offline",
+      "onlinePromptTitle": "Sign in to online mode",
+      "onlinePromptDescription": "The app is currently running locally. Signing in online enables server sync.",
+      "onlineBenefitSync": "Sync data across sessions and devices",
+      "onlineBenefitBackup": "Keep a backup of your phrases and settings",
+      "onlineBenefitRecovery": "Restore data after reinstalling the app",
+      "loginOnline": "Sign in",
+      "onlineReadyTitle": "Online mode enabled",
+      "onlineReadyDescription": "Data syncs with server whenever internet is available.",
+      "modeSwitchFailed": "Failed to enable online mode. Check your internet connection.",
+      "dangerZoneTitle": "Danger zone",
       "deleteAccount": "Delete account",
       "deleteWarning": "This action cannot be undone. All your data will be deleted.",
       "confirmDelete": "Type DELETE to confirm"
@@ -173,7 +208,31 @@
   },
   "tutorial": {
     "title": "Tutorial",
+    "prev": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "finish": "Finish",
     "close": "Close",
+    "welcome": {
+      "title": "Welcome!",
+      "content": "LINKa helps people with speech impairments communicate. Let's walk through the basics."
+    },
+    "typing": {
+      "title": "Text Input",
+      "content": "Enter text in the field and press Say or Enter. Use Ctrl+Enter for a new line."
+    },
+    "quickes": {
+      "title": "Quick Phrases",
+      "content": "Press Ctrl+0 to focus Quick Phrases, then use keys 1-6 for quick playback. You can edit phrases in settings."
+    },
+    "bank": {
+      "title": "Phrase Bank",
+      "content": "Press Ctrl+; to focus the Phrase Bank. Use 1-9, A-Z to select. Press R for random, V for paste mode."
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts",
+      "content": "Use shortcuts for speed: Ctrl+↑/↓ to switch chats, Ctrl+B for focus mode, Ctrl+0 for quick phrases, Ctrl+; for the phrase bank."
+    },
     "steps": {
       "1": {
         "title": "Introduction",
@@ -185,11 +244,11 @@
       },
       "3": {
         "title": "Quick Phrases",
-        "text": "Use keys 1-6 for quick playback"
+        "text": "Press Ctrl+0 to focus, then use keys 1-6 for quick playback"
       },
       "4": {
         "title": "Phrase Bank",
-        "text": "Save frequently used phrases in categories"
+        "text": "Press Ctrl+; to focus, then use 1-9, A-Z to select"
       }
     }
   },
@@ -205,10 +264,15 @@
     "focusInput": "Focus text input",
     "focusQuickes": "Focus quick phrases",
     "focusBank": "Focus phrase bank",
+    "toggleSpotlight": "Toggle focus mode",
     "speak": "Speak text",
     "newLine": "New line",
     "newChat": "New chat",
     "toggleRecording": "Start / stop recording",
+    "sendMessage": "Send message",
+    "selectSuggestion": "Select dialog suggestion",
+    "clearInput": "Clear input",
+    "stopAll": "Stop all",
     "stopRecording": "Stop recording (discard)",
     "selectPrediction": "Select suggestion",
     "speakQuicke": "Speak quick phrase (when quick phrases focused)",
@@ -218,7 +282,6 @@
     "back": "Back",
     "playPause": "Play / Pause",
     "navigate": "Navigate",
-    "toggleSpotlight": "Toggle focus mode",
     "list": {
       "ctrlUpDown": "Switch chat",
       "ctrl0": "Focus quick phrases",
@@ -241,7 +304,15 @@
     "next": "Next",
     "previous": "Previous",
     "close": "Close",
+    "navigate": "Navigation",
+    "shortcuts": "Shortcuts",
     "progress": "{current} of {total}"
+  },
+  "textEditor": {
+    "title": "Text editor",
+    "hint": "Each line is a separate phrase. Empty lines will be ignored.",
+    "placeholder": "Enter phrases (one per line)...",
+    "lineCount": "Lines"
   },
   "errors": {
     "generic": "An error occurred",
@@ -252,7 +323,7 @@
     "serverError": "Server error. Please try again later."
   },
   "conflict": {
-    "title": "Sync Conflict",
+    "title": "Sync conflict",
     "description": "This item was changed both locally and on the server",
     "deletedRemotely": "This item was deleted on the server while you were offline",
     "localVersion": "Your version",
@@ -266,7 +337,7 @@
   "status": {
     "online": "Online",
     "offline": "Offline",
-    "offlineWithPending": "Offline — changes will sync when online",
+    "offlineWithPending": "Offline — changes will sync when connection returns",
     "syncing": "Syncing...",
     "synced": "Synced",
     "pendingSync": "{count} change pending | {count} changes pending",
@@ -287,6 +358,18 @@
     "retry": "Retry",
     "syncNow": "Sync now"
   },
+  "update": {
+    "available": "A new version is available",
+    "now": "Update",
+    "later": "Later"
+  },
+  "mobileApp": {
+    "title": "Download LINKa",
+    "description": "We noticed you're using LINKa on a mobile device. For a better experience, we recommend installing the native app.",
+    "appStore": "Download on App Store",
+    "playStore": "Get it on Google Play",
+    "continue": "Continue in browser"
+  },
   "a11y": {
     "skipNav": "Skip to content",
     "menuButton": "Open menu",
@@ -302,6 +385,7 @@
     "categoryList": "Category list",
     "statementList": "Phrase list",
     "quickesList": "Quick phrases",
-    "predictorList": "Input suggestions"
+    "predictorList": "Input suggestions",
+    "spotlightButton": "Focus mode"
   }
 }

@@ -102,10 +102,13 @@
     "addStatement": "Add phrase",
     "editCategory": "Edit category",
     "editStatement": "Edit phrase",
+    "categoryName": "Category name",
+    "statementText": "Phrase text",
     "deleteCategory": "Delete category",
     "deleteStatement": "Delete phrase",
     "confirmDelete": "Are you sure you want to delete?",
     "pasteMode": "Paste mode",
+    "reader": "Reader mode",
     "readMode": "Read mode",
     "textEditor": "Text editor",
     "random": "Random phrase",
@@ -153,6 +156,8 @@
       "yandexTTS": "Use online TTS (Yandex, Sber)",
       "test": "Test voice",
       "testText": "Hello! This is a test message.",
+      "fallbackVoices": "Unable to load voice list from server, using built-in voices.",
+      "speechSynthesisUnavailable": "This browser does not support speech synthesis via Web Speech API.",
       "cache": {
         "title": "Audio Cache",
         "enabled": "Cache audio",
@@ -183,6 +188,19 @@
     "accountSettings": {
       "title": "Account",
       "email": "Email",
+      "deviceId": "Device ID",
+      "onlineMode": "Online",
+      "offlineMode": "Offline",
+      "onlinePromptTitle": "Sign in to online mode",
+      "onlinePromptDescription": "The app is currently running locally. Signing in online enables server sync.",
+      "onlineBenefitSync": "Sync data across sessions and devices",
+      "onlineBenefitBackup": "Keep a backup of your phrases and settings",
+      "onlineBenefitRecovery": "Restore data after reinstalling the app",
+      "loginOnline": "Sign in",
+      "onlineReadyTitle": "Online mode enabled",
+      "onlineReadyDescription": "Data syncs with server whenever internet is available.",
+      "modeSwitchFailed": "Failed to enable online mode. Check your internet connection.",
+      "dangerZoneTitle": "Danger zone",
       "deleteAccount": "Delete account",
       "deleteWarning": "This action cannot be undone. All your data will be deleted.",
       "confirmDelete": "Type DELETE to confirm"
@@ -286,7 +304,15 @@
     "next": "Next",
     "previous": "Previous",
     "close": "Close",
+    "navigate": "Navigation",
+    "shortcuts": "Shortcuts",
     "progress": "{current} of {total}"
+  },
+  "textEditor": {
+    "title": "Text editor",
+    "hint": "Each line is a separate phrase. Empty lines will be ignored.",
+    "placeholder": "Enter phrases (one per line)...",
+    "lineCount": "Lines"
   },
   "errors": {
     "generic": "An error occurred",
@@ -296,11 +322,26 @@
     "validation": "Please check your input",
     "serverError": "Server error. Please try again later."
   },
+  "conflict": {
+    "title": "Sync conflict",
+    "description": "This item was changed both locally and on the server",
+    "deletedRemotely": "This item was deleted on the server while you were offline",
+    "localVersion": "Your version",
+    "remoteVersion": "Server version",
+    "useLocal": "Use mine",
+    "useRemote": "Use server",
+    "category": "Category",
+    "statement": "Phrase",
+    "conflictCount": "{count} conflict | {count} conflicts"
+  },
   "status": {
     "online": "Online",
     "offline": "Offline",
+    "offlineWithPending": "Offline — changes will sync when connection returns",
     "syncing": "Syncing...",
     "synced": "Synced",
+    "pendingSync": "{count} change pending | {count} changes pending",
+    "syncError": "Sync error",
     "playing": "Playing...",
     "stopped": "Stopped",
     "loading": "Loading..."
@@ -314,7 +355,8 @@
     "dismiss": "Dismiss",
     "close": "Close",
     "confirm": "Confirm",
-    "retry": "Retry"
+    "retry": "Retry",
+    "syncNow": "Sync now"
   },
   "update": {
     "available": "A new version is available",

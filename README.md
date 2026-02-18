@@ -1,15 +1,15 @@
-# LINKa: напиши (v2)
+# LINKa: напиши (Desktop v2)
 
-PWA-приложение для коммуникации людей с нарушениями речи. Позволяет набирать текст и озвучивать его с помощью TTS, использовать быстрые фразы и банк готовых высказываний.
+Desktop-приложение для коммуникации людей с нарушениями речи. Построено на Electron + Vite + Vue 3 и поддерживает локальную офлайн-работу, очередь изменений и синхронизацию при подключении к сети.
 
 ## Технологический стек
 
-- Nuxt 4
+- Electron
+- Vite
 - Vue 3 с Composition API
 - Vuetify 3
 - TypeScript
 - Pinia (state management)
-- PWA (Vite PWA)
 - i18n (поддержка языков)
 
 ## Требования
@@ -45,72 +45,37 @@ cp .env.example .env
 - PREDICTOR_API_KEY - ключ для Яндекс Predictor (опционально, для автодополнения слов)
 - API_BASE_URL - URL backend API (по умолчанию https://backend.linka.su)
 
-## Development Server
+## Development
 
-Start the development server on `http://localhost:3000`:
+Запуск desktop-режима (renderer + electron main/preload):
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
 ## Production
 
-Build the application for production:
+Сборка renderer + electron:
 
 ```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
 ```
 
-Locally preview production build:
+Создание инсталляторов:
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+npm run dist
 ```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
 ## Testing
 
-E2E tests are written with Playwright.
-
-Install Playwright browsers once:
-
 ```bash
-npx playwright install chromium
+npm run typecheck
+npm run test:unit
+npm run test:main
+npm run test:e2e:electron
 ```
 
-Run E2E tests:
+Подробные инструкции для Codex-агентов:
 
-```bash
-npm run test:e2e
-```
+`docs/testing-desktop.md`
