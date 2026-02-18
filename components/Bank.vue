@@ -7,6 +7,9 @@ import { useSettingsStore } from '~/stores/settings'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { preloadPhrases, generateCacheKey, isCached } from '~/utils/ttsCache'
 import { ttsApi } from '~/api/tts'
+import BankHeader from '~/components/bank/BankHeader.vue'
+import BankList from '~/components/bank/BankList.vue'
+import BankItemDialog from '~/components/bank/BankItemDialog.vue'
 import type { Category, Statement } from '~/types/api'
 
 const emit = defineEmits<{

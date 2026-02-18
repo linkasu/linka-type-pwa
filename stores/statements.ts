@@ -23,6 +23,11 @@ interface StatementsState {
   loadedCategories: Set<string>
 }
 
+const resolveLocalUserId = (): string | null => {
+  const authStore = useAuthStore()
+  return authStore.user?.id || authStore.deviceId || null
+}
+
 export const useStatementsStore = defineStore('statements', {
   state: (): StatementsState => ({
     statements: new Map(),
@@ -59,8 +64,7 @@ export const useStatementsStore = defineStore('statements', {
 
       this.isLoading = true
       this.error = null
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       let cached: Statement[] = []
       if (import.meta.client && userId) {
@@ -88,7 +92,7 @@ export const useStatementsStore = defineStore('statements', {
 
         return this.getByCategoryId(categoryId)
       } catch (err: unknown) {
-        if (!cached.length || !shouldQueueOffline(err)) {
+        if (!shouldQueueOffline(err)) {
           const error = err as Error
           this.error = error.message || 'Failed to fetch statements'
           throw error
@@ -101,8 +105,7 @@ export const useStatementsStore = defineStore('statements', {
 
     async createStatement(categoryId: string, text: string): Promise<Statement> {
       this.error = null
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       try {
         if (isOffline()) {
@@ -162,8 +165,7 @@ export const useStatementsStore = defineStore('statements', {
       // Optimistic update
       this.statements.set(id, { ...original, text })
 
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       try {
         if (isOffline()) {
@@ -213,8 +215,7 @@ export const useStatementsStore = defineStore('statements', {
       const categoryIds = this.byCategoryId.get(original.categoryId)
       categoryIds?.delete(id)
 
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       try {
         if (isOffline()) {
@@ -263,8 +264,7 @@ export const useStatementsStore = defineStore('statements', {
         this.byCategoryId.set(statement.categoryId, categoryIds)
       }
       categoryIds.add(statement.id)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         upsertStatement(userId, statement).catch((err) => {
           console.error('Failed to cache statement:', err)
@@ -278,8 +278,7 @@ export const useStatementsStore = defineStore('statements', {
         this.byCategoryId.get(stmt.categoryId)?.delete(id)
       }
       this.statements.delete(id)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         deleteStatementCache(userId, id).catch((err) => {
           console.error('Failed to delete statement cache:', err)
@@ -321,8 +320,7 @@ export const useStatementsStore = defineStore('statements', {
 
     addStatementLocal(statement: Statement) {
       this.addStatementToCategory(statement)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         upsertStatement(userId, statement).catch((err) => {
           console.error('Failed to cache statement locally:', err)
@@ -371,8 +369,7 @@ export const useStatementsStore = defineStore('statements', {
       }
       this.statements.delete(tempId)
       this.addStatementToCategory(statement)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         await replaceStatementIdCache(userId, tempId, statement)
       }
@@ -397,8 +394,7 @@ export const useStatementsStore = defineStore('statements', {
       }
       this.byCategoryId.delete(fromCategoryId)
 
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         await remapStatementsCategoryId(userId, fromCategoryId, toCategoryId)
       }
@@ -412,8 +408,7 @@ export const useStatementsStore = defineStore('statements', {
       }
       this.byCategoryId.delete(categoryId)
       this.loadedCategories.delete(categoryId)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         await clearStatementsByCategory(userId, categoryId)
       }

@@ -22,6 +22,11 @@ interface CategoriesState {
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
+const resolveLocalUserId = (): string | null => {
+  const authStore = useAuthStore()
+  return authStore.user?.id || authStore.deviceId || null
+}
+
 export const useCategoriesStore = defineStore('categories', {
   state: (): CategoriesState => ({
     categories: new Map(),
@@ -54,8 +59,7 @@ export const useCategoriesStore = defineStore('categories', {
 
       this.isLoading = true
       this.error = null
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       let cached: Category[] = []
       if (import.meta.client && userId) {
@@ -80,7 +84,7 @@ export const useCategoriesStore = defineStore('categories', {
           await replaceCategories(userId, Array.from(this.categories.values()))
         }
       } catch (err: unknown) {
-        if (!cached.length || !shouldQueueOffline(err)) {
+        if (!shouldQueueOffline(err)) {
           const error = err as Error
           this.error = error.message || 'Failed to fetch categories'
           throw error
@@ -92,8 +96,7 @@ export const useCategoriesStore = defineStore('categories', {
 
     async createCategory(label: string, aiUse = false): Promise<Category> {
       this.error = null
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       try {
         if (isOffline()) {
@@ -161,8 +164,7 @@ export const useCategoriesStore = defineStore('categories', {
       // Optimistic update
       this.categories.set(id, updatedCategory)
 
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       try {
         if (isOffline()) {
@@ -209,8 +211,7 @@ export const useCategoriesStore = defineStore('categories', {
       
       // Optimistic delete
       this.categories.delete(id)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
 
       try {
         if (isOffline()) {
@@ -254,8 +255,7 @@ export const useCategoriesStore = defineStore('categories', {
     updateCategory(category: Category) {
       const normalized = { ...category, aiUse: category.aiUse ?? false }
       this.categories.set(category.id, normalized)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         upsertCategory(userId, normalized).catch((err) => {
           console.error('Failed to cache category:', err)
@@ -265,8 +265,7 @@ export const useCategoriesStore = defineStore('categories', {
 
     removeCategory(id: string) {
       this.categories.delete(id)
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         deleteCategoryCache(userId, id).catch((err) => {
           console.error('Failed to delete category cache:', err)
@@ -324,8 +323,7 @@ export const useCategoriesStore = defineStore('categories', {
     async replaceCategoryId(tempId: string, category: Category) {
       this.categories.delete(tempId)
       this.categories.set(category.id, { ...category, aiUse: category.aiUse ?? false })
-      const authStore = useAuthStore()
-      const userId = authStore.user?.id
+      const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         await replaceCategoryIdCache(userId, tempId, category)
       }
