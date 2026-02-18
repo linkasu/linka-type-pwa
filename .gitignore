@@ -21,6 +21,8 @@ ui-*.png
 credits.txt
 test-results/
 playwright-report/
+release/
+playwright-*.png
 
 # Local env files
 .env
