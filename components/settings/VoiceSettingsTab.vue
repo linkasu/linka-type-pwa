@@ -11,6 +11,7 @@ const { isTestingVoice, testVoice } = useVoiceTest()
 const {
   browserVoices,
   isLoadingVoices,
+  isUsingFallbackVoices,
   loadTtsVoices,
   loadBrowserVoices,
   russianTtsVoices,
@@ -24,7 +25,9 @@ const {
   setCacheSizeLimitMb,
 } = useTTS()
 
-const selectedTtsVoice = computed<string>(() => settingsStore.yandexVoice || 'alena')
+const selectedTtsVoice = computed<string>(() =>
+  settingsStore.yandexVoice || String(russianTtsVoices.value[0]?.value || 'alena'),
+)
 const selectedBrowserVoice = computed<string>(() => settingsStore.voiceUri || '')
 const hasSpeechSynthesis = ref(false)
 
@@ -67,6 +70,19 @@ const ensureDefaultBrowserVoice = () => {
   }
 }
 
+const ensureDefaultTtsVoice = () => {
+  if (!settingsStore.yandex) return
+  const available = russianTtsVoices.value
+  if (!available.length) return
+  const currentVoice = settingsStore.yandexVoice
+  const hasCurrent = currentVoice
+    ? available.some(voice => String(voice.value) === currentVoice)
+    : false
+  if (!hasCurrent) {
+    settingsStore.setVoiceSettings({ yandexVoice: String(available[0].value) })
+  }
+}
+
 const handleTtsVoiceChange = (voice: string) => {
   settingsStore.setVoiceSettings({ yandexVoice: voice })
 }
@@ -75,9 +91,10 @@ const handleBrowserVoiceChange = (uri: string) => {
   settingsStore.setVoiceSettings({ voiceUri: uri })
 }
 
-onMounted(() => {
-  loadTtsVoices()
-  loadCacheInfo()
+onMounted(async () => {
+  await loadTtsVoices()
+  ensureDefaultTtsVoice()
+  await loadCacheInfo()
 
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return
@@ -103,9 +120,15 @@ onBeforeUnmount(() => {
 })
 
 watch(() => settingsStore.yandex, (isYandex) => {
-  if (!isYandex) {
-    ensureDefaultBrowserVoice()
+  if (isYandex) {
+    ensureDefaultTtsVoice()
+    return
   }
+  ensureDefaultBrowserVoice()
+})
+
+watch(russianTtsVoices, () => {
+  ensureDefaultTtsVoice()
 })
 
 const handleTestVoice = () => {
@@ -125,36 +148,47 @@ const handleTestVoice = () => {
         @update:model-value="settingsStore.setYandexTTS(Boolean($event))"
       />
 
-      <VSelect
-        v-if="settingsStore.yandex"
-        :model-value="selectedTtsVoice"
-        :items="russianTtsVoices"
-        :label="t('settings.voiceSettings.selectVoice')"
-        :loading="isLoadingVoices"
-        item-title="title"
-        item-value="value"
-        class="mb-4"
-        @update:model-value="handleTtsVoiceChange"
-      />
-
-      <VSelect
-        v-else-if="hasSpeechSynthesis"
-        :model-value="selectedBrowserVoice"
-        :items="browserVoices"
-        :label="t('settings.voiceSettings.selectVoice')"
-        item-title="name"
-        item-value="voiceURI"
-        class="mb-4"
-        @update:model-value="handleBrowserVoiceChange"
-      />
-      <VAlert
-        v-else
-        type="warning"
-        variant="tonal"
-        class="mb-4"
-      >
-        {{ t('settings.voiceSettings.speechSynthesisUnavailable') }}
-      </VAlert>
+      <template v-if="settingsStore.yandex">
+        <VSelect
+          :model-value="selectedTtsVoice"
+          :items="russianTtsVoices"
+          :label="t('settings.voiceSettings.selectVoice')"
+          :loading="isLoadingVoices"
+          item-title="title"
+          item-value="value"
+          class="mb-4"
+          @update:model-value="handleTtsVoiceChange"
+        />
+        <VAlert
+          v-if="isUsingFallbackVoices"
+          type="info"
+          variant="tonal"
+          density="comfortable"
+          class="mb-4"
+        >
+          {{ t('settings.voiceSettings.fallbackVoices') }}
+        </VAlert>
+      </template>
+      <template v-else>
+        <VSelect
+          v-if="hasSpeechSynthesis"
+          :model-value="selectedBrowserVoice"
+          :items="browserVoices"
+          :label="t('settings.voiceSettings.selectVoice')"
+          item-title="name"
+          item-value="voiceURI"
+          class="mb-4"
+          @update:model-value="handleBrowserVoiceChange"
+        />
+        <VAlert
+          v-else
+          type="warning"
+          variant="tonal"
+          class="mb-4"
+        >
+          {{ t('settings.voiceSettings.speechSynthesisUnavailable') }}
+        </VAlert>
+      </template>
 
       <div class="slider-group">
         <div class="slider-item">

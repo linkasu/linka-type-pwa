@@ -1,8 +1,34 @@
 import { useSettingsStore } from '~/stores/settings'
-import type { TTSVoice } from '~/api/tts'
+import type { Voice } from '~/types/api'
 
 const isSpeechSynthesisAvailable = () =>
   typeof window !== 'undefined' && 'speechSynthesis' in window
+
+type BackendVoice = Voice & {
+  lang_code?: string
+}
+
+const FALLBACK_TTS_VOICES: Voice[] = [
+  { id: 'alena', name: 'Alena', lang: 'ru-RU', gender: 'female', engine: 'yandex' },
+  { id: 'jane', name: 'Jane', lang: 'ru-RU', gender: 'female', engine: 'sber' },
+]
+
+const normalizeVoice = (voice: BackendVoice): Voice => {
+  const lang = voice.lang_code || voice.lang || 'ru-RU'
+  const normalizedGender = String(voice.gender || '').toLowerCase()
+  const gender = normalizedGender === 'male' || normalizedGender === 'm' ? 'male' : 'female'
+  const engine = voice.engine === 'sber' || voice.engine === 'browser' ? voice.engine : 'yandex'
+
+  return {
+    id: voice.id,
+    name: voice.name || voice.id,
+    lang,
+    gender,
+    engine,
+  }
+}
+
+const isRussianVoice = (voice: Voice) => voice.lang.toLowerCase().startsWith('ru')
 
 export function useVoiceTest() {
   const { t, locale } = useI18n()
@@ -67,16 +93,30 @@ export function useVoiceTest() {
 export function useVoiceLoader() {
   const { $api } = useNuxtApp()
 
-  const ttsVoices = ref<TTSVoice[]>([])
+  const ttsVoices = ref<Voice[]>([])
   const browserVoices = ref<SpeechSynthesisVoice[]>([])
   const isLoadingVoices = ref(false)
+  const isUsingFallbackVoices = ref(false)
 
   const loadTtsVoices = async () => {
     isLoadingVoices.value = true
     try {
-      ttsVoices.value = await $api.tts.getVoices()
+      const loaded = (await $api.tts.getVoices()) as BackendVoice[]
+      const normalized = loaded
+        .map(normalizeVoice)
+        .filter((voice) => Boolean(voice.id))
+
+      if (normalized.length > 0) {
+        ttsVoices.value = normalized
+        isUsingFallbackVoices.value = false
+      } else {
+        ttsVoices.value = [...FALLBACK_TTS_VOICES]
+        isUsingFallbackVoices.value = true
+      }
     } catch (err) {
       console.error('Failed to load TTS voices:', err)
+      ttsVoices.value = [...FALLBACK_TTS_VOICES]
+      isUsingFallbackVoices.value = true
     } finally {
       isLoadingVoices.value = false
     }
@@ -95,23 +135,27 @@ export function useVoiceLoader() {
 
   const ttsVoiceItems = computed(() => {
     return ttsVoices.value.map(v => ({
-      title: `${v.name} (${v.engine === 'yandex' ? 'Яндекс' : 'Sber'}, ${v.gender === 'F' ? 'Ж' : 'М'})`,
+      title: `${v.name} (${v.engine === 'yandex' ? 'Яндекс' : 'Sber'}, ${v.gender === 'female' ? 'Ж' : 'М'})`,
       value: v.id,
       subtitle: v.lang,
     }))
   })
 
   const russianTtsVoices = computed(() => {
-    return ttsVoiceItems.value.filter(v => {
-      const voice = ttsVoices.value.find(tv => tv.id === v.value)
-      return voice?.lang_code === 'ru-RU'
-    })
+    const russian = ttsVoices.value.filter(isRussianVoice)
+    const source = russian.length ? russian : ttsVoices.value
+    return source.map(v => ({
+      title: `${v.name} (${v.engine === 'yandex' ? 'Яндекс' : 'Sber'}, ${v.gender === 'female' ? 'Ж' : 'М'})`,
+      value: v.id,
+      subtitle: v.lang,
+    }))
   })
 
   return {
     ttsVoices,
     browserVoices,
     isLoadingVoices,
+    isUsingFallbackVoices,
     loadTtsVoices,
     loadBrowserVoices,
     ttsVoiceItems,
