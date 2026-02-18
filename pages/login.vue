@@ -15,78 +15,91 @@ const password = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
-const showResetDialog = ref(false)
-const resetEmail = ref('')
-const resetMessage = ref('')
-const resetError = ref('')
-const isResetting = ref(false)
+const showModeDialog = ref(false)
+const selectedMode = ref<'online' | 'offline' | null>(null)
 
-const emailRules = [
-  (v: string) => !!v || t('auth.email') + ' обязателен',
-  (v: string) => /.+@.+\..+/.test(v) || 'Некорректный email',
-]
+const canContinue = computed(() => {
+  if (!selectedMode.value) return false
+  if (selectedMode.value === 'offline') return true
+  return Boolean(email.value.trim()) && Boolean(password.value)
+})
 
-const passwordRules = [
-  (v: string) => !!v || t('auth.password') + ' обязателен',
-  (v: string) => v.length >= 6 || 'Минимум 6 символов',
-]
+const navigateAfterLogin = async (mode: 'online' | 'offline') => {
+  if (mode === 'offline') {
+    await navigateTo('/main')
+    return
+  }
 
-const handleSubmit = async () => {
-  if (!email.value || !password.value) return
+  try {
+    await userStore.fetchState()
+  } catch {
+    // Allow opening the app even if state endpoint is temporarily unavailable.
+  }
+
+  if (userStore.needsSetup) {
+    await navigateTo('/setup')
+    return
+  }
+
+  await navigateTo('/main')
+}
+
+onMounted(async () => {
+  await authStore.initializeAuth()
+
+  if (authStore.isAuthenticated) {
+    await navigateAfterLogin(authStore.mode === 'offline' ? 'offline' : 'online')
+    return
+  }
+
+  selectedMode.value = authStore.mode
+  showModeDialog.value = !authStore.mode
+})
+
+const continueWithMode = async (mode?: 'online' | 'offline') => {
+  const targetMode = mode || selectedMode.value
+  if (!targetMode) {
+    errorMessage.value = 'Выберите режим запуска'
+    showModeDialog.value = true
+    return
+  }
 
   isLoading.value = true
   errorMessage.value = ''
 
   try {
-    await authStore.login(email.value, password.value)
-    
-    // Check if user needs setup
-    await userStore.fetchState()
-    
-    if (userStore.needsSetup) {
-      navigateTo('/setup')
-    } else {
-      navigateTo('/main')
+    await authStore.setMode(targetMode)
+    showModeDialog.value = false
+
+    if (targetMode === 'online') {
+      if (!email.value.trim() || !password.value) {
+        errorMessage.value = 'Введите email и пароль для онлайн-режима'
+        return
+      }
+
+      await authStore.login(email.value.trim(), password.value)
     }
+
+    await navigateAfterLogin(targetMode)
   } catch (err: unknown) {
     const error = err as Error
-    errorMessage.value = error.message || t('auth.loginError')
+    errorMessage.value = error.message || 'Не удалось инициализировать режим'
   } finally {
     isLoading.value = false
-  }
-}
-
-const openResetDialog = () => {
-  resetEmail.value = email.value
-  resetMessage.value = ''
-  resetError.value = ''
-  showResetDialog.value = true
-}
-
-const handleReset = async () => {
-  if (!resetEmail.value || !/.+@.+\..+/.test(resetEmail.value)) {
-    resetError.value = t('auth.resetPasswordInvalidEmail')
-    return
-  }
-
-  isResetting.value = true
-  resetError.value = ''
-  resetMessage.value = ''
-
-  try {
-    await authStore.resetPassword(resetEmail.value)
-    resetMessage.value = t('auth.resetPasswordSent')
-  } catch (err: unknown) {
-    const error = err as Error
-    resetError.value = error.message || t('auth.resetPasswordError')
-  } finally {
-    isResetting.value = false
   }
 }
 </script>
 
 <template>
-  <VForm @submit.prevent="handleSubmit">
+  <div>
+    <VAlert
+      type="info"
+      variant="tonal"
+      class="mb-4"
+    >
+      {{ t('app.name') }} работает офлайн без аккаунта. Для синхронизации и облачных голосов войдите в онлайн-режим.
+    </VAlert>
+
     <VAlert
       v-if="errorMessage"
       type="error"
@@ -98,37 +111,45 @@ const handleReset = async () => {
       {{ errorMessage }}
     </VAlert>
 
-    <VTextField
-      v-model="email"
-      :label="t('auth.email')"
-      type="email"
-      prepend-inner-icon="mdi-email"
-      :rules="emailRules"
-      autocomplete="email"
-      class="mb-3"
-    />
-
-    <VTextField
-      v-model="password"
-      :label="t('auth.password')"
-      :type="showPassword ? 'text' : 'password'"
-      prepend-inner-icon="mdi-lock"
-      :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-      :rules="passwordRules"
-      autocomplete="current-password"
+    <VRadioGroup
+      v-model="selectedMode"
       class="mb-4"
-      @click:append-inner="showPassword = !showPassword"
-    />
+      inline
+    >
+      <VRadio value="online" label="Онлайн" />
+      <VRadio value="offline" label="Офлайн" />
+    </VRadioGroup>
+
+    <div v-if="selectedMode === 'online'" class="mb-4">
+      <VTextField
+        v-model="email"
+        :label="t('auth.email')"
+        type="email"
+        prepend-inner-icon="mdi-email"
+        autocomplete="email"
+        class="mb-3"
+      />
+
+      <VTextField
+        v-model="password"
+        :label="t('auth.password')"
+        :type="showPassword ? 'text' : 'password'"
+        prepend-inner-icon="mdi-lock"
+        :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+        autocomplete="current-password"
+        @click:append-inner="showPassword = !showPassword"
+      />
+    </div>
 
     <VBtn
-      type="submit"
       color="primary"
       size="large"
       block
       :loading="isLoading"
-      :disabled="!email || !password"
+      :disabled="!canContinue"
+      @click="continueWithMode()"
     >
-      {{ t('auth.login') }}
+      {{ selectedMode === 'online' ? 'Войти' : 'Продолжить' }}
     </VBtn>
 
     <div class="text-center mt-4">
@@ -136,11 +157,12 @@ const handleReset = async () => {
         variant="text"
         color="primary"
         size="small"
-        @click="openResetDialog"
+        @click="showModeDialog = true"
       >
-        {{ t('auth.forgotPassword') }}
+        Изменить режим запуска
       </VBtn>
       <VBtn
+        v-if="selectedMode === 'online'"
         variant="text"
         color="primary"
         size="small"
@@ -151,55 +173,29 @@ const handleReset = async () => {
       </VBtn>
     </div>
 
-    <VDialog v-model="showResetDialog" max-width="420">
+    <VDialog v-model="showModeDialog" max-width="520" persistent>
       <VCard>
-        <VCardTitle>{{ t('auth.resetPasswordTitle') }}</VCardTitle>
+        <VCardTitle class="text-h6">Режим при первом запуске</VCardTitle>
         <VCardText>
-          <div class="text-body-2 mb-4">{{ t('auth.resetPasswordDescription') }}</div>
+          <div class="text-body-2 mb-4">
+            Выберите режим работы приложения. Онлайн включает синхронизацию с сервером, офлайн работает только локально.
+          </div>
 
-          <VAlert
-            v-if="resetMessage"
-            type="success"
-            variant="tonal"
-            class="mb-3"
-          >
-            {{ resetMessage }}
-          </VAlert>
-
-          <VAlert
-            v-if="resetError"
-            type="error"
-            variant="tonal"
-            class="mb-3"
-          >
-            {{ resetError }}
-          </VAlert>
-
-          <VTextField
-            v-model="resetEmail"
-            :label="t('auth.email')"
-            type="email"
-            prepend-inner-icon="mdi-email"
-            autocomplete="email"
-          />
+          <VRadioGroup v-model="selectedMode" class="mb-2">
+            <VRadio value="online" label="Онлайн" />
+            <VRadio value="offline" label="Офлайн" />
+          </VRadioGroup>
         </VCardText>
         <VCardActions class="justify-end">
           <VBtn
-            variant="text"
-            color="secondary"
-            @click="showResetDialog = false"
-          >
-            {{ t('actions.cancel') }}
-          </VBtn>
-          <VBtn
             color="primary"
-            :loading="isResetting"
-            @click="handleReset"
+            :disabled="!selectedMode"
+            @click="showModeDialog = false"
           >
-            {{ t('auth.resetPasswordSend') }}
+            Подтвердить
           </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
-  </VForm>
+  </div>
 </template>

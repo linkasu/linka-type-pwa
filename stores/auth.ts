@@ -4,31 +4,60 @@ import { clearUserData } from '~/utils/offlineDb'
 import { useAnalytics } from '~/composables/useAnalytics'
 
 const AUTH_STORAGE_KEY = 'linka_auth'
+const MODE_STORAGE_KEY = 'linka_mode'
+const DEVICE_STORAGE_KEY = 'linka_device_id'
 
-// Promise lock to prevent race conditions in initializeAuth
+type AppMode = 'online' | 'offline'
+
 let initializePromise: Promise<boolean> | null = null
 
 interface AuthState {
   user: User | null
   token: string | null
+  mode: AppMode | null
+  deviceId: string | null
   isLoading: boolean
   error: string | null
   initialized: boolean
 }
 
+const getOrCreateDeviceId = (): string => {
+  const existing = localStorage.getItem(DEVICE_STORAGE_KEY)
+  if (existing) return existing
+  const deviceId = `device_${crypto.randomUUID()}`
+  localStorage.setItem(DEVICE_STORAGE_KEY, deviceId)
+  return deviceId
+}
+
+const buildOfflineUser = (deviceId: string): User => ({
+  id: deviceId,
+  email: `${deviceId}@local.device`,
+})
+
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     user: null,
     token: null,
+    mode: null,
+    deviceId: null,
     isLoading: false,
     error: null,
     initialized: false,
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token && !!state.user,
+    isAuthenticated: (state) => {
+      if (state.mode === 'online') {
+        return Boolean(state.token) && Boolean(state.user)
+      }
+      if (state.mode === 'offline') {
+        return Boolean(state.user)
+      }
+      return false
+    },
     currentUser: (state) => state.user,
-    hasOfflineSession: (state) => !!state.user && !state.token,
+    hasOfflineSession: (state) => state.mode === 'offline' && Boolean(state.user),
+    isModeSelected: (state) => state.mode !== null,
   },
 
   actions: {
@@ -37,20 +66,31 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
+        if (!this.deviceId) {
+          this.deviceId = getOrCreateDeviceId()
+        }
+
+        const trimmedEmail = email.trim()
+        if (!trimmedEmail || !password) {
+          throw new Error('Введите email и пароль')
+        }
+
+        this.mode = 'online'
+
         const { $api } = useNuxtApp()
-        const response = await $api.auth.login({ email, password })
+        const response = await $api.auth.login({
+          email: trimmedEmail,
+          password,
+        })
 
         this.token = response.token
         this.user = response.user
         this.initialized = true
         this.saveToStorage()
 
-        // Track login event
-        if (import.meta.client) {
-          const { trackLogin, setAnalyticsUserId } = useAnalytics()
-          setAnalyticsUserId(response.user.id)
-          trackLogin()
-        }
+        const { trackLogin, setAnalyticsUserId } = useAnalytics()
+        setAnalyticsUserId(this.user.id)
+        trackLogin()
 
         return response
       } catch (err: unknown) {
@@ -68,19 +108,20 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const { $api } = useNuxtApp()
-        const response = await $api.auth.register({ email, password })
+        const response = await $api.auth.register({
+          email: email.trim(),
+          password,
+        })
 
+        this.mode = 'online'
         this.token = response.token
         this.user = response.user
         this.initialized = true
         this.saveToStorage()
 
-        // Track register event
-        if (import.meta.client) {
-          const { trackRegister, setAnalyticsUserId } = useAnalytics()
-          setAnalyticsUserId(response.user.id)
-          trackRegister()
-        }
+        const { trackRegister, setAnalyticsUserId } = useAnalytics()
+        setAnalyticsUserId(this.user.id)
+        trackRegister()
 
         return response
       } catch (err: unknown) {
@@ -95,26 +136,25 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       const userId = this.user?.id
 
-      // Track logout event before clearing state
-      if (import.meta.client) {
-        const { trackLogout, setAnalyticsUserId } = useAnalytics()
-        trackLogout()
-        setAnalyticsUserId(null)
-      }
+      const { trackLogout, setAnalyticsUserId } = useAnalytics()
+      trackLogout()
+      setAnalyticsUserId(null)
 
       try {
         const { $api } = useNuxtApp()
         await $api.auth.logout()
       } catch {
-        // ignore logout errors
+        // Ignore logout errors.
       }
 
       this.token = null
       this.user = null
+      this.mode = null
       this.error = null
       this.initialized = true
       this.clearStorage()
-      if (import.meta.client && userId) {
+
+      if (userId) {
         await clearUserData(userId)
       }
     },
@@ -125,7 +165,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const { $api } = useNuxtApp()
-        await $api.auth.resetPassword({ email })
+        await $api.auth.resetPassword({ email: email.trim() })
       } catch (err: unknown) {
         const error = err as Error
         this.error = error.message || 'Password reset failed'
@@ -136,7 +176,9 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async refreshToken() {
-      if (!import.meta.client) return false
+      if (this.mode !== 'online') {
+        return false
+      }
 
       try {
         const { $api } = useNuxtApp()
@@ -147,16 +189,14 @@ export const useAuthStore = defineStore('auth', {
         this.initialized = true
         this.saveToStorage()
 
-        // Set user ID for analytics on successful refresh
         const { setAnalyticsUserId } = useAnalytics()
         setAnalyticsUserId(response.user.id)
 
         return true
       } catch {
         this.token = null
-        this.user = null
         this.initialized = true
-        this.clearStorage()
+        this.saveToStorage()
         return false
       }
     },
@@ -164,12 +204,6 @@ export const useAuthStore = defineStore('auth', {
     async initializeAuth() {
       if (this.initialized) return this.isAuthenticated
 
-      if (!import.meta.client) {
-        this.initialized = true
-        return false
-      }
-
-      // Use promise lock to prevent race conditions
       if (initializePromise) {
         return initializePromise
       }
@@ -177,12 +211,28 @@ export const useAuthStore = defineStore('auth', {
       initializePromise = (async () => {
         try {
           this.loadFromStorage()
-          if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+
+          if (!this.deviceId) {
+            this.deviceId = getOrCreateDeviceId()
+          }
+
+          if (this.mode === 'offline') {
+            if (!this.user) {
+              this.user = buildOfflineUser(this.deviceId)
+            }
+            this.token = null
             this.initialized = true
+            this.saveToStorage()
             return this.isAuthenticated
           }
 
-          return await this.refreshToken()
+          if (this.mode === 'online' && navigator.onLine) {
+            await this.refreshToken().catch(() => false)
+          }
+
+          this.initialized = true
+          this.saveToStorage()
+          return this.isAuthenticated
         } finally {
           initializePromise = null
         }
@@ -191,56 +241,96 @@ export const useAuthStore = defineStore('auth', {
       return initializePromise
     },
 
+    async setMode(mode: AppMode) {
+      this.mode = mode
+
+      if (!this.deviceId) {
+        this.deviceId = getOrCreateDeviceId()
+      }
+
+      if (mode === 'offline') {
+        this.token = null
+        if (!this.user) {
+          this.user = buildOfflineUser(this.deviceId)
+        }
+      }
+
+      if (mode === 'online') {
+        this.token = null
+      }
+
+      this.initialized = true
+      this.saveToStorage()
+      localStorage.setItem(MODE_STORAGE_KEY, mode)
+    },
+
     setToken(token: string) {
       this.token = token
+      this.saveToStorage()
     },
 
     setUser(user: User) {
       this.user = user
+      this.deviceId = this.deviceId || user.id
       this.saveToStorage()
     },
 
     clearAuth() {
-      const userId = this.user?.id
       this.token = null
-      this.user = null
-      this.error = null
-      this.clearStorage()
-      if (import.meta.client && userId) {
-        clearUserData(userId).catch((err) => {
-          console.error('Failed to clear user data:', err)
-        })
-      }
+      this.saveToStorage()
     },
 
     loadFromStorage() {
-      if (!import.meta.client) return
-      if (this.user) return
       const stored = localStorage.getItem(AUTH_STORAGE_KEY)
-      if (!stored) return
-      try {
-        const parsed = JSON.parse(stored) as { user?: User }
-        if (parsed.user) {
-          this.user = parsed.user
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as {
+            user?: User
+            token?: string | null
+            mode?: AppMode | null
+            deviceId?: string | null
+          }
+
+          if (parsed.user) this.user = parsed.user
+          if (typeof parsed.token === 'string') this.token = parsed.token
+          if (parsed.mode) this.mode = parsed.mode
+          if (parsed.deviceId) this.deviceId = parsed.deviceId
+        } catch {
+          // Ignore broken storage.
         }
-      } catch {
-        // Ignore invalid storage
+      }
+
+      if (!this.mode) {
+        const storedMode = localStorage.getItem(MODE_STORAGE_KEY)
+        if (storedMode === 'online' || storedMode === 'offline') {
+          this.mode = storedMode
+        }
+      }
+
+      if (!this.deviceId) {
+        this.deviceId = localStorage.getItem(DEVICE_STORAGE_KEY)
       }
     },
 
     saveToStorage() {
-      if (!import.meta.client) return
-      if (!this.user) {
-        this.clearStorage()
-        return
+      const payload = {
+        user: this.user,
+        token: this.token,
+        mode: this.mode,
+        deviceId: this.deviceId,
       }
-      const payload = { user: this.user }
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
+      if (this.mode) {
+        localStorage.setItem(MODE_STORAGE_KEY, this.mode)
+      }
+      if (this.deviceId) {
+        localStorage.setItem(DEVICE_STORAGE_KEY, this.deviceId)
+      }
     },
 
     clearStorage() {
-      if (!import.meta.client) return
       localStorage.removeItem(AUTH_STORAGE_KEY)
+      localStorage.removeItem(MODE_STORAGE_KEY)
     },
   },
 })

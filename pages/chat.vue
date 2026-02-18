@@ -30,7 +30,11 @@ const isSending = ref(false)
 const error = ref<string | null>(null)
 
 const inputText = ref('')
-const inputRef = ref<any>(null)
+type InputRef = {
+  focus?: () => void
+  $el?: Element | null
+}
+const inputRef = ref<InputRef | null>(null)
 const messageListRef = ref<HTMLElement | null>(null)
 
 const isRecording = ref(false)
@@ -342,7 +346,7 @@ const encodeWav = (chunks: Float32Array[], sampleRate: number): Blob => {
 }
 
 const startWavRecording = async () => {
-  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+  const AudioCtx = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (!AudioCtx || !recorderStream) {
     recordingError.value = t('chat.errors.micUnsupported')
     return

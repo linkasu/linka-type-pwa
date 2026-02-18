@@ -204,6 +204,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
       if (this.isFlushing || isOffline()) return
 
       const authStore = useAuthStore()
+      if (authStore.mode !== 'online') return
       const userId = authStore.user?.id
       if (!userId) {
         this.pendingCount = 0
@@ -272,7 +273,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                 // Check for conflicts by fetching current server state
                 if (payload.originalLabel !== undefined) {
                   try {
-                    const current = await $api.categories.get(resolvedId)
+                    const current = await $api.categories.getById(resolvedId)
                     // Conflict: server has different value than our original
                     if (current.label !== payload.originalLabel || current.aiUse !== payload.originalAiUse) {
                       this.conflicts.push({
@@ -357,7 +358,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                 // Check for conflicts by fetching current server state
                 if (payload.originalText !== undefined) {
                   try {
-                    const current = await $api.statements.get(resolvedId)
+                    const current = await $api.statements.getById(resolvedId)
                     // Conflict: server has different value than our original
                     if (current.text !== payload.originalText) {
                       this.conflicts.push({

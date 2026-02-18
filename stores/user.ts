@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import type { UserState, UserPreferences } from '~/types/api'
 import { DEFAULT_PREFERENCES } from '~/types'
 import { getUserState, setUserState } from '~/utils/offlineDb'
-import { isOffline } from '~/utils/offline'
+import { isOffline, shouldQueueOffline } from '~/utils/offline'
 
 interface UserStoreState {
   inited: boolean | null
@@ -93,22 +93,31 @@ export const useUserStore = defineStore('user', {
     },
 
     async setInitialized() {
+      this.inited = true
+      this.error = null
+
+      const { useAuthStore } = await import('./auth')
+      const authStore = useAuthStore()
+      const userId = authStore.user?.id
+
+      if (import.meta.client && userId) {
+        await setUserState(userId, {
+          inited: true,
+          preferences: this.preferences,
+        })
+      }
+
       try {
+        if (isOffline() || authStore.mode === 'offline') {
+          return
+        }
+
         const { $api } = useNuxtApp()
         await $api.user.updateState({ inited: true })
-        this.inited = true
-
-        // Save to cache
-        const { useAuthStore } = await import('./auth')
-        const authStore = useAuthStore()
-        const userId = authStore.user?.id
-        if (import.meta.client && userId) {
-          await setUserState(userId, {
-            inited: true,
-            preferences: this.preferences,
-          })
-        }
       } catch (err: unknown) {
+        if (shouldQueueOffline(err)) {
+          return
+        }
         const error = err as Error
         this.error = error.message || 'Failed to update user state'
         throw error
@@ -136,10 +145,17 @@ export const useUserStore = defineStore('user', {
       }
 
       try {
+        if (isOffline() || authStore.mode === 'offline') {
+          return
+        }
+
         const { $api } = useNuxtApp()
         await $api.user.updateState({ preferences })
         this.hasRemotePreferences = true
       } catch (err: unknown) {
+        if (shouldQueueOffline(err)) {
+          return
+        }
         // Rollback on error
         this.preferences = original
         this.hasRemotePreferences = originalHasRemote
@@ -212,4 +228,3 @@ export const useUserStore = defineStore('user', {
     },
   },
 })
-

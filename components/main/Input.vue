@@ -18,7 +18,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
-const textareaRef = ref<any>(null)
+type TextareaRef = {
+  focus?: () => void
+  $el?: Element | null
+}
+const textareaRef = ref<TextareaRef | null>(null)
 
 const focus = () => {
   const target = textareaRef.value

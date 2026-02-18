@@ -372,7 +372,7 @@ export const setUserState = async (
 export const addQueueItem = async (item: OfflineQueueItem): Promise<number | null> => {
   if (!isIdbAvailable()) return null
   return withStore(STORES.queue, 'readwrite', async (store) => {
-    return requestToPromise<number>(store.add(item))
+    return requestToPromise<number>(store.add(item) as IDBRequest<number>)
   })
 }
 

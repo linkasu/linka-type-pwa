@@ -37,7 +37,7 @@ const pickPreferences = (state: Partial<SettingsState>): Partial<UserPreferences
   const patch: Partial<UserPreferences> = {}
   for (const key of PREFERENCE_KEYS) {
     if (state[key] !== undefined) {
-      patch[key] = state[key] as UserPreferences[typeof key]
+      ;(patch as Record<string, unknown>)[key] = state[key]
     }
   }
   return patch

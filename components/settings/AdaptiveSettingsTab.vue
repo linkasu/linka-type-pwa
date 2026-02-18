@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { useSettingsStore } from '~/stores/settings'
+import { useAuthStore } from '~/stores/auth'
 
 const { t, setLocale } = useI18n()
 const settingsStore = useSettingsStore()
+const authStore = useAuthStore()
 
 const handleLocaleChange = (newLocale: 'ru' | 'en') => {
   setLocale(newLocale)
   settingsStore.setLocale(newLocale)
+}
+
+const handleModeChange = async (mode: 'online' | 'offline' | null) => {
+  if (!mode) return
+  await authStore.setMode(mode)
 }
 </script>
 
@@ -17,7 +24,7 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
       <div class="settings-section">
         <div class="settings-section-title">{{ t('settings.adaptiveSettings.title') }}</div>
         <VSwitch
-          :model-value="settingsStore.showPredictor"
+          :model-value="Boolean(settingsStore.showPredictor)"
           :label="t('settings.adaptiveSettings.showPredictor')"
           color="primary"
           density="compact"
@@ -25,7 +32,7 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
           @update:model-value="settingsStore.updateSettings({ showPredictor: $event })"
         />
         <VSwitch
-          :model-value="settingsStore.showSpotlightPredictor"
+          :model-value="Boolean(settingsStore.showSpotlightPredictor)"
           :label="t('settings.adaptiveSettings.showSpotlightPredictor')"
           color="primary"
           density="compact"
@@ -33,7 +40,7 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
           @update:model-value="settingsStore.updateSettings({ showSpotlightPredictor: $event })"
         />
         <VSwitch
-          :model-value="settingsStore.showQuickes"
+          :model-value="Boolean(settingsStore.showQuickes)"
           :label="t('settings.adaptiveSettings.showQuickes')"
           color="primary"
           density="compact"
@@ -41,7 +48,7 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
           @update:model-value="settingsStore.updateSettings({ showQuickes: $event })"
         />
         <VSwitch
-          :model-value="settingsStore.showBank"
+          :model-value="Boolean(settingsStore.showBank)"
           :label="t('settings.adaptiveSettings.showBank')"
           color="primary"
           density="compact"
@@ -53,7 +60,7 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
       <div class="settings-section">
         <div class="settings-section-title">Поведение</div>
         <VSwitch
-          :model-value="settingsStore.saveOnSay"
+          :model-value="Boolean(settingsStore.saveOnSay)"
           :label="t('settings.adaptiveSettings.saveOnSay')"
           color="primary"
           density="compact"
@@ -61,7 +68,7 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
           @update:model-value="settingsStore.updateSettings({ saveOnSay: $event })"
         />
         <VSwitch
-          :model-value="settingsStore.typeSound"
+          :model-value="Boolean(settingsStore.typeSound)"
           :label="t('settings.adaptiveSettings.typeSound')"
           color="primary"
           density="compact"
@@ -69,7 +76,7 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
           @update:model-value="settingsStore.updateSettings({ typeSound: $event })"
         />
         <VSwitch
-          :model-value="settingsStore.speakLastWord"
+          :model-value="Boolean(settingsStore.speakLastWord)"
           :label="t('settings.adaptiveSettings.speakLastWord')"
           color="primary"
           density="compact"
@@ -99,6 +106,18 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
           class="mt-3"
           @update:model-value="handleLocaleChange"
         />
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Режим данных</div>
+        <VRadioGroup
+          :model-value="authStore.mode"
+          inline
+          @update:model-value="handleModeChange"
+        >
+          <VRadio label="Онлайн (синхронизация)" value="online" />
+          <VRadio label="Офлайн (только локально)" value="offline" />
+        </VRadioGroup>
       </div>
     </VCardText>
   </VCard>

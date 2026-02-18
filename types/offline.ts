@@ -50,10 +50,10 @@ export interface UserPrefsUpdatePayload {
 
 export type OfflinePayload =
   | CategoryCreatePayload
-  | CategoryUpdatePayload
+  | CategoryUpdatePayloadWithOriginal
   | CategoryDeletePayload
   | StatementCreatePayload
-  | StatementUpdatePayload
+  | StatementUpdatePayloadWithOriginal
   | StatementDeletePayload
   | QuickesUpdatePayload
   | UserPrefsUpdatePayload
