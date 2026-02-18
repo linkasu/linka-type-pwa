@@ -13,14 +13,16 @@ import { useAuthStore } from '@/stores/auth'
 
 export default defineNuxtPlugin(() => {
   const authStore = useAuthStore()
-  
+
   const getToken = () => authStore.token
   const setToken = (token: string) => authStore.setToken(token)
   const setUser = (user: { id: string; email: string }) => authStore.setUser(user)
   const clearAuth = () => authStore.clearAuth()
+  const config = useRuntimeConfig()
+  const baseUrl = config.public.apiBaseUrl?.replace(/\/$/, '') || 'https://backend.linka.su'
 
-  // Create axios client for non-auth APIs
-  const client = createApiClient('/api', getToken, setToken, setUser, clearAuth)
+  // Keep one shared API client configured for /v1 backend endpoints.
+  createApiClient(`${baseUrl}/v1`, getToken, setToken, setUser, clearAuth)
 
   return {
     provide: {
@@ -39,20 +41,3 @@ export default defineNuxtPlugin(() => {
     },
   }
 })
-
-declare module '#app' {
-  interface NuxtApp {
-    $api: {
-      auth: typeof authApi
-      categories: typeof categoriesApi
-      statements: typeof statementsApi
-      quickes: typeof quickesApi
-      user: typeof userApi
-      global: typeof globalApi
-      tts: typeof ttsApi
-      onboarding: typeof onboardingApi
-      predictor: typeof predictorApi
-      dialog: typeof dialogApi
-    }
-  }
-}

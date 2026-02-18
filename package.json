@@ -1,42 +1,100 @@
 {
   "name": "linka-type-pwa-v2",
+  "version": "2.0.0",
   "type": "module",
   "private": true,
+  "main": "dist/electron/main.js",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "lint:size": "tsx scripts/check-file-size.ts",
-    "test:e2e": "playwright test"
+    "dev": "concurrently -k -n RENDERER,MAIN,ELECTRON \"vite\" \"tsc -p electron/tsconfig.json --watch\" \"wait-on dist/electron/main.js http://127.0.0.1:5173 && cp electron/preload.cjs dist/electron/preload.cjs && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron dist/electron/main.js\"",
+    "build:renderer": "vite build",
+    "build:electron": "tsc -p electron/tsconfig.json && cp electron/preload.cjs dist/electron/preload.cjs",
+    "build": "npm run build:renderer && npm run build:electron",
+    "preview": "vite preview",
+    "dist": "npm run build && electron-builder",
+    "icons:desktop": "bash scripts/generate-desktop-icons.sh",
+    "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
+    "test:unit": "vitest run",
+    "test:main": "vitest run tests/main",
+    "test:e2e:electron": "playwright test --config playwright.electron.config.ts",
+    "test:e2e:sync": "playwright test --config playwright.sync.config.ts",
+    "test:all": "npm run typecheck && npm run test:unit && npm run test:main",
+    "lint:size": "tsx scripts/check-file-size.ts"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
-    "@nuxtjs/i18n": "^10.2.1",
-    "@pinia/nuxt": "^0.11.3",
-    "@vite-pwa/nuxt": "^1.1.0",
     "@vueuse/core": "^14.1.0",
-    "@vueuse/nuxt": "^14.1.0",
     "axios": "^1.13.2",
+    "electron-updater": "^6.6.2",
     "firebase": "^12.7.0",
-    "nuxt": "^4.2.2",
     "pinia": "^3.0.4",
     "vue": "^3.5.26",
+    "vue-i18n": "^9.14.5",
     "vue-router": "^4.6.4",
-    "vuetify": "^3.11.6",
-    "vuetify-nuxt-module": "^0.19.2"
+    "vuetify": "^3.11.6"
   },
   "devDependencies": {
-    "@nuxt/eslint": "^1.12.1",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.0.3",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
     "eslint": "^9.39.2",
+    "jsdom": "^26.1.0",
     "prettier": "^3.7.4",
     "sass": "^1.97.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
+    "unplugin-auto-import": "^19.3.0",
+    "unplugin-vue-components": "^28.8.0",
+    "vite": "^7.2.1",
     "vite-plugin-vuetify": "^2.1.2",
-    "vue-tsc": "^3.2.1"
+    "vitest": "^3.2.4",
+    "vue-tsc": "^3.2.1",
+    "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "su.linka.type.desktop",
+    "productName": "LINKa Type",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "dist/electron/main.js"
+    },
+    "icon": "build/icon.png",
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://downloads.linka.su/type"
+      }
+    ]
   }
 }

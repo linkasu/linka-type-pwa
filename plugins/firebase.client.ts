@@ -54,11 +54,3 @@ export default defineNuxtPlugin(async () => {
     },
   }
 })
-
-// Type augmentation for Nuxt
-declare module '#app' {
-  interface NuxtApp {
-    $firebase: FirebaseApp | null
-    $analytics: Analytics | null
-  }
-}
