@@ -9,13 +9,16 @@
 - Страница загрузки: `pages-site/`
 - `electron-builder` publish provider: GitHub (`linkasu/linka-type-pwa`)
 
-## GitHub Secrets (обязательно для macOS подписи)
+## GitHub Secrets (macOS подпись + опционально notarization)
 
-Для workflow `Desktop Release` нужно добавить в `Settings -> Secrets and variables -> Actions`:
+Для workflow `Desktop Release` добавьте в `Settings -> Secrets and variables -> Actions`:
 
 - `APPLE_CERTIFICATE_P12_BASE64`: base64 содержимое `.p12` сертификата `Developer ID Application`
 - `APPLE_CERTIFICATE_PASSWORD`: пароль от `.p12`
 - `APPLE_CERTIFICATE_NAME` (опционально): явное имя сертификата
+
+Дополнительно для notarization (опционально):
+
 - `APPLE_ID`: Apple ID разработчика
 - `APPLE_APP_SPECIFIC_PASSWORD`: app-specific password Apple ID
 - `APPLE_TEAM_ID`: Team ID из Apple Developer
@@ -41,7 +44,8 @@ git push origin main --tags
 
 4. Workflow `Desktop Release`:
 - соберет macOS (`dmg`, `zip`) и Linux (`AppImage`, `deb`);
-- подпишет и нотарифицирует macOS артефакты (при наличии secrets);
+- подпишет macOS артефакты Developer ID сертификатом;
+- выполнит notarization, если заданы `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`;
 - прикрепит артефакты и update-метаданные (`*.yml`, `*.blockmap`) к GitHub Release.
 
 ## GitHub Pages для страницы загрузок
