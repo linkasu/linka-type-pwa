@@ -26,7 +26,7 @@ onMounted(() => {
       }
     })
 
-    window.desktop.updates.check().catch(() => undefined)
+    window.desktop.updates.check().catch((): undefined => undefined)
 
     onUnmounted(() => {
       unsubscribe()
@@ -86,7 +86,7 @@ const handleUpdate = () => {
   trackUpdateAccepted()
   if (window.desktop) {
     if (desktopUpdateState.value === 'available') {
-      window.desktop.updates.download().catch(() => undefined)
+      window.desktop.updates.download().catch((): undefined => undefined)
       return
     }
     if (desktopUpdateState.value === 'downloaded') {

@@ -119,7 +119,7 @@ const performBackendRequest = async (
   }
 
   if (!wantsText && contentType.includes('application/json')) {
-    const data = await response.json().catch(() => null)
+    const data = await response.json().catch((): null => null)
     return {
       ok: response.ok,
       status: response.status,

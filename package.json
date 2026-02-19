@@ -12,12 +12,13 @@
     "preview": "vite preview",
     "dist": "npm run build && electron-builder",
     "icons:desktop": "bash scripts/generate-desktop-icons.sh",
-    "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
+    "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && npm run lint:any",
     "test:unit": "vitest run",
     "test:main": "vitest run tests/main",
     "test:e2e:electron": "playwright test --config playwright.electron.config.ts",
     "test:e2e:sync": "playwright test --config playwright.sync.config.ts",
     "test:all": "npm run typecheck && npm run test:unit && npm run test:main",
+    "lint:any": "tsx scripts/check-no-any.ts",
     "lint:size": "tsx scripts/check-file-size.ts"
   },
   "dependencies": {

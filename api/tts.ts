@@ -1,7 +1,8 @@
+import type { AxiosRequestConfig } from 'axios'
 import { getApiClient } from './client'
 import type { Voice, TTSRequest } from '~/types/api'
 
-const NO_AUTH_REQUEST = { _skipAuth: true } as any
+const NO_AUTH_REQUEST = { _skipAuth: true } as unknown as AxiosRequestConfig
 
 export const ttsApi = {
   async getVoices(): Promise<Voice[]> {

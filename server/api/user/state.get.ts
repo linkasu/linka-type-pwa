@@ -1,6 +1,15 @@
 import { backendRequest, getTokenFromRequest } from '../../utils/backend'
 import type { UserState } from '~/types/api'
 
+function getStatusCode(error: unknown): number | null {
+  if (typeof error !== 'object' || error === null) {
+    return null
+  }
+
+  const statusCode = (error as Record<string, unknown>).statusCode
+  return typeof statusCode === 'number' ? statusCode : null
+}
+
 export default defineEventHandler(async (event) => {
   const token = getTokenFromRequest(event)
 
@@ -13,8 +22,8 @@ export default defineEventHandler(async (event) => {
       },
     )
     return response
-  } catch (error: any) {
-    if (error.statusCode === 404) {
+  } catch (error: unknown) {
+    if (getStatusCode(error) === 404) {
       const quickes = await backendRequest<string[]>(
         '/v1/quickes',
         { method: 'GET', token },
@@ -27,4 +36,3 @@ export default defineEventHandler(async (event) => {
     throw error
   }
 })
-

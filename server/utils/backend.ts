@@ -1,6 +1,71 @@
 import { ofetch } from 'ofetch'
 
 const BACKEND_URL = process.env.API_BASE_URL || 'https://backend.linka.su'
+type RequestEvent = Parameters<typeof getCookie>[0]
+
+interface BackendErrorLike {
+  name?: string
+  message?: string
+  status?: number
+  statusCode?: number
+  statusText?: string
+  cause?: { code?: string }
+  data?: unknown
+  response?: {
+    status?: number
+    statusText?: string
+    data?: unknown
+  }
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+  return value as Record<string, unknown>
+}
+
+function normalizeError(error: unknown): BackendErrorLike {
+  const record = asRecord(error)
+  if (!record) {
+    return {}
+  }
+  return record as BackendErrorLike
+}
+
+function extractErrorMessage(value: unknown): string | null {
+  const dataRecord = asRecord(value)
+  if (!dataRecord) {
+    return null
+  }
+  const errorRecord = asRecord(dataRecord.error)
+  if (!errorRecord) {
+    return null
+  }
+  return typeof errorRecord.message === 'string' ? errorRecord.message : null
+}
+
+function extractErrorCode(value: unknown): string | null {
+  const dataRecord = asRecord(value)
+  if (!dataRecord) {
+    return null
+  }
+  const errorRecord = asRecord(dataRecord.error)
+  if (!errorRecord) {
+    return null
+  }
+  return typeof errorRecord.code === 'string' ? errorRecord.code : null
+}
+
+function getHeaderValue(value: string | string[] | undefined): string | null {
+  if (typeof value === 'string') {
+    return value
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return value[0] ?? null
+  }
+  return null
+}
 
 export async function backendRequest<T>(
   path: string,
@@ -36,19 +101,26 @@ export async function backendRequest<T>(
       retry: 0,
     })
 
-    if (response && typeof response === 'object' && 'error' in response) {
-      const errorData = (response as any).error
+    const responseRecord = asRecord(response)
+    if (responseRecord && 'error' in responseRecord) {
+      const errorData = responseRecord.error
       throw createError({
         statusCode: 503,
         statusMessage: 'Service Unavailable',
-        message: errorData?.message || 'Backend service error',
+        message: extractErrorMessage({ error: errorData }) || 'Backend service error',
         data: { error: errorData },
       })
     }
 
     return response
-  } catch (error: any) {
-    if (error.name === 'FetchError' && (error.cause?.code === 'ECONNREFUSED' || error.cause?.code === 'ETIMEDOUT')) {
+  } catch (error: unknown) {
+    const normalizedError = normalizeError(error)
+    const errorCauseCode = normalizedError.cause?.code
+
+    if (
+      normalizedError.name === 'FetchError'
+      && (errorCauseCode === 'ECONNREFUSED' || errorCauseCode === 'ETIMEDOUT')
+    ) {
       throw createError({
         statusCode: 503,
         statusMessage: 'Service Unavailable',
@@ -56,13 +128,21 @@ export async function backendRequest<T>(
       })
     }
 
-    const statusCode = error.status || error.statusCode || error.response?.status || 500
-    const errorData = error.data || error.response?.data
-    const errorMessage = errorData?.error?.message || error.message || error.response?.data?.error?.message || ''
-    
-    if (statusCode === 401 || 
-        errorData?.error?.code === 'unauthorized' || 
-        (errorMessage && (errorMessage.includes('401') || errorMessage.includes('Unauthorized')))) {
+    const statusCode = normalizedError.status
+      || normalizedError.statusCode
+      || normalizedError.response?.status
+      || 500
+    const errorData = normalizedError.data || normalizedError.response?.data
+    const errorMessage = extractErrorMessage(errorData)
+      || normalizedError.message
+      || extractErrorMessage(normalizedError.response?.data)
+      || ''
+
+    if (
+      statusCode === 401
+      || extractErrorCode(errorData) === 'unauthorized'
+      || (errorMessage && (errorMessage.includes('401') || errorMessage.includes('Unauthorized')))
+    ) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized',
@@ -72,11 +152,12 @@ export async function backendRequest<T>(
 
     const finalErrorMessage = errorMessage || 'Backend request failed'
 
-    if (errorData?.error) {
+    const errorDataRecord = asRecord(errorData)
+    if (errorDataRecord && 'error' in errorDataRecord) {
       const finalStatusCode = statusCode >= 400 && statusCode < 600 ? statusCode : 500
       throw createError({
         statusCode: finalStatusCode,
-        statusMessage: error.statusText || error.response?.statusText || 'Server Error',
+        statusMessage: normalizedError.statusText || normalizedError.response?.statusText || 'Server Error',
         message: finalErrorMessage,
         data: errorData,
       })
@@ -85,23 +166,23 @@ export async function backendRequest<T>(
     const finalStatusCode = statusCode >= 400 && statusCode < 600 ? statusCode : 500
     throw createError({
       statusCode: finalStatusCode,
-      statusMessage: error.statusText || error.response?.statusText || 'Server Error',
-      message: errorMessage,
+      statusMessage: normalizedError.statusText || normalizedError.response?.statusText || 'Server Error',
+      message: finalErrorMessage,
       data: errorData,
     })
   }
 }
 
-export function getTokenFromRequest(event: any): string | null {
+export function getTokenFromRequest(event: RequestEvent): string | null {
   // First check X-Auth-Token header (used to avoid YC serverless Authorization interception)
-  const xAuthToken = event.node.req.headers['x-auth-token']
-  if (xAuthToken && typeof xAuthToken === 'string') {
+  const xAuthToken = getHeaderValue(event.node.req.headers['x-auth-token'])
+  if (xAuthToken) {
     return xAuthToken
   }
 
   // Fallback to Authorization header for backward compatibility
-  const authHeader = event.node.req.headers.authorization
-  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+  const authHeader = getHeaderValue(event.node.req.headers.authorization)
+  if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7)
   }
 

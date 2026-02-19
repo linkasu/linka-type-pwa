@@ -82,7 +82,7 @@ export function useBankItems() {
     } catch (err) {
       await Promise.all(
         created.map(statement =>
-          statementsStore.deleteStatement(statement.id).catch(() => null),
+          statementsStore.deleteStatement(statement.id).catch((): null => null),
         ),
       )
       throw err
@@ -90,7 +90,7 @@ export function useBankItems() {
 
     await Promise.all(
       existing.map(statement =>
-        statementsStore.deleteStatement(statement.id).catch(() => null),
+        statementsStore.deleteStatement(statement.id).catch((): null => null),
       ),
     )
 

@@ -35,7 +35,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
     },
 
     async resolveConflict(conflictId: string, resolution: 'local' | 'remote') {
-      const conflict = this.conflicts.find(c => c.id === conflictId)
+      const conflict = this.conflicts.find((c: SyncConflict) => c.id === conflictId)
       if (!conflict) return
 
       const { api } = useAppServices()
@@ -54,7 +54,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
           this.pendingCount -= 1
         }
 
-        this.conflicts = this.conflicts.filter(c => c.id !== conflictId)
+        this.conflicts = this.conflicts.filter((c: SyncConflict) => c.id !== conflictId)
       } catch (err: unknown) {
         const error = err as Error
         this.lastError = error.message || 'Failed to resolve conflict'
@@ -62,7 +62,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
     },
 
     dismissConflict(conflictId: string) {
-      this.conflicts = this.conflicts.filter(c => c.id !== conflictId)
+      this.conflicts = this.conflicts.filter((c: SyncConflict) => c.id !== conflictId)
     },
 
     clearConflicts() {

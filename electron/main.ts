@@ -129,7 +129,7 @@ app.whenReady().then(async () => {
   await createWindow()
 
   if (!isDev) {
-    void autoUpdater.checkForUpdates().catch(() => undefined)
+    void autoUpdater.checkForUpdates().catch((): undefined => undefined)
   }
 
   app.on('activate', () => {
