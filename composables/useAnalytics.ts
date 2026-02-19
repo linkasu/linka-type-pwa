@@ -3,12 +3,13 @@ import type {
   AnalyticsEventParams,
   AnalyticsUserProperties,
 } from '~/types/analytics'
-
-// Dynamic import helper for firebase/analytics (client-only)
-const getFirebaseAnalytics = async () => {
-  if (!import.meta.client) return null
-  return await import('firebase/analytics')
-}
+import {
+  logEvent,
+  setAnalyticsCollectionEnabled,
+  setUserId,
+  setUserProperties,
+} from 'firebase/analytics'
+import { createAnalyticsTrackers } from './analytics/trackers'
 
 export const useAnalytics = () => {
   const { analytics } = useAppServices()
@@ -17,9 +18,9 @@ export const useAnalytics = () => {
   const isEnabled = computed(() => !!analytics)
 
   // Track generic event with type safety
-  const trackEvent = async <T extends AnalyticsEventName>(
+  const trackEvent = <T extends AnalyticsEventName>(
     eventName: T,
-    params?: AnalyticsEventParams[T]
+    params?: AnalyticsEventParams[T],
   ) => {
     if (!analytics) {
       if (import.meta.dev) {
@@ -29,11 +30,8 @@ export const useAnalytics = () => {
     }
 
     try {
-      const firebaseAnalytics = await getFirebaseAnalytics()
-      if (!firebaseAnalytics) return
-
       // Cast to string for Firebase's logEvent which accepts custom event names
-      firebaseAnalytics.logEvent(analytics, eventName as string, params as Record<string, unknown>)
+      logEvent(analytics, eventName as string, params as Record<string, unknown>)
       if (import.meta.dev) {
         console.log('[Analytics]', eventName, params)
       }
@@ -42,133 +40,24 @@ export const useAnalytics = () => {
     }
   }
 
-  // Specific event trackers
-  const trackPredicatorUse = (word: string, position: number) => {
-    trackEvent('predicator_use', { word, position })
-  }
-
-  const trackSpotlight = (action: 'open' | 'close') => {
-    trackEvent('spotlight', { action })
-  }
-
-  const trackSay = (textLength: number, download = false) => {
-    trackEvent('say', {
-      text_length: textLength,
-      has_text: textLength > 0,
-      download,
-    })
-  }
-
-  const trackQuickesSay = (phrase: string, index: number) => {
-    trackEvent('quickes_say', { phrase, index })
-  }
-
-  const trackBankCategorySelect = (categoryId: string, key?: string) => {
-    trackEvent('bank_cselect', { category_id: categoryId, key })
-  }
-
-  const trackBankStatementSelect = (
-    statementId: string,
-    isPaste: boolean,
-    key?: string
-  ) => {
-    trackEvent('bank_sselect', {
-      statement_id: statementId,
-      key,
-      is_paste: isPaste,
-    })
-  }
-
-  const trackLogin = () => {
-    trackEvent('login', { method: 'email' })
-  }
-
-  const trackLogout = () => {
-    trackEvent('logout', {})
-  }
-
-  const trackRegister = () => {
-    trackEvent('register', { method: 'email' })
-  }
-
-  const trackUpdatePromptShown = () => {
-    trackEvent('update_prompt_shown', {})
-  }
-
-  const trackUpdateAccepted = () => {
-    trackEvent('update_accepted', {})
-  }
-
-  const trackMobileAppPrompt = (platform: 'ios' | 'android') => {
-    trackEvent('mobile_app_prompt_shown', { platform })
-  }
-
-  const trackMobileAppLinkClicked = (platform: 'ios' | 'android') => {
-    trackEvent('mobile_app_link_clicked', { platform })
-  }
-
-  const trackPwaInstallPrompt = () => {
-    trackEvent('pwa_install_prompt', {})
-  }
-
-  const trackPwaInstalled = () => {
-    trackEvent('pwa_installed', {})
-  }
-
-  const trackCategoryCacheStarted = (categoryId: string, phraseCount: number) => {
-    trackEvent('category_cache_started', {
-      category_id: categoryId,
-      phrase_count: phraseCount,
-    })
-  }
-
-  const trackCategoryCacheCompleted = (categoryId: string, phraseCount: number) => {
-    trackEvent('category_cache_completed', {
-      category_id: categoryId,
-      phrase_count: phraseCount,
-    })
-  }
-
-  const trackSettingsChanged = (
-    setting: string,
-    value: string | boolean | number
-  ) => {
-    trackEvent('settings_changed', { setting, value })
-  }
-
-  const trackReaderModeOpened = (categoryId: string, statementCount: number) => {
-    trackEvent('reader_mode_opened', {
-      category_id: categoryId,
-      statement_count: statementCount,
-    })
-  }
-
-  const trackTextEditorOpened = (categoryId: string) => {
-    trackEvent('text_editor_opened', { category_id: categoryId })
-  }
+  const trackers = createAnalyticsTrackers(trackEvent)
 
   // Set user ID from auth
-  const setAnalyticsUserId = async (userId: string | null) => {
+  const setAnalyticsUserId = (userId: string | null) => {
     if (!analytics) return
-    const firebaseAnalytics = await getFirebaseAnalytics()
-    if (!firebaseAnalytics) return
-    firebaseAnalytics.setUserId(analytics, userId)
+    setUserId(analytics, userId)
   }
 
   // Update user properties
-  const updateUserProperties = async (properties: Partial<AnalyticsUserProperties>) => {
+  const updateUserProperties = (properties: Partial<AnalyticsUserProperties>) => {
     if (!analytics) return
-    const firebaseAnalytics = await getFirebaseAnalytics()
-    if (!firebaseAnalytics) return
-    firebaseAnalytics.setUserProperties(analytics, properties as Record<string, unknown>)
+    setUserProperties(analytics, properties as Record<string, unknown>)
   }
 
   // Consent management
-  const setConsent = async (granted: boolean) => {
+  const setConsent = (granted: boolean) => {
     if (!analytics) return
-    const firebaseAnalytics = await getFirebaseAnalytics()
-    if (!firebaseAnalytics) return
-    firebaseAnalytics.setAnalyticsCollectionEnabled(analytics, granted)
+    setAnalyticsCollectionEnabled(analytics, granted)
     localStorage.setItem('analytics_consent', granted ? 'granted' : 'denied')
   }
 
@@ -200,26 +89,7 @@ export const useAnalytics = () => {
     isEnabled,
     trackEvent,
     // Specific trackers
-    trackPredicatorUse,
-    trackSpotlight,
-    trackSay,
-    trackQuickesSay,
-    trackBankCategorySelect,
-    trackBankStatementSelect,
-    trackLogin,
-    trackLogout,
-    trackRegister,
-    trackUpdatePromptShown,
-    trackUpdateAccepted,
-    trackMobileAppPrompt,
-    trackMobileAppLinkClicked,
-    trackPwaInstallPrompt,
-    trackPwaInstalled,
-    trackCategoryCacheStarted,
-    trackCategoryCacheCompleted,
-    trackSettingsChanged,
-    trackReaderModeOpened,
-    trackTextEditorOpened,
+    ...trackers,
     // User management
     setAnalyticsUserId,
     updateUserProperties,
