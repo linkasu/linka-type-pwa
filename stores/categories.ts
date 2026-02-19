@@ -12,6 +12,14 @@ import {
   replaceCategoryId as replaceCategoryIdCache,
   upsertCategory,
 } from '~/utils/offlineDb'
+import {
+  getSortedCategories,
+  removeCategoryFromState,
+  replaceCategoryIdInState,
+  setCategoriesFromList,
+  setCategoryInState,
+} from './categories/state'
+import { applyPendingCategoryQueue } from './categories/queue'
 
 interface CategoriesState {
   categories: Map<string, Category>
@@ -36,14 +44,7 @@ export const useCategoriesStore = defineStore('categories', {
   }),
 
   getters: {
-    sortedCategories: (state) => {
-      const cats = Array.from(state.categories.values())
-      return cats.sort((a, b) => {
-        if (a.default && !b.default) return -1
-        if (!a.default && b.default) return 1
-        return a.created - b.created
-      })
-    },
+    sortedCategories: (state) => getSortedCategories(state),
 
     getById: (state) => (id: string) => state.categories.get(id),
 
@@ -108,7 +109,7 @@ export const useCategoriesStore = defineStore('categories', {
             default: false,
             aiUse,
           }
-          this.categories.set(category.id, category)
+          setCategoryInState(this, category)
           await upsertCategory(userId, category)
           await addQueueItem({
             userId,
@@ -121,8 +122,10 @@ export const useCategoriesStore = defineStore('categories', {
 
         const { api } = useAppServices()
         const category = await api.categories.create({ label, created: Date.now(), aiUse })
-        const normalized = { ...category, aiUse: category.aiUse ?? aiUse ?? false }
-        this.categories.set(normalized.id, normalized)
+        const normalized = setCategoryInState(this, {
+          ...category,
+          aiUse: category.aiUse ?? aiUse ?? false,
+        })
         if (import.meta.client && userId) {
           await upsertCategory(userId, normalized)
         }
@@ -136,7 +139,7 @@ export const useCategoriesStore = defineStore('categories', {
             default: false,
             aiUse,
           }
-          this.categories.set(category.id, category)
+          setCategoryInState(this, category)
           await upsertCategory(userId, category)
           await addQueueItem({
             userId,
@@ -181,8 +184,10 @@ export const useCategoriesStore = defineStore('categories', {
 
         const { api } = useAppServices()
         const updated = await api.categories.update(id, { label, aiUse })
-        const normalized = { ...updated, aiUse: updated.aiUse ?? false }
-        this.categories.set(id, normalized)
+        const normalized = setCategoryInState(this, {
+          ...updated,
+          aiUse: updated.aiUse ?? false,
+        })
         if (import.meta.client && userId) {
           await upsertCategory(userId, normalized)
         }
@@ -210,7 +215,7 @@ export const useCategoriesStore = defineStore('categories', {
       const original = this.categories.get(id)
       
       // Optimistic delete
-      this.categories.delete(id)
+      removeCategoryFromState(this, id)
       const userId = resolveLocalUserId()
 
       try {
@@ -244,7 +249,7 @@ export const useCategoriesStore = defineStore('categories', {
         }
         // Rollback on error
         if (original) {
-          this.categories.set(id, original)
+          setCategoryInState(this, original)
         }
         const error = err as Error
         this.error = error.message || 'Failed to delete category'
@@ -253,8 +258,7 @@ export const useCategoriesStore = defineStore('categories', {
     },
 
     updateCategory(category: Category) {
-      const normalized = { ...category, aiUse: category.aiUse ?? false }
-      this.categories.set(category.id, normalized)
+      const normalized = setCategoryInState(this, category)
       const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         upsertCategory(userId, normalized).catch((err) => {
@@ -264,7 +268,7 @@ export const useCategoriesStore = defineStore('categories', {
     },
 
     removeCategory(id: string) {
-      this.categories.delete(id)
+      removeCategoryFromState(this, id)
       const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         deleteCategoryCache(userId, id).catch((err) => {
@@ -279,50 +283,17 @@ export const useCategoriesStore = defineStore('categories', {
     },
 
     setFromList(categories: Category[]) {
-      this.categories.clear()
-      for (const category of categories) {
-        this.categories.set(category.id, { ...category, aiUse: category.aiUse ?? false })
-      }
+      setCategoriesFromList(this, categories)
     },
 
     async applyPendingQueue(userId: string) {
       if (!import.meta.client) return
       const items = await getQueueItems(userId)
-      for (const item of items) {
-        switch (item.op) {
-          case 'category_create': {
-            const payload = item.payload as { category: Category }
-            if (!this.categories.has(payload.category.id)) {
-              this.categories.set(payload.category.id, payload.category)
-            }
-            break
-          }
-          case 'category_update': {
-            const payload = item.payload as { id: string; label: string; aiUse?: boolean }
-            const existing = this.categories.get(payload.id)
-            if (existing) {
-              this.categories.set(payload.id, {
-                ...existing,
-                label: payload.label,
-                aiUse: payload.aiUse ?? existing.aiUse ?? false,
-              })
-            }
-            break
-          }
-          case 'category_delete': {
-            const payload = item.payload as { id: string }
-            this.categories.delete(payload.id)
-            break
-          }
-          default:
-            break
-        }
-      }
+      applyPendingCategoryQueue(this, items)
     },
 
     async replaceCategoryId(tempId: string, category: Category) {
-      this.categories.delete(tempId)
-      this.categories.set(category.id, { ...category, aiUse: category.aiUse ?? false })
+      replaceCategoryIdInState(this, tempId, category)
       const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         await replaceCategoryIdCache(userId, tempId, category)
