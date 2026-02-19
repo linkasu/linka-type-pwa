@@ -84,23 +84,38 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: npm run ${{ matrix.dist_command }} -- --publish never
 
-      - name: Prepare macOS signing certificate
+      - name: Setup macOS signing keychain
         if: runner.os == 'macOS'
         env:
           APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         run: |
           set -euo pipefail
           CERT_FILE="$RUNNER_TEMP/apple-cert.p12"
-          printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERT_FILE"
-          echo "CSC_LINK=file://$CERT_FILE" >> "$GITHUB_ENV"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+
+          if printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode >"$CERT_FILE" 2>/dev/null; then
+            :
+          else
+            printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 -D >"$CERT_FILE"
+          fi
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_FILE" -k "$KEYCHAIN_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+
+          echo "CSC_KEYCHAIN=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
       - name: Build macOS distributives
         if: runner.os == 'macOS'
         env:
           GH_TOKEN: ${{ github.token }}
-          CSC_LINK: ${{ env.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          CSC_NAME: ${{ secrets.APPLE_CERTIFICATE_NAME }}
+          CSC_KEYCHAIN: ${{ env.CSC_KEYCHAIN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'true'
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
