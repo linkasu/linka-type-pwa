@@ -72,10 +72,7 @@ function pickMacX64Asset(assets) {
 }
 
 function pickWindowsAsset(assets) {
-  return (
-    pickAsset(assets, /win-(x64|ia32|arm64)\.exe$/i) ||
-    assets.find((asset) => /\.exe$/i.test(asset.name) && !/^elevate\.exe$/i.test(asset.name))
-  )
+  return pickAsset(assets, /win-(x64|ia32|arm64)\.exe$/i)
 }
 
 async function loadLatestRelease() {
