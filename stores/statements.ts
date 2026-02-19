@@ -14,6 +14,15 @@ import {
   replaceStatementsForCategory,
   upsertStatement,
 } from '~/utils/offlineDb'
+import {
+  addStatementToState,
+  getStatementsByCategory,
+  remapCategoryIdInState,
+  removeStatementFromState,
+  replaceStatementIdInState,
+  setCategoryStatementsInState,
+} from './statements/state'
+import { applyPendingStatementQueue } from './statements/queue'
 
 interface StatementsState {
   statements: Map<string, Statement>
@@ -40,17 +49,8 @@ export const useStatementsStore = defineStore('statements', {
   getters: {
     getById: (state) => (id: string) => state.statements.get(id),
 
-    getByCategoryId: (state) => (categoryId: string): Statement[] => {
-      const ids = state.byCategoryId.get(categoryId)
-      if (!ids) return []
-      
-      const statements: Statement[] = []
-      for (const id of ids) {
-        const stmt = state.statements.get(id)
-        if (stmt) statements.push(stmt)
-      }
-      return statements.sort((a, b) => a.created - b.created)
-    },
+    getByCategoryId: (state) => (categoryId: string): Statement[] =>
+      getStatementsByCategory(state, categoryId),
 
     isCategoryLoaded: (state) => (categoryId: string) => 
       state.loadedCategories.has(categoryId),
@@ -211,9 +211,7 @@ export const useStatementsStore = defineStore('statements', {
       if (!original) return
 
       // Optimistic delete
-      this.statements.delete(id)
-      const categoryIds = this.byCategoryId.get(original.categoryId)
-      categoryIds?.delete(id)
+      removeStatementFromState(this, id)
 
       const userId = resolveLocalUserId()
 
@@ -247,8 +245,7 @@ export const useStatementsStore = defineStore('statements', {
           return
         }
         // Rollback on error
-        this.statements.set(id, original)
-        categoryIds?.add(id)
+        addStatementToState(this, original)
         const error = err as Error
         this.error = error.message || 'Failed to delete statement'
         throw error
@@ -256,14 +253,7 @@ export const useStatementsStore = defineStore('statements', {
     },
 
     updateStatement(statement: Statement) {
-      this.statements.set(statement.id, statement)
-      
-      let categoryIds = this.byCategoryId.get(statement.categoryId)
-      if (!categoryIds) {
-        categoryIds = new Set()
-        this.byCategoryId.set(statement.categoryId, categoryIds)
-      }
-      categoryIds.add(statement.id)
+      addStatementToState(this, statement)
       const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         upsertStatement(userId, statement).catch((err) => {
@@ -273,11 +263,7 @@ export const useStatementsStore = defineStore('statements', {
     },
 
     removeStatement(id: string) {
-      const stmt = this.statements.get(id)
-      if (stmt) {
-        this.byCategoryId.get(stmt.categoryId)?.delete(id)
-      }
-      this.statements.delete(id)
+      removeStatementFromState(this, id)
       const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         deleteStatementCache(userId, id).catch((err) => {
@@ -293,29 +279,11 @@ export const useStatementsStore = defineStore('statements', {
     },
 
     setCategoryStatements(categoryId: string, statements: Statement[]) {
-      const existingIds = this.byCategoryId.get(categoryId)
-      if (existingIds) {
-        for (const id of existingIds) {
-          this.statements.delete(id)
-        }
-      }
-
-      const newIds = new Set<string>()
-      for (const stmt of statements) {
-        this.statements.set(stmt.id, stmt)
-        newIds.add(stmt.id)
-      }
-      this.byCategoryId.set(categoryId, newIds)
+      setCategoryStatementsInState(this, categoryId, statements)
     },
 
     addStatementToCategory(statement: Statement) {
-      this.statements.set(statement.id, statement)
-      let categoryIds = this.byCategoryId.get(statement.categoryId)
-      if (!categoryIds) {
-        categoryIds = new Set()
-        this.byCategoryId.set(statement.categoryId, categoryIds)
-      }
-      categoryIds.add(statement.id)
+      addStatementToState(this, statement)
     },
 
     addStatementLocal(statement: Statement) {
@@ -331,44 +299,11 @@ export const useStatementsStore = defineStore('statements', {
     async applyPendingQueue(userId: string, categoryId: string) {
       if (!import.meta.client) return
       const items = await getQueueItems(userId)
-      for (const item of items) {
-        switch (item.op) {
-          case 'statement_create': {
-            const payload = item.payload as { statement: Statement }
-            if (payload.statement.categoryId === categoryId) {
-              this.addStatementToCategory(payload.statement)
-            }
-            break
-          }
-          case 'statement_update': {
-            const payload = item.payload as { id: string; text: string }
-            const existing = this.statements.get(payload.id)
-            if (existing && existing.categoryId === categoryId) {
-              this.statements.set(payload.id, { ...existing, text: payload.text })
-            }
-            break
-          }
-          case 'statement_delete': {
-            const payload = item.payload as { id: string }
-            const existing = this.statements.get(payload.id)
-            if (existing && existing.categoryId === categoryId) {
-              this.removeStatement(payload.id)
-            }
-            break
-          }
-          default:
-            break
-        }
-      }
+      applyPendingStatementQueue(this, items, categoryId)
     },
 
     async replaceStatementId(tempId: string, statement: Statement) {
-      const original = this.statements.get(tempId)
-      if (original) {
-        this.byCategoryId.get(original.categoryId)?.delete(tempId)
-      }
-      this.statements.delete(tempId)
-      this.addStatementToCategory(statement)
+      replaceStatementIdInState(this, tempId, statement)
       const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
         await replaceStatementIdCache(userId, tempId, statement)
@@ -376,23 +311,7 @@ export const useStatementsStore = defineStore('statements', {
     },
 
     async remapCategoryId(fromCategoryId: string, toCategoryId: string) {
-      const ids = this.byCategoryId.get(fromCategoryId)
-      if (!ids) return
-
-      let targetIds = this.byCategoryId.get(toCategoryId)
-      if (!targetIds) {
-        targetIds = new Set()
-        this.byCategoryId.set(toCategoryId, targetIds)
-      }
-
-      for (const id of ids) {
-        targetIds.add(id)
-        const stmt = this.statements.get(id)
-        if (stmt) {
-          this.statements.set(id, { ...stmt, categoryId: toCategoryId })
-        }
-      }
-      this.byCategoryId.delete(fromCategoryId)
+      remapCategoryIdInState(this, fromCategoryId, toCategoryId)
 
       const userId = resolveLocalUserId()
       if (import.meta.client && userId) {
