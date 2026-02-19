@@ -3,6 +3,11 @@ import type { UserState, UserPreferences } from '~/types/api'
 import { DEFAULT_PREFERENCES } from '~/types'
 import { getUserState, setUserState } from '~/utils/offlineDb'
 import { isOffline, shouldQueueOffline } from '~/utils/offline'
+import { useAuthStore } from './auth'
+import { useCategoriesStore } from './categories'
+import { useQuickesStore } from './quickes'
+import { useSettingsStore } from './settings'
+import { useStatementsStore } from './statements'
 
 interface UserStoreState {
   inited: boolean | null
@@ -32,7 +37,6 @@ export const useUserStore = defineStore('user', {
       this.error = null
 
       // Get userId from auth store
-      const { useAuthStore } = await import('./auth')
       const authStore = useAuthStore()
       const userId = authStore.user?.id
 
@@ -67,7 +71,6 @@ export const useUserStore = defineStore('user', {
         )
 
         if (this.hasRemotePreferences && import.meta.client) {
-          const { useSettingsStore } = await import('./settings')
           useSettingsStore().applyUserPreferences(this.preferences)
         }
 
@@ -96,7 +99,6 @@ export const useUserStore = defineStore('user', {
       this.inited = true
       this.error = null
 
-      const { useAuthStore } = await import('./auth')
       const authStore = useAuthStore()
       const userId = authStore.user?.id
 
@@ -132,7 +134,6 @@ export const useUserStore = defineStore('user', {
       Object.assign(this.preferences, preferences)
 
       // Get userId
-      const { useAuthStore } = await import('./auth')
       const authStore = useAuthStore()
       const userId = authStore.user?.id
 
@@ -183,9 +184,7 @@ export const useUserStore = defineStore('user', {
         this.preferences = { ...DEFAULT_PREFERENCES, ...state.preferences }
         this.hasRemotePreferences = Object.keys(state.preferences).length > 0
         if (import.meta.client) {
-          import('./settings').then(({ useSettingsStore }) => {
-            useSettingsStore().applyUserPreferences(this.preferences)
-          })
+          useSettingsStore().applyUserPreferences(this.preferences)
         }
       }
     },
@@ -197,18 +196,13 @@ export const useUserStore = defineStore('user', {
       try {
         const { api } = useAppServices()
         await api.user.deleteAccount({ deleteFirebase })
-        
+
         // Clear all stores
-        const { useAuthStore } = await import('./auth')
-        const { useCategoriesStore } = await import('./categories')
-        const { useStatementsStore } = await import('./statements')
-        const { useQuickesStore } = await import('./quickes')
-        
         useAuthStore().logout()
         useCategoriesStore().clearCache()
         useStatementsStore().clearCache()
         useQuickesStore().resetToDefaults()
-        
+
         this.inited = null
         this.preferences = { ...DEFAULT_PREFERENCES }
       } catch (err: unknown) {

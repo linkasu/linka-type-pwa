@@ -5,6 +5,8 @@ import type { OfflineQueueItem } from '~/types/offline'
 import { addQueueItem } from '~/utils/offlineDb'
 import { isOffline, shouldQueueOffline } from '~/utils/offline'
 import { useAnalytics } from '~/composables/useAnalytics'
+import { useAuthStore } from './auth'
+import { useUserStore } from './user'
 
 interface SettingsState extends UserPreferences {
   locale: 'ru' | 'en'
@@ -55,8 +57,6 @@ export const useSettingsStore = defineStore('settings', {
 
       if (!import.meta.client) return
 
-      const { useAuthStore } = await import('./auth')
-      const { useUserStore } = await import('./user')
       const authStore = useAuthStore()
 
       if (!authStore.isAuthenticated) return
@@ -116,7 +116,7 @@ export const useSettingsStore = defineStore('settings', {
 
       // Track settings changes
       if (import.meta.client) {
-        const { trackSettingsChanged, updateUserProperties } = useAnalytics()
+        const { trackSettingsChanged } = useAnalytics()
         for (const [key, value] of Object.entries(settings)) {
           if (value !== undefined) {
             trackSettingsChanged(key, value as string | boolean | number)
@@ -226,8 +226,6 @@ export const useSettingsStore = defineStore('settings', {
         pendingSync = null
 
         try {
-          const { useAuthStore } = await import('./auth')
-          const { useUserStore } = await import('./user')
           const authStore = useAuthStore()
           const userStore = useUserStore()
 
@@ -246,8 +244,6 @@ export const useSettingsStore = defineStore('settings', {
 
           await userStore.updatePreferences(patch)
         } catch (err) {
-          const { useAuthStore } = await import('./auth')
-          const { useUserStore } = await import('./user')
           const authStore = useAuthStore()
           const userStore = useUserStore()
 
