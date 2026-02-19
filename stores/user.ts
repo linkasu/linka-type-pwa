@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import type { UserState, UserPreferences } from '~/types/api'
-import { DEFAULT_PREFERENCES } from '~/types'
-import { getUserState, setUserState } from '~/utils/offlineDb'
 import { isOffline, shouldQueueOffline } from '~/utils/offline'
 import { useAuthStore } from './auth'
 import { useCategoriesStore } from './categories'
 import { useQuickesStore } from './quickes'
 import { useSettingsStore } from './settings'
 import { useStatementsStore } from './statements'
+import { loadCachedUserState, saveCachedUserState } from './user/cache'
+import { hasUserPreferences, mergeUserPreferences } from './user/preferences'
 
 interface UserStoreState {
   inited: boolean | null
@@ -20,7 +20,7 @@ interface UserStoreState {
 export const useUserStore = defineStore('user', {
   state: (): UserStoreState => ({
     inited: null,
-    preferences: { ...DEFAULT_PREFERENCES },
+    preferences: mergeUserPreferences(),
     hasRemotePreferences: false,
     isLoading: false,
     error: null,
@@ -35,54 +35,34 @@ export const useUserStore = defineStore('user', {
     async fetchState() {
       this.isLoading = true
       this.error = null
-
-      // Get userId from auth store
       const authStore = useAuthStore()
       const userId = authStore.user?.id
-
-      // 1. Try loading from IndexedDB cache first
       if (import.meta.client && userId) {
-        try {
-          const cached = await getUserState(userId)
-          if (cached) {
-            this.inited = cached.inited
-            this.preferences = { ...DEFAULT_PREFERENCES, ...cached.preferences }
-            this.hasRemotePreferences = Object.keys(cached.preferences).length > 0
-          }
-        } catch {
-          // Ignore cache errors
+        const cached = await loadCachedUserState(userId)
+        if (cached) {
+          this.inited = cached.inited
+          this.preferences = mergeUserPreferences(cached.preferences)
+          this.hasRemotePreferences = hasUserPreferences(cached.preferences)
         }
       }
-
-      // 2. If offline — exit without error (use cached data)
       if (import.meta.client && isOffline()) {
         this.isLoading = false
         return
       }
-
-      // 3. Fetch from server and save to cache
       try {
         const { api } = useAppServices()
         const state = await api.user.getState()
         this.inited = state.inited
-        this.preferences = { ...DEFAULT_PREFERENCES, ...state.preferences }
-        this.hasRemotePreferences = Boolean(
-          state.preferences && Object.keys(state.preferences).length > 0,
-        )
+        this.preferences = mergeUserPreferences(state.preferences)
+        this.hasRemotePreferences = hasUserPreferences(state.preferences)
 
         if (this.hasRemotePreferences && import.meta.client) {
           useSettingsStore().applyUserPreferences(this.preferences)
         }
-
-        // Save to cache
         if (import.meta.client && userId) {
-          await setUserState(userId, {
-            inited: state.inited,
-            preferences: this.preferences,
-          })
+          await saveCachedUserState(userId, state.inited, this.preferences)
         }
       } catch (err: unknown) {
-        // If we have cached data, don't throw error for network failures
         if (this.inited !== null) {
           this.isLoading = false
           return
@@ -103,10 +83,7 @@ export const useUserStore = defineStore('user', {
       const userId = authStore.user?.id
 
       if (import.meta.client && userId) {
-        await setUserState(userId, {
-          inited: true,
-          preferences: this.preferences,
-        })
+        await saveCachedUserState(userId, true, this.preferences)
       }
 
       try {
@@ -129,20 +106,11 @@ export const useUserStore = defineStore('user', {
     async updatePreferences(preferences: Partial<UserPreferences>) {
       const original = { ...this.preferences }
       const originalHasRemote = this.hasRemotePreferences
-
-      // Optimistic update
       Object.assign(this.preferences, preferences)
-
-      // Get userId
       const authStore = useAuthStore()
       const userId = authStore.user?.id
-
-      // Update cache immediately (optimistic)
       if (import.meta.client && userId && this.inited !== null) {
-        await setUserState(userId, {
-          inited: this.inited,
-          preferences: this.preferences,
-        })
+        await saveCachedUserState(userId, this.inited, this.preferences)
       }
 
       try {
@@ -157,15 +125,10 @@ export const useUserStore = defineStore('user', {
         if (shouldQueueOffline(err)) {
           return
         }
-        // Rollback on error
         this.preferences = original
         this.hasRemotePreferences = originalHasRemote
-        // Rollback cache
         if (import.meta.client && userId && this.inited !== null) {
-          await setUserState(userId, {
-            inited: this.inited,
-            preferences: original,
-          })
+          await saveCachedUserState(userId, this.inited, original)
         }
         const error = err as Error
         this.error = error.message || 'Failed to update preferences'
@@ -181,8 +144,8 @@ export const useUserStore = defineStore('user', {
     updateState(state: UserState) {
       this.inited = state.inited
       if (state.preferences) {
-        this.preferences = { ...DEFAULT_PREFERENCES, ...state.preferences }
-        this.hasRemotePreferences = Object.keys(state.preferences).length > 0
+        this.preferences = mergeUserPreferences(state.preferences)
+        this.hasRemotePreferences = hasUserPreferences(state.preferences)
         if (import.meta.client) {
           useSettingsStore().applyUserPreferences(this.preferences)
         }
@@ -196,15 +159,13 @@ export const useUserStore = defineStore('user', {
       try {
         const { api } = useAppServices()
         await api.user.deleteAccount({ deleteFirebase })
-
-        // Clear all stores
         useAuthStore().logout()
         useCategoriesStore().clearCache()
         useStatementsStore().clearCache()
         useQuickesStore().resetToDefaults()
 
         this.inited = null
-        this.preferences = { ...DEFAULT_PREFERENCES }
+        this.preferences = mergeUserPreferences()
       } catch (err: unknown) {
         const error = err as Error
         this.error = error.message || 'Failed to delete account'
@@ -216,7 +177,7 @@ export const useUserStore = defineStore('user', {
 
     reset() {
       this.inited = null
-      this.preferences = { ...DEFAULT_PREFERENCES }
+      this.preferences = mergeUserPreferences()
       this.hasRemotePreferences = false
       this.error = null
     },
