@@ -92,21 +92,30 @@ jobs:
         run: |
           set -euo pipefail
           CERT_FILE="$RUNNER_TEMP/apple-cert.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain"
           KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          CERT_B64="$(printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | tr -d '\r\n')"
 
-          if printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode >"$CERT_FILE" 2>/dev/null; then
+          if printf '%s' "$CERT_B64" | base64 --decode >"$CERT_FILE" 2>/dev/null; then
             :
           else
-            printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 -D >"$CERT_FILE"
+            printf '%s' "$CERT_B64" | base64 -D >"$CERT_FILE"
+          fi
+
+          if ! openssl pkcs12 -in "$CERT_FILE" -passin "pass:$APPLE_CERTIFICATE_PASSWORD" -nokeys >/dev/null 2>&1; then
+            echo "::error::Unable to parse PKCS#12 certificate. Check APPLE_CERTIFICATE_P12_BASE64 and APPLE_CERTIFICATE_PASSWORD."
+            exit 1
           fi
 
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$CERT_FILE" -k "$KEYCHAIN_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_FILE" -k "$KEYCHAIN_PATH" -f pkcs12 -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/pkgbuild -T /usr/bin/productbuild -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          LOGIN_KEYCHAIN="$(security login-keychain | tr -d '"')"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$LOGIN_KEYCHAIN"
           security default-keychain -d user -s "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
           echo "CSC_KEYCHAIN=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
