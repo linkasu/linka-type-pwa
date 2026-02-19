@@ -2,6 +2,7 @@
 import { useTTS } from '~/composables/useTTS'
 import { useTypeSound } from '~/composables/useTypeSound'
 import { useChatKeyboard } from '~/composables/useChatKeyboard'
+import { useAudioRecording } from '~/composables/chat/useAudioRecording'
 import type { DialogChat, DialogMessage } from '~/types/api'
 
 type ChatSuggestion = {
@@ -31,23 +32,6 @@ type InputRef = {
 }
 const inputRef = ref<InputRef | null>(null)
 const messageListRef = ref<HTMLElement | null>(null)
-
-const isRecording = ref(false)
-const recordingError = ref<string | null>(null)
-const recordingDuration = ref(0)
-const recordingMimeType = ref('')
-let recorder: MediaRecorder | null = null
-let recorderStream: MediaStream | null = null
-let recorderChunks: Blob[] = []
-let recordingTimer: number | null = null
-let shouldSendRecording = true
-let recordingMode: 'ogg' | 'wav' = 'ogg'
-let audioContext: AudioContext | null = null
-let sourceNode: MediaStreamAudioSourceNode | null = null
-let processorNode: ScriptProcessorNode | null = null
-let zeroGain: GainNode | null = null
-let wavChunks: Float32Array[] = []
-let wavSampleRate = 48000
 
 const focusInput = () => {
   const target = inputRef.value
@@ -265,232 +249,6 @@ const sendSuggestion = async (suggestion: ChatSuggestion) => {
   }
 }
 
-const RECORD_MIME_TYPE = 'audio/ogg;codecs=opus'
-
-const pickMimeType = () => {
-  if (typeof MediaRecorder === 'undefined') return ''
-  if (MediaRecorder.isTypeSupported(RECORD_MIME_TYPE)) return RECORD_MIME_TYPE
-  const fallbacks = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg']
-  return fallbacks.find(type => MediaRecorder.isTypeSupported(type)) ?? ''
-}
-
-const stopStream = () => {
-  recorderStream?.getTracks().forEach(track => track.stop())
-  recorderStream = null
-}
-
-const cleanupWavNodes = async () => {
-  if (processorNode) {
-    processorNode.disconnect()
-    processorNode.onaudioprocess = null
-    processorNode = null
-  }
-  if (sourceNode) {
-    sourceNode.disconnect()
-    sourceNode = null
-  }
-  if (zeroGain) {
-    zeroGain.disconnect()
-    zeroGain = null
-  }
-  if (audioContext) {
-    try {
-      await audioContext.close()
-    } catch {
-      // ignore close errors
-    }
-    audioContext = null
-  }
-}
-
-const writeWavString = (view: DataView, offset: number, value: string) => {
-  for (let i = 0; i < value.length; i += 1) {
-    view.setUint8(offset + i, value.charCodeAt(i))
-  }
-}
-
-const encodeWav = (chunks: Float32Array[], sampleRate: number): Blob => {
-  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
-  const buffer = new ArrayBuffer(44 + totalLength * 2)
-  const view = new DataView(buffer)
-
-  writeWavString(view, 0, 'RIFF')
-  view.setUint32(4, 36 + totalLength * 2, true)
-  writeWavString(view, 8, 'WAVE')
-  writeWavString(view, 12, 'fmt ')
-  view.setUint32(16, 16, true)
-  view.setUint16(20, 1, true)
-  view.setUint16(22, 1, true)
-  view.setUint32(24, sampleRate, true)
-  view.setUint32(28, sampleRate * 2, true)
-  view.setUint16(32, 2, true)
-  view.setUint16(34, 16, true)
-  writeWavString(view, 36, 'data')
-  view.setUint32(40, totalLength * 2, true)
-
-  let offset = 44
-  for (const chunk of chunks) {
-    for (let i = 0; i < chunk.length; i += 1) {
-      const sample = Math.max(-1, Math.min(1, chunk[i]))
-      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true)
-      offset += 2
-    }
-  }
-
-  return new Blob([buffer], { type: 'audio/wav' })
-}
-
-const startWavRecording = async () => {
-  const AudioCtx = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-  if (!AudioCtx || !recorderStream) {
-    recordingError.value = t('chat.errors.micUnsupported')
-    return
-  }
-
-  audioContext = new AudioCtx()
-  await audioContext.resume()
-  wavSampleRate = audioContext.sampleRate
-  wavChunks = []
-
-  sourceNode = audioContext.createMediaStreamSource(recorderStream)
-  processorNode = audioContext.createScriptProcessor(4096, 1, 1)
-  zeroGain = audioContext.createGain()
-  zeroGain.gain.value = 0
-
-  processorNode.onaudioprocess = (event) => {
-    const input = event.inputBuffer.getChannelData(0)
-    wavChunks.push(new Float32Array(input))
-  }
-
-  sourceNode.connect(processorNode)
-  processorNode.connect(zeroGain)
-  zeroGain.connect(audioContext.destination)
-
-  recordingMode = 'wav'
-  isRecording.value = true
-  startRecordingTimer()
-}
-
-const startRecordingTimer = () => {
-  recordingDuration.value = 0
-  const start = Date.now()
-  if (recordingTimer) {
-    clearInterval(recordingTimer)
-  }
-  recordingTimer = window.setInterval(() => {
-    recordingDuration.value = Date.now() - start
-  }, 500)
-}
-
-const stopRecordingTimer = () => {
-  if (recordingTimer) {
-    clearInterval(recordingTimer)
-    recordingTimer = null
-  }
-}
-
-const startRecording = async () => {
-  if (isRecording.value || isSending.value) return
-  if (!navigator.mediaDevices?.getUserMedia) {
-    recordingError.value = t('chat.errors.micUnsupported')
-    return
-  }
-
-  recordingError.value = null
-  shouldSendRecording = true
-
-  try {
-    recorderStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    recordingMimeType.value = pickMimeType()
-
-    if (recordingMimeType.value && MediaRecorder.isTypeSupported(recordingMimeType.value)) {
-      recorder = new MediaRecorder(recorderStream, { mimeType: recordingMimeType.value })
-      recorderChunks = []
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          recorderChunks.push(event.data)
-        }
-      }
-
-      recorder.onstop = async () => {
-        const recorderInstance = recorder
-        stopStream()
-        stopRecordingTimer()
-        isRecording.value = false
-        recorder = null
-
-        if (!shouldSendRecording) {
-          recorderChunks = []
-          return
-        }
-
-        const type = recorderInstance?.mimeType || recordingMimeType.value || RECORD_MIME_TYPE
-        const blob = new Blob(recorderChunks, { type })
-        recorderChunks = []
-        if (!blob.size) {
-          return
-        }
-        await sendAudioMessage(blob, type)
-      }
-
-      recorder.onerror = () => {
-        recordingError.value = t('chat.errors.sendAudio')
-        isRecording.value = false
-        recorder = null
-        stopStream()
-      }
-
-      recordingMode = 'ogg'
-      recorder.start()
-      isRecording.value = true
-      startRecordingTimer()
-    } else {
-      await startWavRecording()
-    }
-  } catch (err: unknown) {
-    stopStream()
-    const failure = err as Error
-    recordingError.value = failure.message || t('chat.errors.micDenied')
-  }
-}
-
-const stopRecording = (send = true) => {
-  if (!isRecording.value) return
-  shouldSendRecording = send
-
-  if (recordingMode === 'ogg') {
-    if (!recorder || recorder.state !== 'recording') return
-    recorder.stop()
-    return
-  }
-
-  isRecording.value = false
-  stopRecordingTimer()
-  const blob = encodeWav(wavChunks, wavSampleRate)
-  wavChunks = []
-  stopStream()
-  cleanupWavNodes().finally(() => {
-    if (shouldSendRecording && blob.size > 0) {
-      void sendAudioMessage(blob, 'audio/wav')
-    }
-  })
-}
-
-const toggleRecording = () => {
-  if (isRecording.value) {
-    stopRecording(true)
-  } else {
-    void startRecording()
-  }
-}
-
-const stopRecordingAndDiscard = () => {
-  if (isRecording.value) {
-    stopRecording(false)
-  }
-}
-
 const sendAudioMessage = async (blob: Blob, mimeType: string) => {
   if (!activeChatId.value) return
   isSending.value = true
@@ -530,6 +288,20 @@ const sendAudioMessage = async (blob: Blob, mimeType: string) => {
     isSending.value = false
   }
 }
+
+const {
+  isRecording,
+  recordingError,
+  recordingDuration,
+  startRecording,
+  stopRecording,
+  toggleRecording,
+  stopRecordingAndDiscard,
+} = useAudioRecording({
+  t: (key: string) => t(key),
+  isBusy: isSending,
+  onRecordingReady: (blob, mimeType) => sendAudioMessage(blob, mimeType),
+})
 
 watch(activeChatId, (chatId) => {
   if (chatId) {
@@ -574,13 +346,6 @@ useChatKeyboard({
 
 onMounted(async () => {
   await loadChats()
-})
-
-onUnmounted(() => {
-  stopRecordingAndDiscard()
-  stopStream()
-  stopRecordingTimer()
-  void cleanupWavNodes()
 })
 </script>
 
