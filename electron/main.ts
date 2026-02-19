@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import updater from 'electron-updater'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { registerBackendRequestIpc } from './backendRequest'
+import { registerBackendRequestIpc } from './backendRequest.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
