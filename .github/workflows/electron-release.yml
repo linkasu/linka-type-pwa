@@ -168,8 +168,8 @@ jobs:
             -name '*.exe' -o \
             -name '*.AppImage' -o \
             -name '*.deb' -o \
-            -name '*.yml' -o \
-            -name '*.yaml' -o \
+            -name 'latest*.yml' -o \
+            -name 'latest*.yaml' -o \
             -name '*.blockmap' \
           \) | sort)
 
