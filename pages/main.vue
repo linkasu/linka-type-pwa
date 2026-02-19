@@ -7,11 +7,6 @@ import { useMainKeyboard } from '~/composables/useMainKeyboard'
 import { useTypeSound } from '~/composables/useTypeSound'
 import { useAnalytics } from '~/composables/useAnalytics'
 
-definePageMeta({
-  layout: 'app',
-  middleware: ['auth', 'setup'],
-})
-
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
 const categoriesStore = useCategoriesStore()
@@ -21,7 +16,7 @@ const { handleTextInput } = useTypeSound()
 const { trackSay, trackSpotlight } = useAnalytics()
 
 const chats = ref(['', '', ''])
-const activeChat = useState<number>('activeChat', () => 0)
+const activeChat = useSharedState<number>('activeChat', () => 0)
 const showMode = ref(false)
 const showDownload = ref(false)
 const mainInputRef = ref<{ focus: () => void } | null>(null)

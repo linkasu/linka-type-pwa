@@ -4,17 +4,11 @@ import AppRoot from './AppRoot.vue'
 import { vuetify } from './plugins/vuetify'
 import { i18n } from './plugins/i18n'
 import { router } from './router'
-import {
-  installNuxtCompat,
-  runNuxtPlugin,
-  setNuxtAppContext,
-  type NuxtLikeApp,
-  type RuntimeConfig,
-} from './nuxt-compat'
+import { installAppServices, type AppServices, type RuntimeConfig } from './app-context'
 
-import apiPlugin from '~/plugins/api'
-import offlinePlugin from '~/plugins/offline.client'
-import firebasePlugin from '~/plugins/firebase.client'
+import { createAppApi } from '~/plugins/api'
+import { initializeOfflineSync } from '~/plugins/offline.client'
+import { initializeFirebase } from '~/plugins/firebase.client'
 
 import '@mdi/font/css/materialdesignicons.css'
 import '~/assets/styles/main.scss'
@@ -41,24 +35,19 @@ async function bootstrap() {
     },
   }
 
-  const nuxtLikeApp: NuxtLikeApp & Record<string, unknown> = {
-    $api: {} as NuxtLikeApp['$api'],
-    $analytics: null,
-    $firebase: null,
-    $config: runtimeConfig,
-    provide(name: string, value: unknown) {
-      const key = `$${name}`
-      nuxtLikeApp[key] = value
-      ;(app.config.globalProperties as Record<string, unknown>)[key] = value
-    },
+  const api = createAppApi(runtimeConfig)
+  const { firebase, analytics } = await initializeFirebase(runtimeConfig)
+
+  const services: AppServices = {
+    api,
+    firebase,
+    analytics,
+    config: runtimeConfig,
+    router,
   }
 
-  installNuxtCompat(app, nuxtLikeApp)
-  setNuxtAppContext(nuxtLikeApp, router)
-
-  await runNuxtPlugin(apiPlugin, nuxtLikeApp)
-  await runNuxtPlugin(firebasePlugin, nuxtLikeApp)
-  await runNuxtPlugin(offlinePlugin, nuxtLikeApp)
+  installAppServices(app, services)
+  await initializeOfflineSync()
 
   await router.isReady()
   app.mount('#app')

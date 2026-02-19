@@ -75,8 +75,8 @@ export const useCategoriesStore = defineStore('categories', {
       }
 
       try {
-        const { $api } = useNuxtApp()
-        const categories = await $api.categories.getAll()
+        const { api } = useAppServices()
+        const categories = await api.categories.getAll()
         this.setFromList(categories)
         this.lastFetchTime = Date.now()
         if (import.meta.client && userId) {
@@ -119,8 +119,8 @@ export const useCategoriesStore = defineStore('categories', {
           return category
         }
 
-        const { $api } = useNuxtApp()
-        const category = await $api.categories.create({ label, created: Date.now(), aiUse })
+        const { api } = useAppServices()
+        const category = await api.categories.create({ label, created: Date.now(), aiUse })
         const normalized = { ...category, aiUse: category.aiUse ?? aiUse ?? false }
         this.categories.set(normalized.id, normalized)
         if (import.meta.client && userId) {
@@ -179,8 +179,8 @@ export const useCategoriesStore = defineStore('categories', {
           return updatedCategory
         }
 
-        const { $api } = useNuxtApp()
-        const updated = await $api.categories.update(id, { label, aiUse })
+        const { api } = useAppServices()
+        const updated = await api.categories.update(id, { label, aiUse })
         const normalized = { ...updated, aiUse: updated.aiUse ?? false }
         this.categories.set(id, normalized)
         if (import.meta.client && userId) {
@@ -226,8 +226,8 @@ export const useCategoriesStore = defineStore('categories', {
           return
         }
 
-        const { $api } = useNuxtApp()
-        await $api.categories.delete(id)
+        const { api } = useAppServices()
+        await api.categories.delete(id)
         if (import.meta.client && userId) {
           await deleteCategoryCache(userId, id)
         }

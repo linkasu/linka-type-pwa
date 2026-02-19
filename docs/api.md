@@ -3,36 +3,35 @@
 ## API layers
 - Client API modules: `api/*.ts`
   - Use `getApiClient()` from `api/client.ts` (Axios).
-  - Exposed to app via `$api` in `plugins/api.ts`.
-- Server API routes: `server/api/*`
-  - Run on Nuxt server and forward to backend.
-  - Use `backendRequest()` helper.
+  - Exposed to app via `useAppServices().api`.
+- Desktop bridge transport:
+  - `electron/main.ts` exposes `window.desktop.backend.request`.
+  - `api/client.ts` switches to desktop adapter when bridge is available.
 
 ## Base URL
 - Backend base URL: `API_BASE_URL` env var
 - Default: `https://backend.linka.su`
 
 ## Auth endpoints
-- `/api/auth` (login)
-- `/api/auth/register`
-- `/api/auth/refresh`
-- `/api/auth/logout`
+- `/v1/auth` (login)
+- `/v1/auth/register`
+- `/v1/auth/refresh`
+- `/v1/auth/logout`
 
-Server routes set `refresh_token` cookie and enforce same-origin on refresh/logout.
-Access token is returned in JSON and stored in Pinia only.
+Access token is stored in Pinia only. Refresh token is managed in desktop auth flow.
 
 ## Main resource endpoints
-Client uses these via `$api`:
-- Categories: `/api/categories` and `/api/categories/:id`
-- Statements: `/api/statements` and `/api/statements/:id`
-- Statements by category: `/api/categories/:id/statements`
-- Quickes: `/api/quickes`
-- User state: `/api/user/state` (GET/PUT)
-- Global import: `/api/global/categories`, `/api/global/categories/:id/statements`, `/api/global/import`
-- TTS: `/api/tts` and `/api/voices`
-- Predictor: `/api/predictor?q=...`
-- Onboarding: `/api/onboarding/phrases`
-- Factory questions: `/api/factory/questions`
+Client uses these via `api`:
+- Categories: `/v1/categories` and `/v1/categories/:id`
+- Statements: `/v1/statements` and `/v1/statements/:id`
+- Statements by category: `/v1/categories/:id/statements`
+- Quickes: `/v1/quickes`
+- User state: `/v1/user/state` (GET/PUT)
+- Global import: `/v1/global/categories`, `/v1/global/categories/:id/statements`, `/v1/global/import`
+- TTS: `/v1/tts` and `/v1/voices`
+- Predictor: `/v1/predictor`
+- Onboarding: `/v1/onboarding/phrases`
+- Factory questions: `/v1/factory/questions`
 
 ## Axios behavior
 `api/client.ts` adds the Bearer token to requests and:
@@ -44,6 +43,6 @@ Client uses these via `$api`:
 - Categories and statements are normalized for snake_case fields in `api/normalize.ts`.
 - Ensure new fields are normalized if backend adds them.
 
-## Security helpers
-- `server/utils/security.ts` checks same-origin for sensitive routes.
-- `server/utils/backend.ts` builds headers, forwards auth, and normalizes errors.
+## Transport notes
+- Desktop backend requests include `X-Client-Type: native`.
+- `api/client.ts` maps backend `{ error: { code, message } }` into `Error`.

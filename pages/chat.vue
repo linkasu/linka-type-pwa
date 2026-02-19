@@ -9,13 +9,8 @@ type ChatSuggestion = {
   text: string
 }
 
-definePageMeta({
-  layout: 'app',
-  middleware: ['auth', 'setup'],
-})
-
 const { t, locale } = useI18n()
-const { $api } = useNuxtApp()
+const { api } = useAppServices()
 const { speak, stop, isPlaying } = useTTS()
 const { handleTextInput } = useTypeSound()
 
@@ -91,11 +86,11 @@ const loadChats = async () => {
   isLoadingChats.value = true
   error.value = null
   try {
-    const list = await $api.dialog.listChats()
+    const list = await api.dialog.listChats()
     const sorted = sortChats(list)
     chats.value = sorted
     if (!sorted.length) {
-      const created = await $api.dialog.createChat({})
+      const created = await api.dialog.createChat({})
       chats.value = [created]
       activeChatId.value = created.id
       return
@@ -113,7 +108,7 @@ const loadChats = async () => {
 
 const loadChatSuggestions = async (chatId: string): Promise<boolean> => {
   try {
-    const pendingSuggestions = await $api.dialog.listSuggestions('pending', 200)
+    const pendingSuggestions = await api.dialog.listSuggestions('pending', 200)
     const chatSuggestions = pendingSuggestions
       .filter(s => s.chatId === chatId)
       .map(s => ({ id: s.id, text: s.text }))
@@ -131,7 +126,7 @@ const loadMessages = async (chatId: string) => {
   isLoadingMessages.value = true
   error.value = null
   try {
-    const list = await $api.dialog.listMessages(chatId, { limit: 200 })
+    const list = await api.dialog.listMessages(chatId, { limit: 200 })
     messages.value = list
     await loadChatSuggestions(chatId)
 
@@ -171,7 +166,7 @@ const updateActiveChatMeta = (timestamp: number) => {
 
 const createChat = async () => {
   try {
-    const chat = await $api.dialog.createChat({})
+    const chat = await api.dialog.createChat({})
     chats.value = sortChats([chat, ...chats.value])
     activeChatId.value = chat.id
   } catch (err: unknown) {
@@ -182,7 +177,7 @@ const createChat = async () => {
 
 const deleteChat = async (chatId: string) => {
   try {
-    await $api.dialog.deleteChat(chatId)
+    await api.dialog.deleteChat(chatId)
     chats.value = chats.value.filter(chat => chat.id !== chatId)
     if (activeChatId.value === chatId) {
       activeChatId.value = chats.value[0]?.id ?? null
@@ -210,7 +205,7 @@ const sendTypedMessage = async (): Promise<boolean> => {
       stop()
     }
     void speak(text)
-    const result = await $api.dialog.createMessage(activeChatId.value, {
+    const result = await api.dialog.createMessage(activeChatId.value, {
       role: 'disabled_person',
       content: text,
       source: 'typed',
@@ -233,7 +228,7 @@ const sendTypedMessage = async (): Promise<boolean> => {
 const resolveSuggestionId = async (text: string): Promise<string | null> => {
   if (!activeChatId.value) return null
   try {
-    const pendingSuggestions = await $api.dialog.listSuggestions('pending', 200)
+    const pendingSuggestions = await api.dialog.listSuggestions('pending', 200)
     const match = pendingSuggestions.find(
       suggestion => suggestion.chatId === activeChatId.value && suggestion.text === text,
     )
@@ -250,7 +245,7 @@ const dismissSuggestion = async (suggestion: ChatSuggestion) => {
   if (!suggestionId) return
 
   try {
-    await $api.dialog.dismissSuggestions([suggestionId])
+    await api.dialog.dismissSuggestions([suggestionId])
     if (hadId) {
       quickSuggestions.value = quickSuggestions.value.filter(item => item.id !== suggestionId)
     } else {
@@ -509,7 +504,7 @@ const sendAudioMessage = async (blob: Blob, mimeType: string) => {
   const filename = `recording-${Date.now()}.${ext}`
 
   try {
-    const result = await $api.dialog.createMessageWithAudio(
+    const result = await api.dialog.createMessageWithAudio(
       activeChatId.value,
       {
         role: 'speaker',

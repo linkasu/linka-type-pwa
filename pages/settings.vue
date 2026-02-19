@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { useSettingsStore } from '~/stores/settings'
 
-definePageMeta({
-  layout: 'app',
-  middleware: ['auth'],
-})
-
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
 const router = useRouter()

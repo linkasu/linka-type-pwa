@@ -10,34 +10,30 @@ import { onboardingApi } from '@/api/onboarding'
 import { predictorApi } from '@/api/predictor'
 import { dialogApi } from '@/api/dialog'
 import { useAuthStore } from '@/stores/auth'
+import type { AppApi, RuntimeConfig } from '~/src/renderer/app-context'
 
-export default defineNuxtPlugin(() => {
+export function createAppApi(config: RuntimeConfig): AppApi {
   const authStore = useAuthStore()
 
   const getToken = () => authStore.token
   const setToken = (token: string) => authStore.setToken(token)
   const setUser = (user: { id: string; email: string }) => authStore.setUser(user)
   const clearAuth = () => authStore.clearAuth()
-  const config = useRuntimeConfig()
   const baseUrl = config.public.apiBaseUrl?.replace(/\/$/, '') || 'https://backend.linka.su'
 
   // Keep one shared API client configured for /v1 backend endpoints.
   createApiClient(`${baseUrl}/v1`, getToken, setToken, setUser, clearAuth)
 
   return {
-    provide: {
-      api: {
-        auth: authApi,
-        categories: categoriesApi,
-        statements: statementsApi,
-        quickes: quickesApi,
-        user: userApi,
-        global: globalApi,
-        tts: ttsApi,
-        onboarding: onboardingApi,
-        predictor: predictorApi,
-        dialog: dialogApi,
-      },
-    },
+    auth: authApi,
+    categories: categoriesApi,
+    statements: statementsApi,
+    quickes: quickesApi,
+    user: userApi,
+    global: globalApi,
+    tts: ttsApi,
+    onboarding: onboardingApi,
+    predictor: predictorApi,
+    dialog: dialogApi,
   }
-})
+}

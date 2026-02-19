@@ -123,7 +123,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
       const userId = authStore.user?.id
       if (!userId) return
 
-      const { $api } = useNuxtApp()
+      const { api } = useAppServices()
       const categoriesStore = useCategoriesStore()
       const statementsStore = useStatementsStore()
 
@@ -134,11 +134,11 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
             if (conflict.conflictType === 'update_delete') {
               // Re-create the category with local data
               const payload = conflict.localChange.payload as CategoryUpdatePayload
-              const created = await $api.categories.create({ label: payload.label, aiUse: payload.aiUse })
+              const created = await api.categories.create({ label: payload.label, aiUse: payload.aiUse })
               await categoriesStore.replaceCategoryId(conflict.entityId, created)
             } else {
               const payload = conflict.localChange.payload as CategoryUpdatePayload
-              const updated = await $api.categories.update(conflict.entityId, { label: payload.label, aiUse: payload.aiUse })
+              const updated = await api.categories.update(conflict.entityId, { label: payload.label, aiUse: payload.aiUse })
               await categoriesStore.updateCategory(updated)
             }
           } else if (conflict.entityType === 'statement') {
@@ -147,12 +147,12 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               const payload = conflict.localChange.payload as StatementUpdatePayload
               const original = statementsStore.getById(conflict.entityId)
               if (original) {
-                const created = await $api.statements.create({ categoryId: original.categoryId, text: payload.text })
+                const created = await api.statements.create({ categoryId: original.categoryId, text: payload.text })
                 await statementsStore.replaceStatementId(conflict.entityId, created)
               }
             } else {
               const payload = conflict.localChange.payload as StatementUpdatePayload
-              const updated = await $api.statements.update(conflict.entityId, { text: payload.text })
+              const updated = await api.statements.update(conflict.entityId, { text: payload.text })
               await statementsStore.updateStatement(updated)
             }
           }
@@ -235,7 +235,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
         this.pendingCount = items.length
         if (items.length === 0) return
 
-        const { $api } = useNuxtApp()
+        const { api } = useAppServices()
 
         for (let index = 0; index < items.length; index++) {
           const item = items[index]
@@ -244,7 +244,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
             switch (item.op) {
               case 'category_create': {
                 const payload = item.payload as CategoryCreatePayload
-                const created = await $api.categories.create({
+                const created = await api.categories.create({
                   label: payload.category.label,
                   created: payload.category.created,
                   aiUse: payload.category.aiUse,
@@ -273,7 +273,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                 // Check for conflicts by fetching current server state
                 if (payload.originalLabel !== undefined) {
                   try {
-                    const current = await $api.categories.getById(resolvedId)
+                    const current = await api.categories.getById(resolvedId)
                     // Conflict: server has different value than our original
                     if (current.label !== payload.originalLabel || current.aiUse !== payload.originalAiUse) {
                       this.conflicts.push({
@@ -307,7 +307,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                   }
                 }
 
-                const updated = await $api.categories.update(resolvedId, { label: payload.label, aiUse: payload.aiUse })
+                const updated = await api.categories.update(resolvedId, { label: payload.label, aiUse: payload.aiUse })
                 await categoriesStore.updateCategory(updated)
                 if (item.id !== undefined) {
                   await deleteQueueItem(item.id)
@@ -318,7 +318,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               case 'category_delete': {
                 const payload = item.payload as CategoryDeletePayload
                 const resolvedId = idMap.get(payload.id) ?? payload.id
-                await $api.categories.delete(resolvedId)
+                await api.categories.delete(resolvedId)
                 await categoriesStore.removeCategory(resolvedId)
                 await statementsStore.removeStatementsByCategory(resolvedId)
                 if (item.id !== undefined) {
@@ -330,7 +330,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               case 'statement_create': {
                 const payload = item.payload as StatementCreatePayload
                 const resolvedCategoryId = idMap.get(payload.statement.categoryId) ?? payload.statement.categoryId
-                const created = await $api.statements.create({
+                const created = await api.statements.create({
                   categoryId: resolvedCategoryId,
                   text: payload.statement.text,
                   created: payload.statement.created,
@@ -358,7 +358,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                 // Check for conflicts by fetching current server state
                 if (payload.originalText !== undefined) {
                   try {
-                    const current = await $api.statements.getById(resolvedId)
+                    const current = await api.statements.getById(resolvedId)
                     // Conflict: server has different value than our original
                     if (current.text !== payload.originalText) {
                       this.conflicts.push({
@@ -392,7 +392,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
                   }
                 }
 
-                const updated = await $api.statements.update(resolvedId, { text: payload.text })
+                const updated = await api.statements.update(resolvedId, { text: payload.text })
                 await statementsStore.updateStatement(updated)
                 if (item.id !== undefined) {
                   await deleteQueueItem(item.id)
@@ -403,7 +403,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               case 'statement_delete': {
                 const payload = item.payload as StatementDeletePayload
                 const resolvedId = idMap.get(payload.id) ?? payload.id
-                await $api.statements.delete(resolvedId)
+                await api.statements.delete(resolvedId)
                 await statementsStore.removeStatement(resolvedId)
                 if (item.id !== undefined) {
                   await deleteQueueItem(item.id)
@@ -413,7 +413,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               }
               case 'quickes_update': {
                 const payload = item.payload as QuickesUpdatePayload
-                await $api.quickes.update({ quickes: payload.quickes })
+                await api.quickes.update({ quickes: payload.quickes })
                 quickesStore.setQuickes(payload.quickes)
                 if (item.id !== undefined) {
                   await deleteQueueItem(item.id)
@@ -423,7 +423,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               }
               case 'user_prefs_update': {
                 const payload = item.payload as UserPrefsUpdatePayload
-                await $api.user.updateState({ preferences: payload.preferences })
+                await api.user.updateState({ preferences: payload.preferences })
                 settingsStore.applySettingsPatch(payload.preferences)
                 userStore.applyPreferencesPatch(payload.preferences)
                 if (item.id !== undefined) {

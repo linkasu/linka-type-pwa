@@ -5,10 +5,11 @@ import {
   setAnalyticsCollectionEnabled,
   type Analytics,
 } from 'firebase/analytics'
+import type { RuntimeConfig } from '~/src/renderer/app-context'
 
-export default defineNuxtPlugin(async () => {
-  const config = useRuntimeConfig()
-
+export async function initializeFirebase(
+  config: RuntimeConfig,
+): Promise<{ firebase: FirebaseApp | null; analytics: Analytics | null }> {
   const firebaseConfig = {
     apiKey: config.public.firebaseApiKey,
     authDomain: config.public.firebaseAuthDomain,
@@ -19,21 +20,16 @@ export default defineNuxtPlugin(async () => {
     measurementId: config.public.firebaseMeasurementId,
   }
 
-  let firebaseApp: FirebaseApp | null = null
-  let analytics: Analytics | null = null
-
   try {
-    // Check if analytics is supported (not in incognito, etc.)
     const supported = await isSupported()
     if (!supported) {
       console.warn('Firebase Analytics not supported in this environment')
-      return { provide: { firebase: null, analytics: null } }
+      return { firebase: null, analytics: null }
     }
 
-    firebaseApp = initializeApp(firebaseConfig)
-    analytics = getAnalytics(firebaseApp)
+    const firebaseApp = initializeApp(firebaseConfig)
+    const analytics = getAnalytics(firebaseApp)
 
-    // Check consent status from localStorage
     const consent = localStorage.getItem('analytics_consent')
     if (consent === 'denied') {
       setAnalyticsCollectionEnabled(analytics, false)
@@ -42,15 +38,10 @@ export default defineNuxtPlugin(async () => {
     if (import.meta.dev) {
       console.log('Firebase Analytics initialized')
     }
+
+    return { firebase: firebaseApp, analytics }
   } catch (error) {
     console.error('Failed to initialize Firebase:', error)
-    return { provide: { firebase: null, analytics: null } }
+    return { firebase: null, analytics: null }
   }
-
-  return {
-    provide: {
-      firebase: firebaseApp,
-      analytics,
-    },
-  }
-})
+}

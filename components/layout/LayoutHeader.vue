@@ -10,7 +10,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const realtimeStore = useRealtimeStore()
-const activeChat = useState<number>('activeChat', () => 0)
+const activeChat = useSharedState<number>('activeChat', () => 0)
 
 const isMainRoute = computed(() => route.path === '/main')
 const isSettingsRoute = computed(() => route.path.startsWith('/settings'))

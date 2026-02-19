@@ -32,7 +32,7 @@ const isRussianVoice = (voice: Voice) => voice.lang.toLowerCase().startsWith('ru
 
 export function useVoiceTest() {
   const { t, locale } = useI18n()
-  const { $api } = useNuxtApp()
+  const { api } = useAppServices()
   const settingsStore = useSettingsStore()
 
   const isTestingVoice = ref(false)
@@ -65,7 +65,7 @@ export function useVoiceTest() {
     if (settingsStore.yandex) {
       isTestingVoice.value = true
       try {
-        const blob = await $api.tts.synthesize({
+        const blob = await api.tts.synthesize({
           text: testText,
           voice: yandexVoice,
           speed: settingsStore.rate,
@@ -91,7 +91,7 @@ export function useVoiceTest() {
 }
 
 export function useVoiceLoader() {
-  const { $api } = useNuxtApp()
+  const { api } = useAppServices()
 
   const ttsVoices = ref<Voice[]>([])
   const browserVoices = ref<SpeechSynthesisVoice[]>([])
@@ -101,7 +101,7 @@ export function useVoiceLoader() {
   const loadTtsVoices = async () => {
     isLoadingVoices.value = true
     try {
-      const loaded = (await $api.tts.getVoices()) as BackendVoice[]
+      const loaded = (await api.tts.getVoices()) as BackendVoice[]
       const normalized = loaded
         .map(normalizeVoice)
         .filter((voice) => Boolean(voice.id))

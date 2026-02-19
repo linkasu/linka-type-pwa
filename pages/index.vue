@@ -1,19 +1,16 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 
-definePageMeta({
-  layout: false,
-})
-
 const authStore = useAuthStore()
+const router = useRouter()
 
 onMounted(async () => {
   await authStore.initializeAuth()
   
   if (authStore.isAuthenticated) {
-    navigateTo('/main')
+    router.push('/main')
   } else {
-    navigateTo('/login')
+    router.push('/login')
   }
 })
 </script>

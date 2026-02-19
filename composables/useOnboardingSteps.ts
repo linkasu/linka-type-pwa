@@ -2,6 +2,7 @@ import { useUserStore } from '~/stores/user'
 
 export function useOnboardingSteps() {
   const userStore = useUserStore()
+const router = useRouter()
 
   const currentStep = ref(1)
   const totalSteps = 3
@@ -23,7 +24,7 @@ export function useOnboardingSteps() {
     isLoading.value = true
     try {
       await userStore.setInitialized()
-      navigateTo('/main')
+      router.push('/main')
     } catch (err) {
       console.error('Failed to complete setup:', err)
     } finally {

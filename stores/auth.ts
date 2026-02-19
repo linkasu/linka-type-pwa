@@ -77,8 +77,8 @@ export const useAuthStore = defineStore('auth', {
 
         this.mode = 'online'
 
-        const { $api } = useNuxtApp()
-        const response = await $api.auth.login({
+        const { api } = useAppServices()
+        const response = await api.auth.login({
           email: trimmedEmail,
           password,
         })
@@ -107,8 +107,8 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const { $api } = useNuxtApp()
-        const response = await $api.auth.register({
+        const { api } = useAppServices()
+        const response = await api.auth.register({
           email: email.trim(),
           password,
         })
@@ -141,8 +141,8 @@ export const useAuthStore = defineStore('auth', {
       setAnalyticsUserId(null)
 
       try {
-        const { $api } = useNuxtApp()
-        await $api.auth.logout()
+        const { api } = useAppServices()
+        await api.auth.logout()
       } catch {
         // Ignore logout errors.
       }
@@ -164,8 +164,8 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const { $api } = useNuxtApp()
-        await $api.auth.resetPassword({ email: email.trim() })
+        const { api } = useAppServices()
+        await api.auth.resetPassword({ email: email.trim() })
       } catch (err: unknown) {
         const error = err as Error
         this.error = error.message || 'Password reset failed'
@@ -181,8 +181,8 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const { $api } = useNuxtApp()
-        const response = await $api.auth.refresh()
+        const { api } = useAppServices()
+        const response = await api.auth.refresh()
 
         this.token = response.token
         this.user = response.user

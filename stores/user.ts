@@ -58,8 +58,8 @@ export const useUserStore = defineStore('user', {
 
       // 3. Fetch from server and save to cache
       try {
-        const { $api } = useNuxtApp()
-        const state = await $api.user.getState()
+        const { api } = useAppServices()
+        const state = await api.user.getState()
         this.inited = state.inited
         this.preferences = { ...DEFAULT_PREFERENCES, ...state.preferences }
         this.hasRemotePreferences = Boolean(
@@ -112,8 +112,8 @@ export const useUserStore = defineStore('user', {
           return
         }
 
-        const { $api } = useNuxtApp()
-        await $api.user.updateState({ inited: true })
+        const { api } = useAppServices()
+        await api.user.updateState({ inited: true })
       } catch (err: unknown) {
         if (shouldQueueOffline(err)) {
           return
@@ -149,8 +149,8 @@ export const useUserStore = defineStore('user', {
           return
         }
 
-        const { $api } = useNuxtApp()
-        await $api.user.updateState({ preferences })
+        const { api } = useAppServices()
+        await api.user.updateState({ preferences })
         this.hasRemotePreferences = true
       } catch (err: unknown) {
         if (shouldQueueOffline(err)) {
@@ -195,8 +195,8 @@ export const useUserStore = defineStore('user', {
       this.error = null
 
       try {
-        const { $api } = useNuxtApp()
-        await $api.user.deleteAccount({ deleteFirebase })
+        const { api } = useAppServices()
+        await api.user.deleteAccount({ deleteFirebase })
         
         // Clear all stores
         const { useAuthStore } = await import('./auth')

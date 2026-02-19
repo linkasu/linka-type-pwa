@@ -1,7 +1,7 @@
 import { useAuthStore } from '~/stores/auth'
 import { useOfflineQueueStore } from '~/stores/offlineQueue'
 
-export default defineNuxtPlugin(async () => {
+export async function initializeOfflineSync(): Promise<void> {
   const authStore = useAuthStore()
   authStore.loadFromStorage()
 
@@ -20,4 +20,4 @@ export default defineNuxtPlugin(async () => {
       console.error('Failed to flush offline queue on reconnect:', err)
     })
   })
-})
+}

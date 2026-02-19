@@ -21,17 +21,6 @@ export default defineConfig({
         {
           '~/src/renderer/use-i18n-compat': ['useI18n'],
         },
-        {
-          '~/src/renderer/nuxt-compat': [
-            'useNuxtApp',
-            'defineNuxtPlugin',
-            'definePageMeta',
-            'navigateTo',
-            'useState',
-            'useRuntimeConfig',
-            'defineNuxtRouteMiddleware',
-          ],
-        },
       ],
       dirs: ['composables'],
       dts: 'src/renderer/auto-imports.d.ts',

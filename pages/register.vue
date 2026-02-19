@@ -2,13 +2,10 @@
 import { useAuthStore } from '~/stores/auth'
 import { useUserStore } from '~/stores/user'
 
-definePageMeta({
-  layout: 'auth',
-})
-
 const { t } = useI18n()
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -51,9 +48,9 @@ const handleSubmit = async () => {
     successMessage.value = t('auth.registerSuccess')
 
     if (userStore.needsSetup) {
-      navigateTo('/setup')
+      router.push('/setup')
     } else {
-      navigateTo('/main')
+      router.push('/main')
     }
   } catch (err: unknown) {
     const error = err as Error
@@ -138,7 +135,7 @@ const handleSubmit = async () => {
         variant="text"
         color="primary"
         size="small"
-        @click="navigateTo('/login')"
+        @click="router.push('/login')"
       >
         {{ t('auth.login') }}
       </VBtn>

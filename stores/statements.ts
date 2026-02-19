@@ -81,8 +81,8 @@ export const useStatementsStore = defineStore('statements', {
       }
 
       try {
-        const { $api } = useNuxtApp()
-        const statements = await $api.statements.getByCategory(categoryId)
+        const { api } = useAppServices()
+        const statements = await api.statements.getByCategory(categoryId)
         this.setCategoryStatements(categoryId, statements)
         this.loadedCategories.add(categoryId)
         if (import.meta.client && userId) {
@@ -127,8 +127,8 @@ export const useStatementsStore = defineStore('statements', {
           return statement
         }
 
-        const { $api } = useNuxtApp()
-        const statement = await $api.statements.create({ categoryId, text, created: Date.now() })
+        const { api } = useAppServices()
+        const statement = await api.statements.create({ categoryId, text, created: Date.now() })
         this.addStatementToCategory(statement)
         if (import.meta.client && userId) {
           await upsertStatement(userId, statement)
@@ -180,8 +180,8 @@ export const useStatementsStore = defineStore('statements', {
           return { ...original, text }
         }
 
-        const { $api } = useNuxtApp()
-        const updated = await $api.statements.update(id, { text })
+        const { api } = useAppServices()
+        const updated = await api.statements.update(id, { text })
         this.statements.set(id, updated)
         if (import.meta.client && userId) {
           await upsertStatement(userId, updated)
@@ -230,8 +230,8 @@ export const useStatementsStore = defineStore('statements', {
           return
         }
 
-        const { $api } = useNuxtApp()
-        await $api.statements.delete(id)
+        const { api } = useAppServices()
+        await api.statements.delete(id)
         if (import.meta.client && userId) {
           await deleteStatementCache(userId, id)
         }

@@ -14,9 +14,6 @@ declare global {
   const customRef: typeof import('vue')['customRef']
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
-  const defineNuxtPlugin: typeof import('~/src/renderer/nuxt-compat')['defineNuxtPlugin']
-  const defineNuxtRouteMiddleware: typeof import('~/src/renderer/nuxt-compat')['defineNuxtRouteMiddleware']
-  const definePageMeta: typeof import('~/src/renderer/nuxt-compat')['definePageMeta']
   const defineStore: typeof import('pinia')['defineStore']
   const effectScope: typeof import('vue')['effectScope']
   const getActivePinia: typeof import('pinia')['getActivePinia']
@@ -34,7 +31,6 @@ declare global {
   const mapStores: typeof import('pinia')['mapStores']
   const mapWritableState: typeof import('pinia')['mapWritableState']
   const markRaw: typeof import('vue')['markRaw']
-  const navigateTo: typeof import('~/src/renderer/nuxt-compat')['navigateTo']
   const nextTick: typeof import('vue')['nextTick']
   const onActivated: typeof import('vue')['onActivated']
   const onBeforeMount: typeof import('vue')['onBeforeMount']
@@ -70,6 +66,7 @@ declare global {
   const triggerRef: typeof import('vue')['triggerRef']
   const unref: typeof import('vue')['unref']
   const useAnalytics: typeof import('../../composables/useAnalytics')['useAnalytics']
+  const useAppServices: typeof import('../../composables/useAppServices')['useAppServices']
   const useAttrs: typeof import('vue')['useAttrs']
   const useBankItems: typeof import('../../composables/useBankItems')['useBankItems']
   const useBankKeyboard: typeof import('../../composables/useBankKeyboard')['useBankKeyboard']
@@ -81,14 +78,12 @@ declare global {
   const useLink: typeof import('vue-router')['useLink']
   const useMainKeyboard: typeof import('../../composables/useMainKeyboard')['useMainKeyboard']
   const useModel: typeof import('vue')['useModel']
-  const useNuxtApp: typeof import('~/src/renderer/nuxt-compat')['useNuxtApp']
   const useOnboardingSteps: typeof import('../../composables/useOnboardingSteps')['useOnboardingSteps']
   const useReaderNavigation: typeof import('../../composables/useReaderNavigation')['useReaderNavigation']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']
-  const useRuntimeConfig: typeof import('~/src/renderer/nuxt-compat')['useRuntimeConfig']
+  const useSharedState: typeof import('../../composables/useSharedState')['useSharedState']
   const useSlots: typeof import('vue')['useSlots']
-  const useState: typeof import('~/src/renderer/nuxt-compat')['useState']
   const useSyncStatus: typeof import('../../composables/useSyncStatus')['useSyncStatus']
   const useTTS: typeof import('../../composables/useTTS')['useTTS']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
@@ -123,9 +118,6 @@ declare module 'vue' {
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
-    readonly defineNuxtPlugin: UnwrapRef<typeof import('~/src/renderer/nuxt-compat')['defineNuxtPlugin']>
-    readonly defineNuxtRouteMiddleware: UnwrapRef<typeof import('~/src/renderer/nuxt-compat')['defineNuxtRouteMiddleware']>
-    readonly definePageMeta: UnwrapRef<typeof import('~/src/renderer/nuxt-compat')['definePageMeta']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
@@ -143,7 +135,6 @@ declare module 'vue' {
     readonly mapStores: UnwrapRef<typeof import('pinia')['mapStores']>
     readonly mapWritableState: UnwrapRef<typeof import('pinia')['mapWritableState']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
-    readonly navigateTo: UnwrapRef<typeof import('~/src/renderer/nuxt-compat')['navigateTo']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
@@ -179,6 +170,7 @@ declare module 'vue' {
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAnalytics: UnwrapRef<typeof import('../../composables/useAnalytics')['useAnalytics']>
+    readonly useAppServices: UnwrapRef<typeof import('../../composables/useAppServices')['useAppServices']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useBankItems: UnwrapRef<typeof import('../../composables/useBankItems')['useBankItems']>
     readonly useBankKeyboard: UnwrapRef<typeof import('../../composables/useBankKeyboard')['useBankKeyboard']>
@@ -190,14 +182,12 @@ declare module 'vue' {
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useMainKeyboard: UnwrapRef<typeof import('../../composables/useMainKeyboard')['useMainKeyboard']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
-    readonly useNuxtApp: UnwrapRef<typeof import('~/src/renderer/nuxt-compat')['useNuxtApp']>
     readonly useOnboardingSteps: UnwrapRef<typeof import('../../composables/useOnboardingSteps')['useOnboardingSteps']>
     readonly useReaderNavigation: UnwrapRef<typeof import('../../composables/useReaderNavigation')['useReaderNavigation']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
-    readonly useRuntimeConfig: UnwrapRef<typeof import('~/src/renderer/nuxt-compat')['useRuntimeConfig']>
+    readonly useSharedState: UnwrapRef<typeof import('../../composables/useSharedState')['useSharedState']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
-    readonly useState: UnwrapRef<typeof import('~/src/renderer/nuxt-compat')['useState']>
     readonly useSyncStatus: UnwrapRef<typeof import('../../composables/useSyncStatus')['useSyncStatus']>
     readonly useTTS: UnwrapRef<typeof import('../../composables/useTTS')['useTTS']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>

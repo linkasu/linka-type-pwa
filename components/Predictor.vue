@@ -17,7 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { $api } = useNuxtApp()
+const { api } = useAppServices()
 const { trackPredicatorUse } = useAnalytics()
 
 const predictions = ref<string[]>([])
@@ -59,7 +59,7 @@ const fetchPredictions = async (text: string) => {
   isLoading.value = true
   
   try {
-    const data = await $api.predictor.complete(text, { lang: 'ru', limit: 5 })
+    const data = await api.predictor.complete(text, { lang: 'ru', limit: 5 })
     if (requestId !== activeRequestId) return
     predictions.value = data.text || []
     insertPosition.value = Number.isFinite(data.pos) ? data.pos : 0

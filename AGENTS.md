@@ -1,12 +1,12 @@
 # AGENTS.md
 
-This repo is the LINKa Type PWA v2 (Nuxt 4 + Vue 3 + Vuetify). It is a communication app for users with speech impairments: type text, speak via TTS, use quick phrases, and manage a phrase bank with categories.
+This repo is the LINKa Type PWA v2 (Electron + Vite + Vue 3 + Vuetify). It is a communication app for users with speech impairments: type text, speak via TTS, use quick phrases, and manage a phrase bank with categories.
 
 Use this file as guardrails when making changes.
 
 ## Quick product map
 - Entry flow: `/` -> `/login` or `/main` depending on auth and refresh token
-- Auth: email/password, refresh token in httpOnly cookie, access token in memory
+- Auth: email/password, refresh token stored locally for desktop mode, access token in memory
 - Setup: `/setup` onboarding stepper (voice settings + mark user initialized)
 - Main: `/main` input + predictor + quick phrases + bank + spotlight
 - Settings: `/settings` tabs for voice, adaptive options, import, account
@@ -15,7 +15,6 @@ Use this file as guardrails when making changes.
 - Client UI: `pages/`, `components/`, `layouts/`, `composables/`
 - State: Pinia stores in `stores/`
 - API client: `api/` uses Axios via `api/client.ts`
-- Server API proxy: `server/api/` forwards to backend via `server/utils/backend.ts`
 - Offline: IndexedDB cache + offline queue in `utils/offlineDb.ts` and `stores/offlineQueue.ts`
 
 ## Core data model
@@ -26,7 +25,7 @@ Use this file as guardrails when making changes.
 - UserState: `{ inited, preferences }` to gate setup
 
 ## Do and donts for agents
-- Use `$api` (from `plugins/api.ts`) for all API calls. Do not call backend URLs directly from components.
+- Use `api` from `useAppServices()` for all API calls. Do not call backend URLs directly from components.
 - For new settings or preferences:
   - Update `types/api.ts` + `types/index.ts` defaults
   - Add key to `stores/settings.ts` `PREFERENCE_KEYS`
@@ -43,7 +42,7 @@ Use this file as guardrails when making changes.
 
 ## Auth and tokens
 - `authStore` keeps user in localStorage but token only in memory.
-- Refresh token is stored as httpOnly cookie by `server/api/auth*.ts`.
+- Refresh token is stored locally for desktop mode.
 - `api/client.ts` handles 401 refresh with one retry and maps backend errors.
 
 ## Offline support
@@ -60,7 +59,7 @@ Use this file as guardrails when making changes.
 - Type sound uses `public/sounds/type.wav`.
 
 ## Local dev
-- `npm run dev` starts Nuxt on https://localhost:3000 with local certs.
+- `npm run dev` starts Vite renderer on `http://127.0.0.1:5173` and launches Electron.
 - `dev.sh` can generate SSL certs and run Docker dev stack.
 - Env: `API_BASE_URL`, `PREDICTOR_API_KEY` (optional)
 

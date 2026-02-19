@@ -1,8 +1,7 @@
 // @ts-check
-import withNuxt from './node_modules/.cache/nuxt/.nuxt/eslint.config.mjs'
 import localRules from './eslint-local-rules.js'
 
-export default withNuxt(
+export default [
   {
     plugins: {
       'local-rules': localRules,
@@ -16,5 +15,5 @@ export default withNuxt(
       '.nuxt/**',
       'dist/**',
     ],
-  }
-)
+  },
+]

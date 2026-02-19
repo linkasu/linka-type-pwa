@@ -2,11 +2,6 @@
 import { useSettingsStore } from '~/stores/settings'
 import { useOnboardingSteps } from '~/composables/useOnboardingSteps'
 
-definePageMeta({
-  layout: 'default',
-  middleware: ['auth'],
-})
-
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
 

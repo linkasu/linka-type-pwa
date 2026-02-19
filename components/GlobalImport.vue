@@ -2,7 +2,7 @@
 import type { GlobalCategory, Statement } from '~/types/api'
 
 const { t } = useI18n()
-const { $api } = useNuxtApp()
+const { api } = useAppServices()
 
 const globalCategories = ref<GlobalCategory[]>([])
 const isLoading = ref(false)
@@ -17,7 +17,7 @@ onMounted(async () => {
 const loadGlobalCategories = async () => {
   isLoading.value = true
   try {
-    globalCategories.value = await $api.global.getCategories()
+    globalCategories.value = await api.global.getCategories()
   } catch (err) {
     console.error('Failed to load global categories:', err)
   } finally {
@@ -29,7 +29,7 @@ const loadCategoryStatements = async (categoryId: string) => {
   if (categoryStatements.value.has(categoryId)) return
 
   try {
-    const statements = await $api.global.getCategoryStatements(categoryId)
+    const statements = await api.global.getCategoryStatements(categoryId)
     categoryStatements.value.set(categoryId, statements)
   } catch (err) {
     console.error('Failed to load statements:', err)
@@ -48,7 +48,7 @@ const toggleCategory = async (categoryId: string) => {
 const importCategory = async (categoryId: string) => {
   importingId.value = categoryId
   try {
-    await $api.global.importCategory({ categoryId, force: false })
+    await api.global.importCategory({ categoryId, force: false })
     // Show success message
   } catch (err) {
     console.error('Failed to import category:', err)

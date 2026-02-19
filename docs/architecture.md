@@ -1,53 +1,50 @@
 # Architecture
 
 ## Stack
-- Nuxt 4 + Vue 3 Composition API
+- Electron + Vite + Vue 3 Composition API
 - Vuetify 3 UI library
 - Pinia for state management
-- @nuxtjs/i18n for localization
-- @vite-pwa/nuxt for PWA + Workbox
+- vue-i18n for localization
 - Axios for client API requests
 
 ## Runtime layers
-1) Browser UI
+1) Renderer UI
 - Pages, components, composables, and stores live in `pages/`, `components/`, `composables/`, `stores/`.
-- The UI calls `$api` (see `plugins/api.ts`).
+- The UI calls `api` via `useAppServices()` (see `src/renderer/app-context.ts` and `plugins/api.ts`).
 
-2) Nuxt server API proxy
-- Server routes in `server/api/` forward requests to the backend (`API_BASE_URL`, default `https://backend.linka.su`).
-- Auth routes manage refresh token cookies and enforce same-origin checks.
+2) Electron main process bridge
+- Desktop runtime uses `window.desktop.backend.request(...)` bridge.
+- `api/client.ts` can use bridge adapter or direct HTTP transport.
 
 3) Backend service
-- Not in this repo. All calls go through the Nuxt server proxy.
+- Not in this repo. Base URL is `API_BASE_URL` (default `https://backend.linka.su`).
 
 ## Request flow (typical)
-- Component or store calls `$api.X`.
-- `$api` uses `api/client.ts` (Axios instance with auth interceptors).
-- Requests go to `/api/...` (Nuxt server routes).
-- Server route calls `backendRequest` in `server/utils/backend.ts`.
+- Component or store calls `api.X`.
+- API modules use `api/client.ts` (Axios instance with auth interceptors).
+- Requests go to `${API_BASE_URL}/v1/...` (or through desktop bridge).
 - Response is normalized (for categories/statements) in `api/normalize.ts`.
 
 ## Auth flow
-- Login/register calls `/api/auth` or `/api/auth/register`.
-- Server sets `refresh_token` httpOnly cookie (path `/api/auth`).
+- Login/register calls backend `/v1/auth` endpoints.
+- Refresh token is persisted locally in desktop mode.
 - Access token is stored in memory (Pinia store) and refreshed when needed.
 - `api/client.ts` handles 401 refresh with a single retry; on failure it clears auth and redirects to `/login`.
 
 ## TTS flow
 - `useTTS` selects provider based on `settingsStore.yandex`.
-- Yandex TTS: calls `/api/tts`, returns a blob, plays or downloads.
+- Yandex TTS: calls backend TTS endpoint, returns a blob, plays or downloads.
 - Browser TTS: uses `SpeechSynthesisUtterance` with `voiceUri`, rate, pitch, volume.
-- Voice list for Yandex is loaded from `/api/voices`.
+- Voice list for Yandex is loaded via `api.tts.getVoices()`.
 
 ## Predictor flow
 - `components/Predictor.vue` watches input with debounce (300ms).
 - Calls `/api/predictor?q=...` and renders up to 5 suggestions.
 - Alt/Cmd + 1-5 selects a prediction.
 
-## PWA behavior
-- Config in `nuxt.config.ts` under `pwa`.
-- Workbox caches static assets and uses NetworkFirst for `/api`.
-- Manifest and icons live in `public/icons`.
+## Entrypoints
+- `index.html` is the public download landing page (`type.linka.su`).
+- `app.html` is the renderer entrypoint used by desktop app.
 
 ## Localization
 - i18n keys are used via `t('...')` in components.

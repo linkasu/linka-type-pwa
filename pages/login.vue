@@ -2,13 +2,10 @@
 import { useAuthStore } from '~/stores/auth'
 import { useUserStore } from '~/stores/user'
 
-definePageMeta({
-  layout: 'auth',
-})
-
 const { t } = useI18n()
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -26,7 +23,7 @@ const canContinue = computed(() => {
 
 const navigateAfterLogin = async (mode: 'online' | 'offline') => {
   if (mode === 'offline') {
-    await navigateTo('/main')
+    await router.push('/main')
     return
   }
 
@@ -37,11 +34,11 @@ const navigateAfterLogin = async (mode: 'online' | 'offline') => {
   }
 
   if (userStore.needsSetup) {
-    await navigateTo('/setup')
+    await router.push('/setup')
     return
   }
 
-  await navigateTo('/main')
+  await router.push('/main')
 }
 
 onMounted(async () => {
@@ -167,7 +164,7 @@ const continueWithMode = async (mode?: 'online' | 'offline') => {
         color="primary"
         size="small"
         class="ml-2"
-        @click="navigateTo('/register')"
+        @click="router.push('/register')"
       >
         {{ t('auth.register') }}
       </VBtn>
