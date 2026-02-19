@@ -1,5 +1,7 @@
 import { ttsApi } from '~/api/tts'
 import { useSettingsStore } from '~/stores/settings'
+import { loadBrowserVoices, playBrowserSpeech } from './tts/browserSpeech'
+import { downloadAudioBlob, loadYandexVoiceOptions } from './tts/yandexHelpers'
 import {
   generateCacheKey,
   getCachedAudio,
@@ -30,23 +32,11 @@ export const useTTS = () => {
   let currentAudio: HTMLAudioElement | null = null
 
   const loadVoices = () => {
-    if ('speechSynthesis' in window) {
-      voices.value = speechSynthesis.getVoices()
-      if (voices.value.length === 0) {
-        speechSynthesis.addEventListener('voiceschanged', () => {
-          voices.value = speechSynthesis.getVoices()
-        })
-      }
-    }
+    loadBrowserVoices(voices)
   }
 
   const loadYandexVoices = async () => {
-    try {
-      const data = await ttsApi.getVoices()
-      yandexVoices.value = data.map(v => ({ id: v.id, name: v.name }))
-    } catch (err) {
-      console.error('Failed to load TTS voices:', err)
-    }
+    yandexVoices.value = await loadYandexVoiceOptions()
   }
 
   const stop = () => {
@@ -60,17 +50,6 @@ export const useTTS = () => {
       currentAudio = null
     }
     isPlaying.value = false
-  }
-
-  const downloadAudio = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
   }
 
   const speakYandex = async (text: string, options: TTSOptions = {}) => {
@@ -104,7 +83,7 @@ export const useTTS = () => {
 
       if (options.download) {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-        downloadAudio(blob, `linka-${timestamp}.mp3`)
+        downloadAudioBlob(blob, `linka-${timestamp}.mp3`)
       }
 
       audioUrl = URL.createObjectURL(blob)
@@ -138,42 +117,21 @@ export const useTTS = () => {
   }
 
   const speakBrowser = (text: string, options: TTSOptions = {}) => {
-    if (!('speechSynthesis' in window)) {
-      options.onError?.(new Error('Speech Synthesis not supported'))
-      return
-    }
-
-    stop()
-
-    currentUtterance = new SpeechSynthesisUtterance(text)
-    currentUtterance.lang = 'ru-RU'
-    currentUtterance.volume = settingsStore.volume
-    currentUtterance.rate = settingsStore.rate
-    currentUtterance.pitch = settingsStore.pitch
-
-    if (settingsStore.voiceUri) {
-      const voice = voices.value.find(v => v.voiceURI === settingsStore.voiceUri)
-      if (voice) {
-        currentUtterance.voice = voice
-      }
-    }
-
-    currentUtterance.onstart = () => {
-      isPlaying.value = true
-      options.onStart?.()
-    }
-
-    currentUtterance.onend = () => {
-      isPlaying.value = false
-      options.onEnd?.()
-    }
-
-    currentUtterance.onerror = (event) => {
-      isPlaying.value = false
-      options.onError?.(new Error(`Speech error: ${event.error}`))
-    }
-
-    speechSynthesis.speak(currentUtterance)
+    currentUtterance = playBrowserSpeech({
+      text,
+      options,
+      settings: {
+        volume: settingsStore.volume,
+        rate: settingsStore.rate,
+        pitch: settingsStore.pitch,
+        voiceUri: settingsStore.voiceUri,
+      },
+      voices: voices.value,
+      stopCurrent: stop,
+      setPlaying: playing => {
+        isPlaying.value = playing
+      },
+    })
   }
 
   const speak = async (text: string, options: TTSOptions = {}) => {
