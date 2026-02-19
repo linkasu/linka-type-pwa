@@ -16,83 +16,14 @@ import type {
 } from '~/types/offline'
 import { getQueueItems, deleteQueueItem, updateQueueItem } from '~/utils/offlineDb'
 import { shouldQueueOffline, isOffline, generateTempId } from '~/utils/offline'
+import { applyIdMappingToItem } from './offlineQueue/idMapping'
+import { resolveSyncConflict } from './offlineQueue/conflictResolution'
 import { useAuthStore } from './auth'
 import { useCategoriesStore } from './categories'
 import { useStatementsStore } from './statements'
 import { useQuickesStore } from './quickes'
 import { useSettingsStore } from './settings'
 import { useUserStore } from './user'
-
-const applyIdMappingToItem = (
-  item: OfflineQueueItem,
-  fromId: string,
-  toId: string,
-): boolean => {
-  let changed = false
-
-  switch (item.op) {
-    case 'category_create': {
-      const payload = item.payload as CategoryCreatePayload
-      if (payload.category.id === fromId) {
-        payload.category.id = toId
-        changed = true
-      }
-      break
-    }
-    case 'category_update': {
-      const payload = item.payload as CategoryUpdatePayload
-      if (payload.id === fromId) {
-        payload.id = toId
-        changed = true
-      }
-      break
-    }
-    case 'category_delete': {
-      const payload = item.payload as CategoryDeletePayload
-      if (payload.id === fromId) {
-        payload.id = toId
-        changed = true
-      }
-      break
-    }
-    case 'statement_create': {
-      const payload = item.payload as StatementCreatePayload
-      if (payload.statement.id === fromId) {
-        payload.statement.id = toId
-        changed = true
-      }
-      if (payload.statement.categoryId === fromId) {
-        payload.statement.categoryId = toId
-        changed = true
-      }
-      break
-    }
-    case 'statement_update': {
-      const payload = item.payload as StatementUpdatePayload
-      if (payload.id === fromId) {
-        payload.id = toId
-        changed = true
-      }
-      break
-    }
-    case 'statement_delete': {
-      const payload = item.payload as StatementDeletePayload
-      if (payload.id === fromId) {
-        payload.id = toId
-        changed = true
-      }
-      if (payload.categoryId === fromId) {
-        payload.categoryId = toId
-        changed = true
-      }
-      break
-    }
-    default:
-      break
-  }
-
-  return changed
-}
 
 export const useOfflineQueueStore = defineStore('offlineQueue', {
   state: () => ({
@@ -128,54 +59,11 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
       const statementsStore = useStatementsStore()
 
       try {
-        if (resolution === 'local') {
-          // Apply local change to server
-          if (conflict.entityType === 'category') {
-            if (conflict.conflictType === 'update_delete') {
-              // Re-create the category with local data
-              const payload = conflict.localChange.payload as CategoryUpdatePayload
-              const created = await api.categories.create({ label: payload.label, aiUse: payload.aiUse })
-              await categoriesStore.replaceCategoryId(conflict.entityId, created)
-            } else {
-              const payload = conflict.localChange.payload as CategoryUpdatePayload
-              const updated = await api.categories.update(conflict.entityId, { label: payload.label, aiUse: payload.aiUse })
-              await categoriesStore.updateCategory(updated)
-            }
-          } else if (conflict.entityType === 'statement') {
-            if (conflict.conflictType === 'update_delete') {
-              // Re-create the statement with local data
-              const payload = conflict.localChange.payload as StatementUpdatePayload
-              const original = statementsStore.getById(conflict.entityId)
-              if (original) {
-                const created = await api.statements.create({ categoryId: original.categoryId, text: payload.text })
-                await statementsStore.replaceStatementId(conflict.entityId, created)
-              }
-            } else {
-              const payload = conflict.localChange.payload as StatementUpdatePayload
-              const updated = await api.statements.update(conflict.entityId, { text: payload.text })
-              await statementsStore.updateStatement(updated)
-            }
-          }
-        } else {
-          // Accept remote data, discard local change
-          if (conflict.entityType === 'category') {
-            if (conflict.conflictType === 'update_delete') {
-              // Remove local category as it's deleted on server
-              categoriesStore.removeCategory(conflict.entityId)
-            } else if (conflict.remoteData) {
-              // Update local store with remote data
-              categoriesStore.updateCategory(conflict.remoteData as Category)
-            }
-          } else if (conflict.entityType === 'statement') {
-            if (conflict.conflictType === 'update_delete') {
-              // Remove local statement as it's deleted on server
-              statementsStore.removeStatement(conflict.entityId)
-            } else if (conflict.remoteData) {
-              // Update local store with remote data
-              statementsStore.updateStatement(conflict.remoteData as Statement)
-            }
-          }
-        }
+        await resolveSyncConflict(conflict, resolution, {
+          api,
+          categoriesStore,
+          statementsStore,
+        })
 
         // Remove from queue
         if (conflict.localChange.id !== undefined) {
