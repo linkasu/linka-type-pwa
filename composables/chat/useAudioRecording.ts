@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
-import { encodeWav, pickMimeType } from './recordingUtils'
+import { pickMimeType } from './recordingUtils'
+import { createWavRecorder } from './wavRecorder'
 
 type RecordingOptions = {
   t: (key: string) => string
@@ -19,40 +20,11 @@ export function useAudioRecording(options: RecordingOptions) {
   let recordingTimer: number | null = null
   let shouldSendRecording = true
   let recordingMode: 'ogg' | 'wav' = 'ogg'
-  let audioContext: AudioContext | null = null
-  let sourceNode: MediaStreamAudioSourceNode | null = null
-  let processorNode: ScriptProcessorNode | null = null
-  let zeroGain: GainNode | null = null
-  let wavChunks: Float32Array[] = []
-  let wavSampleRate = 48000
+  const wavRecorder = createWavRecorder()
 
   const stopStream = () => {
     recorderStream?.getTracks().forEach(track => track.stop())
     recorderStream = null
-  }
-
-  const cleanupWavNodes = async () => {
-    if (processorNode) {
-      processorNode.disconnect()
-      processorNode.onaudioprocess = null
-      processorNode = null
-    }
-    if (sourceNode) {
-      sourceNode.disconnect()
-      sourceNode = null
-    }
-    if (zeroGain) {
-      zeroGain.disconnect()
-      zeroGain = null
-    }
-    if (audioContext) {
-      try {
-        await audioContext.close()
-      } catch {
-        // ignore close errors
-      }
-      audioContext = null
-    }
   }
 
   const startRecordingTimer = () => {
@@ -74,30 +46,16 @@ export function useAudioRecording(options: RecordingOptions) {
   }
 
   const startWavRecording = async () => {
-    const AudioCtx = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-    if (!AudioCtx || !recorderStream) {
+    if (!recorderStream) {
       recordingError.value = options.t('chat.errors.micUnsupported')
       return
     }
 
-    audioContext = new AudioCtx()
-    await audioContext.resume()
-    wavSampleRate = audioContext.sampleRate
-    wavChunks = []
-
-    sourceNode = audioContext.createMediaStreamSource(recorderStream)
-    processorNode = audioContext.createScriptProcessor(4096, 1, 1)
-    zeroGain = audioContext.createGain()
-    zeroGain.gain.value = 0
-
-    processorNode.onaudioprocess = (event) => {
-      const input = event.inputBuffer.getChannelData(0)
-      wavChunks.push(new Float32Array(input))
+    const started = await wavRecorder.start(recorderStream)
+    if (!started) {
+      recordingError.value = options.t('chat.errors.micUnsupported')
+      return
     }
-
-    sourceNode.connect(processorNode)
-    processorNode.connect(zeroGain)
-    zeroGain.connect(audioContext.destination)
 
     recordingMode = 'wav'
     isRecording.value = true
@@ -182,14 +140,11 @@ export function useAudioRecording(options: RecordingOptions) {
 
     isRecording.value = false
     stopRecordingTimer()
-    const blob = encodeWav(wavChunks, wavSampleRate)
-    wavChunks = []
+    const blob = wavRecorder.stop()
     stopStream()
-    cleanupWavNodes().finally(() => {
-      if (shouldSendRecording && blob.size > 0) {
-        void options.onRecordingReady(blob, 'audio/wav')
-      }
-    })
+    if (shouldSendRecording && blob.size > 0) {
+      void options.onRecordingReady(blob, 'audio/wav')
+    }
   }
 
   const toggleRecording = () => {
@@ -210,7 +165,7 @@ export function useAudioRecording(options: RecordingOptions) {
     stopRecordingAndDiscard()
     stopStream()
     stopRecordingTimer()
-    void cleanupWavNodes()
+    void wavRecorder.cleanup()
   }
 
   onUnmounted(() => {
