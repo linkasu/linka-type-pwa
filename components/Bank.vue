@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { useBankItems } from '~/composables/useBankItems'
 import { useBankKeyboard } from '~/composables/useBankKeyboard'
-import { useTTS } from '~/composables/useTTS'
+import { useBankCaching } from '~/composables/bank/useBankCaching'
 import { useStatementsStore } from '~/stores/statements'
 import { useSettingsStore } from '~/stores/settings'
 import { useAnalytics } from '~/composables/useAnalytics'
-import { preloadPhrases, generateCacheKey, isCached } from '~/utils/ttsCache'
-import { ttsApi } from '~/api/tts'
 import BankHeader from '~/components/bank/BankHeader.vue'
+import BankCachingDialog from '~/components/bank/BankCachingDialog.vue'
 import BankList from '~/components/bank/BankList.vue'
 import BankItemDialog from '~/components/bank/BankItemDialog.vue'
 import type { Category, Statement } from '~/types/api'
@@ -27,12 +26,6 @@ const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const editingItem = ref<Category | Statement | null>(null)
 
-// Caching state
-const isCaching = ref(false)
-const cachingProgress = ref(0)
-const cachingTotal = ref(0)
-const cachingCategoryName = ref('')
-
 const statementsStore = useStatementsStore()
 const settingsStore = useSettingsStore()
 const {
@@ -40,8 +33,6 @@ const {
   trackBankStatementSelect,
   trackCategoryCacheStarted,
   trackCategoryCacheCompleted,
-  trackReaderModeOpened,
-  trackTextEditorOpened,
 } = useAnalytics()
 
 const {
@@ -55,6 +46,12 @@ const {
   saveTextEditorChanges,
   isCategory,
 } = useBankItems()
+const { isCaching, cachingProgress, cachingTotal, cachingCategoryName, cacheCategory } = useBankCaching({
+  settingsStore,
+  statementsStore,
+  trackCategoryCacheStarted,
+  trackCategoryCacheCompleted,
+})
 
 const handleItemSelect = (item: Category | Statement) => {
   if (isCategory(item)) {
@@ -130,56 +127,7 @@ const handleTextEditorSave = async (statements: string[]) => {
   }
 }
 
-const handleCacheCategory = async (category: Category) => {
-  if (!settingsStore.yandex) {
-    // TTS caching only works with online TTS
-    return
-  }
-
-  try {
-    // Load statements for this category
-    const statements = await statementsStore.fetchByCategory(category.id)
-    if (statements.length === 0) return
-
-    const voice = settingsStore.yandexVoice || 'alena'
-    const phrases = statements.map(s => s.text)
-
-    trackCategoryCacheStarted(category.id, phrases.length)
-
-    isCaching.value = true
-    cachingCategoryName.value = category.label
-    cachingProgress.value = 0
-    cachingTotal.value = phrases.length
-
-    const synthesize = async (text: string, voiceId: string): Promise<Blob> => {
-      return await ttsApi.synthesize({
-        text,
-        voice: voiceId,
-        speed: settingsStore.rate,
-      })
-    }
-
-    await preloadPhrases(
-      phrases,
-      voice,
-      synthesize,
-      (current, total) => {
-        cachingProgress.value = current
-        cachingTotal.value = total
-      }
-    )
-
-    trackCategoryCacheCompleted(category.id, phrases.length)
-  } catch (err) {
-    console.error('Failed to cache category:', err)
-  } finally {
-    isCaching.value = false
-  }
-}
-
-const focus = () => {
-  containerRef.value?.focus()
-}
+const focus = () => containerRef.value?.focus()
 
 defineExpose({ focus })
 </script>
@@ -209,7 +157,7 @@ defineExpose({ focus })
       @select="handleItemSelect"
       @edit="handleEdit"
       @delete="handleDelete"
-      @cache="handleCacheCategory"
+      @cache="cacheCategory"
     />
 
     <BankItemDialog
@@ -241,31 +189,11 @@ defineExpose({ focus })
       @save="handleTextEditorSave"
     />
 
-    <!-- Caching Progress Dialog -->
-    <VDialog
-      :model-value="isCaching"
-      persistent
-      max-width="400"
-    >
-      <VCard class="pa-4">
-        <VCardTitle class="text-h6">
-          {{ t('bank.cachingTitle') }}
-        </VCardTitle>
-        <VCardText>
-          <div class="text-body-2 mb-2">
-            {{ cachingCategoryName }}
-          </div>
-          <VProgressLinear
-            :model-value="cachingTotal > 0 ? (cachingProgress / cachingTotal) * 100 : 0"
-            color="primary"
-            height="8"
-            rounded
-          />
-          <div class="text-caption text-center mt-2">
-            {{ cachingProgress }} / {{ cachingTotal }}
-          </div>
-        </VCardText>
-      </VCard>
-    </VDialog>
+    <BankCachingDialog
+      :is-caching="isCaching"
+      :caching-progress="cachingProgress"
+      :caching-total="cachingTotal"
+      :caching-category-name="cachingCategoryName"
+    />
   </div>
 </template>

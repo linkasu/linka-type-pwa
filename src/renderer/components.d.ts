@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AccountSettings: typeof import('./../../components/AccountSettings.vue')['default']
     Bank: typeof import('./../../components/Bank.vue')['default']
+    BankBankCachingDialog: typeof import('./../../components/bank/BankCachingDialog.vue')['default']
     BankBankHeader: typeof import('./../../components/bank/BankHeader.vue')['default']
     BankBankItemDialog: typeof import('./../../components/bank/BankItemDialog.vue')['default']
     BankBankList: typeof import('./../../components/bank/BankList.vue')['default']
