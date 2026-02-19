@@ -28,7 +28,7 @@ export const isNetworkError = (err: unknown): boolean => {
 
   if (maybe.isAxiosError && !maybe.response) return true
   if (maybe.code === 'ERR_NETWORK' || maybe.code === 'ECONNABORTED') return true
-  if (maybe.response?.status && [401, 403, 404, 408, 425, 429, 500, 502, 503, 504].includes(maybe.response.status)) {
+  if (maybe.response?.status && [408, 429, 500, 502, 503, 504].includes(maybe.response.status)) {
     return true
   }
   if (typeof maybe.message === 'string' && maybe.message.toLowerCase().includes('network')) return true

@@ -29,9 +29,12 @@ const normalizeHeaders = (headers: RequestConfig['headers']): Record<string, str
 
 const buildRequestUrl = (baseURL: string, config: RequestConfig): string => {
   const rawUrl = config.url || ''
+  const normalizedBaseURL = baseURL.endsWith('/') ? baseURL : `${baseURL}/`
+  // Axios combines baseURL + "/path" as "/v1/path"; URL() would otherwise reset to host root.
+  const normalizedRelativeUrl = rawUrl.replace(/^\/+/, '')
   const url = /^https?:\/\//i.test(rawUrl)
     ? new URL(rawUrl)
-    : new URL(rawUrl, baseURL.endsWith('/') ? baseURL : `${baseURL}/`)
+    : new URL(normalizedRelativeUrl, normalizedBaseURL)
 
   const params = config.params
   if (params && typeof params === 'object') {
