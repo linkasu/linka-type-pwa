@@ -54,7 +54,7 @@ npm run dev
 ```
 
 В dev-сервере:
-- `/` — публичная single-page страница загрузки (для `type.linkasu`)
+- `/` — публичная single-page страница загрузки (для `type.linka.su`)
 - `/app.html#/...` — основной интерфейс desktop-приложения
 
 ## Production
