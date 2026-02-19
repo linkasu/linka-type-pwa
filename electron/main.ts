@@ -218,10 +218,12 @@ async function createWindow() {
   })
 
   if (isDev) {
-    await mainWindow.loadURL(devServerUrl)
+    await mainWindow.loadURL(`${devServerUrl}/app.html#/login`)
     mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
-    await mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
+    await mainWindow.loadFile(path.join(__dirname, '../renderer/app.html'), {
+      hash: '/login',
+    })
   }
 }
 

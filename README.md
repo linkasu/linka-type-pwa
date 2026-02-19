@@ -53,6 +53,10 @@ cp .env.example .env
 npm run dev
 ```
 
+В dev-сервере:
+- `/` — публичная single-page страница загрузки (для `type.linkasu`)
+- `/app.html#/...` — основной интерфейс desktop-приложения
+
 ## Production
 
 Сборка renderer + electron:
