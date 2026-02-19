@@ -1,0 +1,97 @@
+.chat-input {
+  flex-shrink: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.chat-actions .v-btn {
+  height: 52px;
+  min-height: 52px;
+}
+
+.chat-actions .v-btn--icon {
+  width: 52px;
+}
+
+.chat-actions .v-btn:not(.v-btn--icon) {
+  flex: 1;
+  min-width: 120px;
+}
+
+.chat-status-bar {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.recording-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: rgb(var(--v-theme-error));
+  animation: pulse-recording 1.5s infinite;
+}
+
+.recording-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.hotkey-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.5);
+}
+
+.hotkey-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hotkey-item kbd,
+.hotkey-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(var(--v-theme-on-surface), 0.08);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.hotkey-hint {
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+@keyframes pulse-recording {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 959px) {
+  .chat-actions .v-btn:not(.v-btn--icon) {
+    min-width: 100px;
+    flex: 1;
+  }
+}

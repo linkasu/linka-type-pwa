@@ -1,293 +1,48 @@
 <script setup lang="ts">
-import { useTTS } from '~/composables/useTTS'
-import { useTypeSound } from '~/composables/useTypeSound'
-import { useChatKeyboard } from '~/composables/useChatKeyboard'
+import ChatComposer from '~/components/chat/ChatComposer.vue'
+import ChatMessagesList from '~/components/chat/ChatMessagesList.vue'
+import ChatSidebar from '~/components/chat/ChatSidebar.vue'
+import ChatSuggestions from '~/components/chat/ChatSuggestions.vue'
 import { useAudioRecording } from '~/composables/chat/useAudioRecording'
-import type { DialogChat, DialogMessage } from '~/types/api'
+import { useChatDialogs } from '~/composables/chat/useChatDialogs'
+import { useChatKeyboard } from '~/composables/useChatKeyboard'
+import { useChatMessaging } from '~/composables/chat/useChatMessaging'
 
-type ChatSuggestion = {
-  id?: string
-  text: string
-}
+const { t } = useI18n()
 
-const { t, locale } = useI18n()
-const { api } = useAppServices()
-const { speak, stop, isPlaying } = useTTS()
-const { handleTextInput } = useTypeSound()
+const {
+  chats,
+  activeChatId,
+  messages,
+  quickSuggestions,
+  isLoadingChats,
+  isLoadingMessages,
+  error,
+  loadChats,
+  loadChatSuggestions,
+  updateActiveChatMeta,
+  createChat,
+  deleteChat,
+} = useChatDialogs()
 
-const chats = ref<DialogChat[]>([])
-const activeChatId = ref<string | null>(null)
-const messages = ref<DialogMessage[]>([])
-const quickSuggestions = ref<ChatSuggestion[]>([])
-
-const isLoadingChats = ref(false)
-const isLoadingMessages = ref(false)
-const isSending = ref(false)
-const error = ref<string | null>(null)
-
-const inputText = ref('')
-type InputRef = {
-  focus?: () => void
-  $el?: Element | null
-}
-const inputRef = ref<InputRef | null>(null)
-const messageListRef = ref<HTMLElement | null>(null)
-
-const focusInput = () => {
-  const target = inputRef.value
-  if (!target) return
-  if (typeof target.focus === 'function') {
-    target.focus()
-    return
-  }
-  const el = target.$el?.querySelector?.('textarea') as HTMLTextAreaElement | undefined
-  el?.focus()
-}
-
-const formatTime = (timestamp: number) => {
-  const value = new Date(timestamp)
-  return value.toLocaleTimeString(locale.value, {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-const formatDuration = (ms: number) => {
-  const totalSeconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
-}
-
-const sortChats = (list: DialogChat[]) =>
-  [...list].sort((a, b) => {
-    const aTime = a.updatedAt ?? a.lastMessageAt ?? a.created
-    const bTime = b.updatedAt ?? b.lastMessageAt ?? b.created
-    return bTime - aTime
-  })
-
-const loadChats = async () => {
-  isLoadingChats.value = true
-  error.value = null
-  try {
-    const list = await api.dialog.listChats()
-    const sorted = sortChats(list)
-    chats.value = sorted
-    if (!sorted.length) {
-      const created = await api.dialog.createChat({})
-      chats.value = [created]
-      activeChatId.value = created.id
-      return
-    }
-    if (!activeChatId.value || !sorted.find(chat => chat.id === activeChatId.value)) {
-      activeChatId.value = sorted[0].id
-    }
-  } catch (err: unknown) {
-    const failure = err as Error
-    error.value = failure.message || t('chat.errors.loadChats')
-  } finally {
-    isLoadingChats.value = false
-  }
-}
-
-const loadChatSuggestions = async (chatId: string): Promise<boolean> => {
-  try {
-    const pendingSuggestions = await api.dialog.listSuggestions('pending', 200)
-    const chatSuggestions = pendingSuggestions
-      .filter(s => s.chatId === chatId)
-      .map(s => ({ id: s.id, text: s.text }))
-      .slice(0, 5)
-    quickSuggestions.value = chatSuggestions
-    return true
-  } catch (err: unknown) {
-    console.error('Failed to load suggestions:', err)
-    quickSuggestions.value = []
-    return false
-  }
-}
-
-const loadMessages = async (chatId: string) => {
-  isLoadingMessages.value = true
-  error.value = null
-  try {
-    const list = await api.dialog.listMessages(chatId, { limit: 200 })
-    messages.value = list
-    await loadChatSuggestions(chatId)
-
-    scrollToBottom()
-  } catch (err: unknown) {
-    const failure = err as Error
-    error.value = failure.message || t('chat.errors.loadMessages')
-  } finally {
-    isLoadingMessages.value = false
-  }
-}
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    requestAnimationFrame(() => {
-      if (!messageListRef.value) return
-      messageListRef.value.scrollTop = messageListRef.value.scrollHeight
-    })
-  })
-}
-
-const updateActiveChatMeta = (timestamp: number) => {
-  if (!activeChatId.value) return
-  const index = chats.value.findIndex(chat => chat.id === activeChatId.value)
-  if (index === -1) return
-  const chat = chats.value[index]
-  const updated = {
-    ...chat,
-    lastMessageAt: timestamp,
-    updatedAt: Date.now(),
-    messageCount: (chat.messageCount ?? 0) + 1,
-  }
-  const next = [...chats.value]
-  next.splice(index, 1, updated)
-  chats.value = sortChats(next)
-}
-
-const createChat = async () => {
-  try {
-    const chat = await api.dialog.createChat({})
-    chats.value = sortChats([chat, ...chats.value])
-    activeChatId.value = chat.id
-  } catch (err: unknown) {
-    const failure = err as Error
-    error.value = failure.message || t('chat.errors.createChat')
-  }
-}
-
-const deleteChat = async (chatId: string) => {
-  try {
-    await api.dialog.deleteChat(chatId)
-    chats.value = chats.value.filter(chat => chat.id !== chatId)
-    if (activeChatId.value === chatId) {
-      activeChatId.value = chats.value[0]?.id ?? null
-      if (!activeChatId.value) {
-        await createChat()
-      }
-    }
-  } catch (err: unknown) {
-    const failure = err as Error
-    error.value = failure.message || t('chat.errors.deleteChat')
-  }
-}
-
-const sendTypedMessage = async (): Promise<boolean> => {
-  if (!activeChatId.value) return false
-  const text = inputText.value.trim()
-  if (!text) return false
-  if (isSending.value) return false
-
-  isSending.value = true
-  error.value = null
-
-  try {
-    if (isPlaying.value) {
-      stop()
-    }
-    void speak(text)
-    const result = await api.dialog.createMessage(activeChatId.value, {
-      role: 'disabled_person',
-      content: text,
-      source: 'typed',
-      created: Date.now(),
-    })
-    messages.value.push(result.message)
-    updateActiveChatMeta(result.message.created)
-    inputText.value = ''
-    scrollToBottom()
-    return true
-  } catch (err: unknown) {
-    const failure = err as Error
-    error.value = failure.message || t('chat.errors.sendMessage')
-    return false
-  } finally {
-    isSending.value = false
-  }
-}
-
-const resolveSuggestionId = async (text: string): Promise<string | null> => {
-  if (!activeChatId.value) return null
-  try {
-    const pendingSuggestions = await api.dialog.listSuggestions('pending', 200)
-    const match = pendingSuggestions.find(
-      suggestion => suggestion.chatId === activeChatId.value && suggestion.text === text,
-    )
-    return match?.id ?? null
-  } catch (err: unknown) {
-    console.error('Failed to resolve suggestion id:', err)
-    return null
-  }
-}
-
-const dismissSuggestion = async (suggestion: ChatSuggestion) => {
-  const hadId = Boolean(suggestion.id)
-  const suggestionId = suggestion.id ?? (await resolveSuggestionId(suggestion.text))
-  if (!suggestionId) return
-
-  try {
-    await api.dialog.dismissSuggestions([suggestionId])
-    if (hadId) {
-      quickSuggestions.value = quickSuggestions.value.filter(item => item.id !== suggestionId)
-    } else {
-      quickSuggestions.value = quickSuggestions.value.filter(item => item.text !== suggestion.text)
-    }
-  } catch (err: unknown) {
-    console.error('Failed to dismiss suggestion:', err)
-  }
-}
-
-const sendSuggestion = async (suggestion: ChatSuggestion) => {
-  inputText.value = suggestion.text
-  await nextTick()
-  const sent = await sendTypedMessage()
-  if (sent) {
-    await dismissSuggestion(suggestion)
-  }
-}
-
-const sendAudioMessage = async (blob: Blob, mimeType: string) => {
-  if (!activeChatId.value) return
-  isSending.value = true
-  error.value = null
-
-  const ext = mimeType.includes('ogg')
-    ? 'ogg'
-    : mimeType.includes('wav')
-      ? 'wav'
-      : 'webm'
-  const filename = `recording-${Date.now()}.${ext}`
-
-  try {
-    const result = await api.dialog.createMessageWithAudio(
-      activeChatId.value,
-      {
-        role: 'speaker',
-        content: '',
-        source: 'audio',
-        includeSuggestions: true,
-        created: Date.now(),
-      },
-      blob,
-      filename,
-    )
-    messages.value.push(result.message)
-    updateActiveChatMeta(result.message.created)
-    const loaded = await loadChatSuggestions(activeChatId.value)
-    if (!loaded && result.suggestions?.length) {
-      quickSuggestions.value = result.suggestions.map(text => ({ text }))
-    }
-    scrollToBottom()
-  } catch (err: unknown) {
-    const failure = err as Error
-    error.value = failure.message || t('chat.errors.sendAudio')
-  } finally {
-    isSending.value = false
-  }
-}
+const {
+  inputText,
+  isSending,
+  isPlaying,
+  stop,
+  sendTypedMessage,
+  sendAudioMessage,
+  sendSuggestion,
+  selectSuggestion,
+  clearInput,
+} = useChatMessaging({
+  activeChatId,
+  messages,
+  quickSuggestions,
+  error,
+  updateActiveChatMeta,
+  loadChatSuggestions,
+})
 
 const {
   isRecording,
@@ -300,38 +55,8 @@ const {
 } = useAudioRecording({
   t: (key: string) => t(key),
   isBusy: isSending,
-  onRecordingReady: (blob, mimeType) => sendAudioMessage(blob, mimeType),
+  onRecordingReady: sendAudioMessage,
 })
-
-watch(activeChatId, (chatId) => {
-  if (chatId) {
-    void loadMessages(chatId)
-  } else {
-    messages.value = []
-    quickSuggestions.value = []
-  }
-})
-
-watch(
-  () => messages.value.length,
-  () => {
-    scrollToBottom()
-  },
-)
-
-watch(inputText, (value, oldValue) => {
-  handleTextInput(value, oldValue)
-})
-
-const selectSuggestion = (index: number) => {
-  if (index >= 0 && index < quickSuggestions.value.length) {
-    void sendSuggestion(quickSuggestions.value[index])
-  }
-}
-
-const clearInput = () => {
-  inputText.value = ''
-}
 
 useChatKeyboard({
   onToggleRecording: toggleRecording,
@@ -360,68 +85,14 @@ onMounted(async () => {
         md="4"
         lg="3"
       >
-        <VCard class="chat-list">
-          <VCardTitle class="d-flex align-center">
-            {{ t('chat.chatsTitle') }}
-            <VSpacer />
-            <VBtn
-              icon
-              variant="text"
-              :aria-label="t('chat.newChat')"
-              @click="createChat"
-            >
-              <VIcon>mdi-plus</VIcon>
-            </VBtn>
-          </VCardTitle>
-
-          <VDivider />
-
-          <VCardText class="chat-list-body">
-            <VProgressCircular
-              v-if="isLoadingChats"
-              indeterminate
-              color="primary"
-              size="32"
-              class="my-4"
-            />
-
-            <VList
-              v-else
-              nav
-              density="comfortable"
-              class="chat-list-items"
-            >
-              <VListItem
-                v-for="chat in chats"
-                :key="chat.id"
-                :active="chat.id === activeChatId"
-                @click="activeChatId = chat.id"
-              >
-                <VListItemTitle>{{ chat.title || t('chat.untitled') }}</VListItemTitle>
-                <VListItemSubtitle>
-                  <span v-if="chat.lastMessageAt">
-                    {{ formatTime(chat.lastMessageAt) }}
-                  </span>
-                  <span v-else>
-                    {{ t('chat.emptyChat') }}
-                  </span>
-                </VListItemSubtitle>
-                <template #append>
-                  <VBtn
-                    icon
-                    variant="text"
-                    size="small"
-                    class="chat-delete-btn"
-                    :aria-label="t('actions.delete')"
-                    @click.stop="deleteChat(chat.id)"
-                  >
-                    <VIcon size="small">mdi-trash-can-outline</VIcon>
-                  </VBtn>
-                </template>
-              </VListItem>
-            </VList>
-          </VCardText>
-        </VCard>
+        <ChatSidebar
+          :chats="chats"
+          :active-chat-id="activeChatId"
+          :is-loading-chats="isLoadingChats"
+          @create-chat="createChat"
+          @select-chat="activeChatId = $event"
+          @delete-chat="deleteChat"
+        />
       </VCol>
 
       <VCol
@@ -447,165 +118,31 @@ onMounted(async () => {
 
           <VDivider />
 
-          <div class="chat-body">
-            <div
-              v-if="error"
-              class="text-error text-caption mb-2"
-            >
-              {{ error }}
-            </div>
+          <ChatMessagesList
+            :messages="messages"
+            :is-loading-messages="isLoadingMessages"
+            :error="error"
+          />
 
-            <div
-              v-if="isLoadingMessages"
-              class="chat-loading"
-            >
-              <VProgressCircular
-                indeterminate
-                color="primary"
-              />
-              <span class="ml-2">{{ t('status.loading') }}</span>
-            </div>
-
-            <div
-              v-else
-              ref="messageListRef"
-              class="chat-messages"
-            >
-              <div
-                v-if="!messages.length"
-                class="text-medium-emphasis"
-              >
-                {{ t('chat.empty') }}
-              </div>
-
-              <div
-                v-for="message in messages"
-                :key="message.id"
-                class="chat-message"
-                :class="message.role === 'disabled_person' ? 'is-user' : 'is-speaker'"
-              >
-                <div class="message-meta">
-                  <span class="message-role">
-                    {{ message.role === 'disabled_person' ? t('chat.you') : t('chat.speaker') }}
-                  </span>
-                  <span class="message-time">{{ formatTime(message.created) }}</span>
-                </div>
-                <div class="message-bubble">
-                  {{ message.content }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-if="quickSuggestions.length"
-            class="chat-suggestions"
-          >
-            <div class="text-caption text-medium-emphasis mb-2">
-              {{ t('chat.suggestions') }} <span class="suggestion-hint">(Alt/Cmd + 1-5)</span>
-            </div>
-            <div class="suggestion-chips">
-              <VChip
-                v-for="(suggestion, index) in quickSuggestions.slice(0, 5)"
-                :key="suggestion.id ?? `${suggestion.text}-${index}`"
-                class="suggestion-chip"
-                variant="flat"
-                color="accent"
-                @click="sendSuggestion(suggestion)"
-              >
-                <span class="suggestion-number">{{ index + 1 }}</span>
-                {{ suggestion.text }}
-              </VChip>
-            </div>
-          </div>
+          <ChatSuggestions
+            :suggestions="quickSuggestions"
+            @select-suggestion="sendSuggestion"
+          />
 
           <VDivider />
 
-          <div class="chat-input">
-            <VTextarea
-              ref="inputRef"
-              v-model="inputText"
-              :placeholder="t('chat.placeholder')"
-              rows="3"
-              auto-grow
-              :aria-label="t('chat.placeholder')"
-              @keydown.enter.exact.prevent="sendTypedMessage"
-              @keydown.enter.ctrl="inputText += '\n'"
-              @keydown.enter.meta="inputText += '\n'"
-            />
-
-            <div class="chat-actions">
-              <VBtn
-                color="primary"
-                size="large"
-                :disabled="!inputText.trim() || isSending"
-                @click="sendTypedMessage"
-              >
-                <VIcon start>mdi-send</VIcon>
-                {{ t('chat.send') }}
-              </VBtn>
-
-              <VBtn
-                :color="isRecording ? 'error' : 'secondary'"
-                size="large"
-                :loading="isSending"
-                @click="toggleRecording"
-              >
-                <VIcon start>
-                  {{ isRecording ? 'mdi-stop-circle-outline' : 'mdi-microphone' }}
-                </VIcon>
-                {{ isRecording ? t('chat.stopRecord') : t('chat.record') }}
-                <span class="hotkey-hint">⌘L</span>
-              </VBtn>
-
-              <VBtn
-                variant="outlined"
-                size="large"
-                icon
-                :aria-label="t('chat.clear')"
-                @click="clearInput"
-              >
-                <VIcon>mdi-delete</VIcon>
-              </VBtn>
-
-              <VBtn
-                variant="outlined"
-                size="large"
-                icon
-                :aria-label="t('chat.stopSpeech')"
-                :disabled="!isPlaying"
-                @click="stop"
-              >
-                <VIcon>mdi-stop</VIcon>
-              </VBtn>
-            </div>
-
-            <div class="chat-status-bar">
-              <div
-                v-if="isRecording"
-                class="recording-indicator"
-              >
-                <VIcon color="error" size="small">mdi-record</VIcon>
-                <span>{{ t('chat.recording') }}</span>
-                <span class="recording-time">{{ formatDuration(recordingDuration) }}</span>
-              </div>
-              <div
-                v-else-if="recordingError"
-                class="text-error text-caption"
-              >
-                {{ recordingError }}
-              </div>
-              <div
-                v-else
-                class="hotkey-bar"
-              >
-                <span class="hotkey-item"><kbd>Space</kbd> {{ t('chat.pushToTalk') }}</span>
-                <span class="hotkey-item"><kbd>⌘L</kbd> {{ t('chat.record') }}</span>
-                <span class="hotkey-item"><kbd>Enter</kbd> {{ t('chat.send') }}</span>
-                <span class="hotkey-item"><kbd>Esc</kbd> {{ t('actions.cancel') }}</span>
-              </div>
-            </div>
-          </div>
+          <ChatComposer
+            v-model="inputText"
+            :is-sending="isSending"
+            :is-recording="isRecording"
+            :recording-duration="recordingDuration"
+            :recording-error="recordingError"
+            :is-playing="isPlaying"
+            @send="sendTypedMessage"
+            @toggle-recording="toggleRecording"
+            @clear="clearInput"
+            @stop-speech="stop"
+          />
         </VCard>
       </VCol>
     </VRow>
@@ -618,11 +155,6 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.chat-list-body {
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
-}
-
 .chat-panel {
   display: flex;
   flex-direction: column;
@@ -630,200 +162,6 @@ onMounted(async () => {
   max-height: calc(100vh - 96px);
 }
 
-.chat-body {
-  flex: 1;
-  min-height: 0;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow: hidden;
-}
-
-.chat-messages {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 12px;
-  padding-right: 4px;
-  scroll-behavior: smooth;
-}
-
-.chat-message {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.chat-message.is-user {
-  align-items: flex-end;
-}
-
-.chat-message.is-speaker {
-  align-items: flex-start;
-}
-
-.message-meta {
-  display: flex;
-  gap: 8px;
-  font-size: 0.75rem;
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
-
-.message-bubble {
-  max-width: min(85%, 520px);
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: #f0f0f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  white-space: pre-wrap;
-}
-
-.chat-message.is-user .message-bubble {
-  background: rgba(var(--v-theme-primary), 0.12);
-  border: 1px solid rgba(var(--v-theme-primary), 0.2);
-}
-
-.chat-delete-btn {
-  opacity: 0.4;
-  transition: opacity 0.2s;
-}
-
-.chat-delete-btn:hover {
-  opacity: 1;
-  color: rgb(var(--v-theme-error));
-}
-
-.chat-suggestions {
-  flex-shrink: 0;
-  padding: 12px 16px 4px;
-}
-
-.suggestion-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.suggestion-chip {
-  cursor: pointer;
-}
-
-.suggestion-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  margin-right: 6px;
-  border-radius: 50%;
-  background: var(--linka-primary, #197377);
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.suggestion-hint {
-  opacity: 0.6;
-  font-size: 0.7rem;
-}
-
-.chat-input {
-  flex-shrink: 0;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.chat-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: stretch;
-}
-
-.chat-actions .v-btn {
-  height: 52px;
-  min-height: 52px;
-}
-
-.chat-actions .v-btn--icon {
-  width: 52px;
-}
-
-.chat-actions .v-btn:not(.v-btn--icon) {
-  flex: 1;
-  min-width: 120px;
-}
-
-.chat-status-bar {
-  min-height: 28px;
-  display: flex;
-  align-items: center;
-}
-
-.recording-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: rgb(var(--v-theme-error));
-  animation: pulse-recording 1.5s infinite;
-}
-
-.recording-time {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-}
-
-.hotkey-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  font-size: 0.75rem;
-  color: rgba(var(--v-theme-on-surface), 0.5);
-}
-
-.hotkey-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.hotkey-item kbd,
-.hotkey-hint {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(var(--v-theme-on-surface), 0.08);
-  font-family: inherit;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.hotkey-hint {
-  margin-left: 8px;
-  opacity: 0.7;
-}
-
-@keyframes pulse-recording {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-.chat-loading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: rgba(var(--v-theme-on-surface), 0.7);
-}
 @media (max-width: 959px) {
   .chat-page {
     height: auto;
@@ -831,28 +169,10 @@ onMounted(async () => {
     overflow: visible;
   }
 
-  .chat-list-body {
-    max-height: 30vh;
-  }
-
   .chat-panel {
     height: auto;
     min-height: 60vh;
     max-height: none;
-  }
-
-  .chat-body {
-    max-height: 40vh;
-    overflow: hidden;
-  }
-
-  .chat-messages {
-    max-height: 35vh;
-  }
-
-  .chat-actions .v-btn:not(.v-btn--icon) {
-    min-width: 100px;
-    flex: 1;
   }
 }
 </style>
