@@ -1,6 +1,6 @@
 # Desktop Release + GitHub Pages
 
-Этот документ фиксирует текущий процесс публикации desktop-релизов (macOS + Linux) и страницы загрузки через GitHub Pages.
+Этот документ фиксирует текущий процесс публикации desktop-релизов (macOS + Windows + Linux) и страницы загрузки через GitHub Pages.
 
 ## Что уже настроено в репозитории
 
@@ -43,7 +43,7 @@ git push origin main --tags
 ```
 
 4. Workflow `Desktop Release`:
-- соберет macOS (`dmg`, `zip`) и Linux (`AppImage`, `deb`);
+- соберет macOS (`dmg`, `zip`), Windows (`exe`) и Linux (`AppImage`, `deb`);
 - подпишет macOS артефакты Developer ID сертификатом;
 - выполнит notarization, если заданы `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`;
 - прикрепит артефакты и update-метаданные (`*.yml`, `*.blockmap`) к GitHub Release.
@@ -90,7 +90,7 @@ yc dns zone delete-records --name <zone_name> \
 
 ## Проверка после публикации
 
-- GitHub Release создан и содержит `dmg`, `zip`, `AppImage`, `deb`, `*.yml`, `*.blockmap`.
+- GitHub Release создан и содержит `dmg`, `zip`, `exe`, `AppImage`, `deb`, `*.yml`, `*.blockmap`.
 - Страница `https://<owner>.github.io/<repo>/` показывает актуальный тег и активные кнопки скачивания.
 - (Если custom domain) `https://downloads.linka.su/` открывается по HTTPS.
 

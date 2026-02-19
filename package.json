@@ -1,6 +1,6 @@
 {
   "name": "linka-type-pwa-v2",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "type": "module",
   "private": true,
   "main": "dist/electron/main.js",
@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "dist": "npm run build && electron-builder",
     "dist:mac": "npm run build && electron-builder --mac dmg zip",
+    "dist:win": "npm run build && electron-builder --win nsis",
     "dist:linux": "npm run build && electron-builder --linux AppImage deb",
     "icons:desktop": "bash scripts/generate-desktop-icons.sh",
     "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && npm run lint:any",

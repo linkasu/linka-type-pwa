@@ -75,6 +75,13 @@ function pickMacAsset(assets) {
   return pickAsset(assets, /mac-(x64|universal)\.dmg$/i) || pickAsset(assets, /\.dmg$/i)
 }
 
+function pickWindowsAsset(assets) {
+  return (
+    pickAsset(assets, /win-(x64|ia32|arm64)\.exe$/i) ||
+    assets.find((asset) => /\.exe$/i.test(asset.name) && !/^elevate\.exe$/i.test(asset.name))
+  )
+}
+
 async function loadLatestRelease() {
   const { owner, repo } = detectRepository()
   const releaseUrl = `https://github.com/${owner}/${repo}/releases`
@@ -103,6 +110,7 @@ async function loadLatestRelease() {
     document.getElementById('release-tag').textContent = release.tag_name || 'без тега'
     document.getElementById('release-date').textContent = publishedDate
 
+    attachAsset('download-win', 'meta-win', pickWindowsAsset(assets))
     attachAsset('download-mac', 'meta-mac', pickMacAsset(assets))
     attachAsset('download-appimage', 'meta-appimage', pickAsset(assets, /\.AppImage$/i))
     attachAsset('download-deb', 'meta-deb', pickAsset(assets, /\.deb$/i))
@@ -112,6 +120,7 @@ async function loadLatestRelease() {
     document.getElementById('release-tag').textContent = 'не удалось загрузить'
     document.getElementById('release-date').textContent = 'не удалось загрузить'
 
+    markUnavailable('download-win', 'meta-win')
     markUnavailable('download-mac', 'meta-mac')
     markUnavailable('download-appimage', 'meta-appimage')
     markUnavailable('download-deb', 'meta-deb')

@@ -76,7 +76,7 @@ npm run dist:linux
 ## Release / CI
 
 - Проверки на `push`/`PR`: `.github/workflows/desktop-ci.yml`
-- Релиз desktop (tag `v*`, macOS + Linux): `.github/workflows/electron-release.yml`
+- Релиз desktop (tag `v*`, macOS + Windows + Linux): `.github/workflows/electron-release.yml`
 - Деплой страницы загрузки в GitHub Pages: `.github/workflows/pages-download.yml`
 
 Подробный релизный регламент, Apple signing secrets и команды DNS (YC CLI):

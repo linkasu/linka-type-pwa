@@ -42,6 +42,8 @@ jobs:
         include:
           - os: macos-latest
             dist_command: dist:mac
+          - os: windows-latest
+            dist_command: dist:win
           - os: ubuntu-latest
             dist_command: dist:linux
 
@@ -139,6 +141,7 @@ jobs:
           mapfile -t assets < <(find release-assets -type f \( \
             -name '*.dmg' -o \
             -name '*.zip' -o \
+            -name '*.exe' -o \
             -name '*.AppImage' -o \
             -name '*.deb' -o \
             -name '*.yml' -o \
