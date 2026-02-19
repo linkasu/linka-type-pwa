@@ -77,9 +77,26 @@ jobs:
           fi
 
       - name: Build distributives
+        if: runner.os != 'macOS'
         env:
           GH_TOKEN: ${{ github.token }}
-          CSC_LINK: ${{ format('data:application/x-pkcs12;base64,{0}', secrets.APPLE_CERTIFICATE_P12_BASE64) }}
+        run: npm run ${{ matrix.dist_command }} -- --publish never
+
+      - name: Prepare macOS signing certificate
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+        run: |
+          set -euo pipefail
+          CERT_FILE="$RUNNER_TEMP/apple-cert.p12"
+          printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERT_FILE"
+          echo "CSC_LINK=file://$CERT_FILE" >> "$GITHUB_ENV"
+
+      - name: Build macOS distributives
+        if: runner.os == 'macOS'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CSC_LINK: ${{ env.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           CSC_NAME: ${{ secrets.APPLE_CERTIFICATE_NAME }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
