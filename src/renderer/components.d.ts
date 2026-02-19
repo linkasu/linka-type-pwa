@@ -33,6 +33,8 @@ declare module 'vue' {
     SettingsAdaptiveSettingsTab: typeof import('./../../components/settings/AdaptiveSettingsTab.vue')['default']
     SettingsImportTab: typeof import('./../../components/settings/ImportTab.vue')['default']
     SettingsVoiceSettingsTab: typeof import('./../../components/settings/VoiceSettingsTab.vue')['default']
+    SettingsVoiceVoiceCacheSection: typeof import('./../../components/settings/voice/VoiceCacheSection.vue')['default']
+    SettingsVoiceVoiceSliders: typeof import('./../../components/settings/voice/VoiceSliders.vue')['default']
     ShortcutList: typeof import('./../../components/ShortcutList.vue')['default']
     TextEditor: typeof import('./../../components/TextEditor.vue')['default']
     Tutorial: typeof import('./../../components/Tutorial.vue')['default']
