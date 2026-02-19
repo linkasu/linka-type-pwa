@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "dist": "npm run build && electron-builder",
     "dist:mac": "npm run build && electron-builder --mac dmg zip --arm64 --x64",
+    "dist:mac:ci": "npm run build && electron-builder --mac dmg zip --arm64 --x64 --config.mac.identity=null",
     "dist:win": "npm run build && electron-builder --win nsis",
     "dist:linux": "npm run build && electron-builder --linux AppImage deb",
     "icons:desktop": "bash scripts/generate-desktop-icons.sh",
