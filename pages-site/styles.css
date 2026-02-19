@@ -58,6 +58,7 @@ body {
 
 .hero,
 .downloads,
+.mobile,
 .info,
 .support {
   background: var(--card);
@@ -157,6 +158,38 @@ h2 {
   color: #375783;
 }
 
+.store-links {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.store-link {
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.store-link:hover {
+  transform: translateY(-2px);
+}
+
+.store-link--ios {
+  background: linear-gradient(160deg, #f4f6ff 0%, #e7efff 100%);
+  border-color: #b8c9ef;
+  color: #1e376d;
+}
+
+.store-link--android {
+  background: linear-gradient(160deg, #e8fbe8 0%, #d6f7d7 100%);
+  border-color: #9ed39f;
+  color: #1d5c2f;
+}
+
 .support a {
   color: var(--accent-strong);
   font-weight: 600;
@@ -170,12 +203,16 @@ h2 {
   animation-delay: 0.08s;
 }
 
-.info.reveal {
+.mobile.reveal {
   animation-delay: 0.16s;
 }
 
-.support.reveal {
+.info.reveal {
   animation-delay: 0.24s;
+}
+
+.support.reveal {
+  animation-delay: 0.32s;
 }
 
 @keyframes rise {

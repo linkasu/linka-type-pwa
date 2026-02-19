@@ -70,8 +70,11 @@ npm run build
 ```bash
 npm run dist
 npm run dist:mac
+npm run dist:win
 npm run dist:linux
 ```
+
+`dist:mac` собирает два варианта: `arm64` (Apple Silicon) и `x64` (Intel).
 
 ## Release / CI
 

@@ -63,16 +63,12 @@ function pickAsset(assets, matcher) {
   return assets.find((asset) => matcher.test(asset.name))
 }
 
-function pickMacAsset(assets) {
-  const isArmMac =
-    /Mac|iPhone|iPad|iPod/i.test(navigator.platform) &&
-    /arm|aarch64/i.test(navigator.userAgent)
+function pickMacArmAsset(assets) {
+  return pickAsset(assets, /mac-arm64\.dmg$/i) || pickAsset(assets, /mac-universal\.dmg$/i)
+}
 
-  if (isArmMac) {
-    return pickAsset(assets, /mac-(arm64|universal)\.dmg$/i) || pickAsset(assets, /\.dmg$/i)
-  }
-
-  return pickAsset(assets, /mac-(x64|universal)\.dmg$/i) || pickAsset(assets, /\.dmg$/i)
+function pickMacX64Asset(assets) {
+  return pickAsset(assets, /mac-x64\.dmg$/i) || pickAsset(assets, /mac-universal\.dmg$/i)
 }
 
 function pickWindowsAsset(assets) {
@@ -111,7 +107,8 @@ async function loadLatestRelease() {
     document.getElementById('release-date').textContent = publishedDate
 
     attachAsset('download-win', 'meta-win', pickWindowsAsset(assets))
-    attachAsset('download-mac', 'meta-mac', pickMacAsset(assets))
+    attachAsset('download-mac-arm64', 'meta-mac-arm64', pickMacArmAsset(assets))
+    attachAsset('download-mac-x64', 'meta-mac-x64', pickMacX64Asset(assets))
     attachAsset('download-appimage', 'meta-appimage', pickAsset(assets, /\.AppImage$/i))
     attachAsset('download-deb', 'meta-deb', pickAsset(assets, /\.deb$/i))
 
@@ -121,7 +118,8 @@ async function loadLatestRelease() {
     document.getElementById('release-date').textContent = 'не удалось загрузить'
 
     markUnavailable('download-win', 'meta-win')
-    markUnavailable('download-mac', 'meta-mac')
+    markUnavailable('download-mac-arm64', 'meta-mac-arm64')
+    markUnavailable('download-mac-x64', 'meta-mac-x64')
     markUnavailable('download-appimage', 'meta-appimage')
     markUnavailable('download-deb', 'meta-deb')
 
