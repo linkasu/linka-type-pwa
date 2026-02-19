@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LINKa Type Desktop - загрузка</title>
+    <meta
+      name="description"
+      content="Скачайте последнюю desktop-версию LINKa Type для macOS и Linux."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb bg-orb-left"></div>
+    <div class="bg-orb bg-orb-right"></div>
+
+    <main class="page">
+      <section class="hero reveal">
+        <p class="hero__eyebrow">LINKa Type Desktop</p>
+        <h1>Скачать последнюю версию</h1>
+        <p class="hero__subtitle">
+          Версия для тех, кому нужна надежная офлайн-работа с озвучкой текста и синхронизацией при
+          появлении интернета.
+        </p>
+        <div class="release-meta">
+          <span>Релиз: <strong id="release-tag">загрузка...</strong></span>
+          <span>Дата: <strong id="release-date">загрузка...</strong></span>
+        </div>
+      </section>
+
+      <section class="downloads reveal">
+        <h2>Установщики</h2>
+        <div class="cards">
+          <a class="download-card" id="download-mac" data-platform="macOS" aria-disabled="true">
+            <span class="download-card__title">macOS (.dmg)</span>
+            <span class="download-card__meta" id="meta-mac">проверка файла...</span>
+          </a>
+          <a
+            class="download-card"
+            id="download-appimage"
+            data-platform="Linux AppImage"
+            aria-disabled="true"
+          >
+            <span class="download-card__title">Linux (.AppImage)</span>
+            <span class="download-card__meta" id="meta-appimage">проверка файла...</span>
+          </a>
+          <a class="download-card" id="download-deb" data-platform="Linux DEB" aria-disabled="true">
+            <span class="download-card__title">Linux (.deb)</span>
+            <span class="download-card__meta" id="meta-deb">проверка файла...</span>
+          </a>
+        </div>
+        <p class="downloads__status" id="status-message"></p>
+      </section>
+
+      <section class="info reveal">
+        <h2>Обновления</h2>
+        <p>
+          Для macOS сборок используется подпись Apple Developer. Встроенная проверка обновлений
+          desktop-приложения работает через GitHub Releases.
+        </p>
+      </section>
+
+      <section class="support reveal">
+        <h2>Если загрузка не открывается</h2>
+        <p>
+          Откройте
+          <a id="releases-link" href="#" target="_blank" rel="noopener noreferrer">GitHub Releases</a>.
+        </p>
+      </section>
+    </main>
+
+    <script src="./app.js?v=2"></script>
+  </body>
+</html>

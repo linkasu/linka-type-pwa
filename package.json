@@ -11,6 +11,8 @@
     "build": "npm run build:renderer && npm run build:electron",
     "preview": "vite preview",
     "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac dmg zip",
+    "dist:linux": "npm run build && electron-builder --linux AppImage deb",
     "icons:desktop": "bash scripts/generate-desktop-icons.sh",
     "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && npm run lint:any",
     "test:unit": "vitest run",
@@ -61,6 +63,7 @@
     "directories": {
       "output": "release"
     },
+    "artifactName": "LINKa-Type-${version}-${os}-${arch}.${ext}",
     "files": [
       "dist/**/*",
       "public/**/*",
@@ -76,7 +79,11 @@
         "zip"
       ],
       "icon": "build/icon.icns",
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.inherit.plist"
     },
     "win": {
       "target": [
@@ -86,15 +93,17 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "deb"
       ],
       "icon": "build/icon.png",
       "category": "Utility"
     },
     "publish": [
       {
-        "provider": "generic",
-        "url": "https://downloads.linka.su/type"
+        "provider": "github",
+        "owner": "linkasu",
+        "repo": "linka-type-pwa"
       }
     ]
   }
