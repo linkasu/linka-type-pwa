@@ -27,6 +27,7 @@ declare module 'vue' {
     Reader: typeof import('./../../components/Reader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SettingsAccountOnlineActions: typeof import('./../../components/settings/AccountOnlineActions.vue')['default']
     SettingsAccountTab: typeof import('./../../components/settings/AccountTab.vue')['default']
     SettingsAdaptiveSettingsTab: typeof import('./../../components/settings/AdaptiveSettingsTab.vue')['default']
     SettingsImportTab: typeof import('./../../components/settings/ImportTab.vue')['default']
