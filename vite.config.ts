@@ -24,7 +24,7 @@ export default defineConfig({
       ],
       dirs: ['composables'],
       dts: 'src/renderer/auto-imports.d.ts',
-      vueTemplate: true,
+      vueTemplate: false,
     }),
     Components({
       dirs: ['components'],
