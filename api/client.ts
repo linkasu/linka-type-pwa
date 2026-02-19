@@ -4,7 +4,8 @@ import axios, {
   type AxiosInstance,
 } from 'axios'
 import { authApi } from './auth'
-import { createDesktopAdapter, hasDesktopBackend, type RequestConfig } from './transport/desktopAdapter'
+import { createDesktopAdapter, hasDesktopBackend } from './transport/desktopAdapter'
+import type { RequestConfig } from './transport/types'
 import type { ApiError, AuthResponse } from '~/types/api'
 
 let apiClient: AxiosInstance | null = null

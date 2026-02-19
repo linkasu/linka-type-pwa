@@ -3,70 +3,17 @@ import {
   AxiosHeaders,
   type AxiosAdapter,
   type AxiosResponse,
-  type InternalAxiosRequestConfig,
 } from 'axios'
-
-export interface RequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean
-  _skipAuth?: boolean
-}
-
-type DesktopBackendBodyPayload =
-  | { kind: 'json'; value: unknown }
-  | { kind: 'text'; value: string }
-  | { kind: 'binary'; base64: string; contentType?: string }
-  | {
-    kind: 'form-data'
-    entries: Array<
-      | { kind: 'text'; name: string; value: string }
-      | {
-        kind: 'file'
-        name: string
-        filename?: string
-        contentType?: string
-        base64: string
-      }
-    >
-  }
-
-interface DesktopBackendRequestPayload {
-  url: string
-  method?: string
-  headers?: Record<string, string>
-  body?: DesktopBackendBodyPayload | null
-  responseType?: 'json' | 'text' | 'arraybuffer'
-}
-
-interface DesktopBackendResponsePayload {
-  ok: boolean
-  status: number
-  statusText: string
-  headers: Record<string, string>
-  dataType: 'json' | 'text' | 'base64'
-  data: unknown
-}
+import { fromBase64, toBase64 } from './base64'
+import type {
+  DesktopBackendBodyPayload,
+  DesktopBackendRequestPayload,
+  DesktopBackendResponsePayload,
+  RequestConfig,
+} from './types'
 
 export const hasDesktopBackend = () =>
   typeof window !== 'undefined' && Boolean(window.desktop?.backend)
-
-const toBase64 = (bytes: Uint8Array): string => {
-  let binary = ''
-  const chunkSize = 0x8000
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, i + chunkSize)
-    binary += String.fromCharCode(...chunk)
-  }
-  return btoa(binary)
-}
-
-const fromBase64 = (value: string): ArrayBuffer => {
-  const binary = atob(value)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i)
-  }
-  return bytes.buffer
-}
 
 const normalizeHeaders = (headers: RequestConfig['headers']): Record<string, string> => {
   const raw = headers instanceof AxiosHeaders ? headers.toJSON() : headers
