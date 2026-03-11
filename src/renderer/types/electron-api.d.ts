@@ -10,6 +10,18 @@ interface DesktopAppApi {
   getPlatform: () => Promise<string>
 }
 
+type DesktopMediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
+
+interface DesktopMediaAccessResult {
+  granted: boolean
+  status: DesktopMediaAccessStatus
+  needsSystemSettings: boolean
+}
+
+interface DesktopMediaApi {
+  ensureMicrophoneAccess: () => Promise<DesktopMediaAccessResult>
+}
+
 type DesktopBackendFormDataEntry =
   | {
     kind: 'text'
@@ -55,6 +67,7 @@ declare global {
   interface Window {
     desktop?: {
       app: DesktopAppApi
+      media: DesktopMediaApi
       updates: DesktopUpdatesApi
       backend: DesktopBackendApi
     }

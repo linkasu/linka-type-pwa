@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, systemPreferences } from 'electron'
 import updater from 'electron-updater'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,6 +12,8 @@ const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://127.0.0.1:5173'
 
 let mainWindow: BrowserWindow | null = null
 const { autoUpdater } = updater
+
+type MediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
 
 const sendUpdateStatus = (payload: Record<string, unknown>) => {
   if (!mainWindow || mainWindow.isDestroyed()) return
@@ -116,10 +118,42 @@ const registerUpdateIpc = () => {
   })
 }
 
+const registerMediaIpc = () => {
+  ipcMain.handle('media:ensure-microphone-access', async () => {
+    if (process.platform !== 'darwin') {
+      return {
+        granted: true,
+        status: 'granted' as MediaAccessStatus,
+        needsSystemSettings: false,
+      }
+    }
+
+    let status = systemPreferences.getMediaAccessStatus('microphone') as MediaAccessStatus
+
+    if (status === 'not-determined') {
+      const granted = await systemPreferences.askForMediaAccess('microphone')
+      status = systemPreferences.getMediaAccessStatus('microphone') as MediaAccessStatus
+
+      return {
+        granted,
+        status,
+        needsSystemSettings: !granted && (status === 'denied' || status === 'restricted'),
+      }
+    }
+
+    return {
+      granted: status === 'granted',
+      status,
+      needsSystemSettings: status === 'denied' || status === 'restricted',
+    }
+  })
+}
+
 const registerIpc = () => {
   ipcMain.handle('app:get-version', () => app.getVersion())
   ipcMain.handle('app:get-platform', () => process.platform)
   registerUpdateIpc()
+  registerMediaIpc()
   registerBackendRequestIpc()
 }
 

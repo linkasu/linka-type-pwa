@@ -5,6 +5,9 @@ contextBridge.exposeInMainWorld('desktop', {
     getVersion: () => ipcRenderer.invoke('app:get-version'),
     getPlatform: () => ipcRenderer.invoke('app:get-platform'),
   },
+  media: {
+    ensureMicrophoneAccess: () => ipcRenderer.invoke('media:ensure-microphone-access'),
+  },
   updates: {
     check: () => ipcRenderer.invoke('updates:check'),
     download: () => ipcRenderer.invoke('updates:download'),

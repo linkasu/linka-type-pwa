@@ -79,7 +79,8 @@
       "sendMessage": "Failed to send message",
       "sendAudio": "Failed to send recording",
       "micUnsupported": "Recording is not supported in this browser",
-      "micDenied": "Microphone access denied"
+      "micDenied": "Microphone access denied",
+      "micDeniedMacos": "Microphone access denied. Allow access in System Settings > Privacy & Security > Microphone, then restart the app."
     }
   },
   "quickes": {

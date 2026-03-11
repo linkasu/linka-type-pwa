@@ -62,6 +62,27 @@ export function useAudioRecording(options: RecordingOptions) {
     startRecordingTimer()
   }
 
+  const ensureDesktopMicrophoneAccess = async () => {
+    if (!window.desktop?.media) {
+      return true
+    }
+
+    try {
+      const result = await window.desktop.media.ensureMicrophoneAccess()
+      if (result.granted) {
+        return true
+      }
+
+      recordingError.value = result.needsSystemSettings
+        ? options.t('chat.errors.micDeniedMacos')
+        : options.t('chat.errors.micDenied')
+      return false
+    } catch {
+      recordingError.value = options.t('chat.errors.micDenied')
+      return false
+    }
+  }
+
   const startRecording = async () => {
     if (isRecording.value || options.isBusy.value) return
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -73,6 +94,11 @@ export function useAudioRecording(options: RecordingOptions) {
     shouldSendRecording = true
 
     try {
+      const hasMicrophoneAccess = await ensureDesktopMicrophoneAccess()
+      if (!hasMicrophoneAccess) {
+        return
+      }
+
       recorderStream = await navigator.mediaDevices.getUserMedia({ audio: true })
       recordingMimeType = pickMimeType()
 
