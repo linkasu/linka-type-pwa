@@ -58,7 +58,7 @@ export interface Voice {
   name: string
   lang: string
   gender: 'male' | 'female'
-  engine: 'browser' | 'yandex' | 'sber'
+  engine: 'browser' | 'yandex' | 'sber' | 'openai'
 }
 
 export interface Question {
