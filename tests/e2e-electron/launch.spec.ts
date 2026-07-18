@@ -73,6 +73,7 @@ test('electron launch smoke', async () => {
       args: [
         path.join(process.cwd(), 'dist/electron/main.js'),
         `--user-data-dir=${userDataDir}`,
+        ...(process.platform === 'linux' ? ['--no-sandbox'] : []),
       ],
       env: {
         ...noProxyEnv,

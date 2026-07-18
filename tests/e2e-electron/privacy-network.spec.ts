@@ -16,6 +16,7 @@ test('Unknown has no analytics module or network and does not block offline AAC'
       args: [
         path.join(process.cwd(), 'dist/electron/main.js'),
         `--user-data-dir=${userDataDir}`,
+        ...(process.platform === 'linux' ? ['--no-sandbox'] : []),
       ],
       env: {
         ...process.env,
