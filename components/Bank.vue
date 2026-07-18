@@ -55,10 +55,10 @@ const { isCaching, cachingProgress, cachingTotal, cachingCategoryName, cacheCate
 
 const handleItemSelect = (item: Category | Statement) => {
   if (isCategory(item)) {
-    trackBankCategorySelect(item.id)
+    trackBankCategorySelect()
     selectedCategoryId.value = item.id
   } else {
-    trackBankStatementSelect(item.id, isPasteMode.value)
+    trackBankStatementSelect(isPasteMode.value)
     if (isPasteMode.value) {
       emit('paste', item.text)
     } else {

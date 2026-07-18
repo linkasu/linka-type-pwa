@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useSettingsStore } from '~/stores/settings'
+import PrivacySettingsTab from '~/components/settings/PrivacySettingsTab.vue'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
@@ -68,6 +69,12 @@ const goToMain = () => {
           </VIcon>
           {{ t('settings.import') }}
         </VTab>
+        <VTab value="privacy">
+          <VIcon start>
+            mdi-shield-lock-outline
+          </VIcon>
+          {{ t('settings.privacy') }}
+        </VTab>
         <VTab value="account">
           <VIcon start>
             mdi-account
@@ -87,6 +94,10 @@ const goToMain = () => {
 
         <VWindowItem value="import">
           <SettingsImportTab />
+        </VWindowItem>
+
+        <VWindowItem value="privacy">
+          <PrivacySettingsTab />
         </VWindowItem>
 
         <VWindowItem value="account">

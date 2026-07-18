@@ -3,6 +3,7 @@ import { useSettingsStore } from '~/stores/settings'
 import { useTheme } from 'vuetify'
 import LayoutHeader from '~/components/layout/LayoutHeader.vue'
 import LayoutDrawer from '~/components/layout/LayoutDrawer.vue'
+import PrivacyNotice from '~/components/PrivacyNotice.vue'
 
 const settingsStore = useSettingsStore()
 const theme = useTheme()
@@ -34,6 +35,7 @@ watch(
     />
 
     <VMain id="main-content">
+      <PrivacyNotice />
       <slot />
     </VMain>
 

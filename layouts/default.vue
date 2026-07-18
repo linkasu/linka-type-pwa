@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useSettingsStore } from '~/stores/settings'
 import { useTheme } from 'vuetify'
+import PrivacyNotice from '~/components/PrivacyNotice.vue'
 
 const settingsStore = useSettingsStore()
 const theme = useTheme()
@@ -17,6 +18,7 @@ watch(
 <template>
   <VApp>
     <VMain>
+      <PrivacyNotice />
       <slot />
     </VMain>
     <OfflineIndicator />

@@ -33,7 +33,7 @@ base64 -i DeveloperIDApplication.p12 | pbcopy
 
 ## Как выпускать релиз
 
-1. Обновите версию в `package.json`.
+1. Обновите одинаковую версию в `package.json` и корне `package-lock.json`.
 2. Убедитесь, что `main` содержит нужный код.
 3. Создайте и отправьте тег:
 
@@ -43,6 +43,8 @@ git push origin main --tags
 ```
 
 4. Workflow `Desktop Release`:
+- проверит, что тег строго равен `v` + версии package (например, `v2.0.8`);
+- выполнит typecheck, unit/main тесты, build и Electron E2E до сборки артефактов;
 - соберет macOS (`dmg`, `zip`), Windows (`exe`) и Linux (`AppImage`, `deb`);
 - подпишет macOS артефакты Developer ID сертификатом;
 - выполнит notarization, если заданы `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`;

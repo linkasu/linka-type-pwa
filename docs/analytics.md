@@ -1,192 +1,62 @@
-# Firebase Analytics
+# Analytics and privacy
 
-Аналитика реализована на Firebase Analytics v10+ (модульный SDK).
+## Consent FSM
 
-## Архитектура
+Analytics consent has three persisted states under `analytics_consent`:
 
-```
-plugins/firebase.client.ts    → инициализация Firebase
-composables/useAnalytics.ts   → основной composable
-src/renderer/router.ts        → переходы между страницами
-types/analytics.ts            → типы событий и свойств
-```
+- `Unknown`: the default. Firebase modules are not loaded, no Firebase app exists, and Electron blocks analytics endpoints.
+- `Enabled`: set only by an explicit user action. Production builds may dynamically load Firebase Analytics and open its network policy.
+- `Disabled`: collection is stopped, the Firebase app is deleted, and Electron blocks analytics endpoints again.
 
-## Конфигурация
+Legacy explicit values `granted` and `denied` migrate to `Enabled` and `Disabled`. Dismissing the first-run notice stores only `analytics_notice_dismissed`; it leaves consent at `Unknown`. Account, AAC, authentication, offline mode, synchronization, and the offline change queue do not depend on analytics consent.
 
-Firebase проект: `distypepro-android`
-Measurement ID: `G-RM812X3EM4`
+Development, automated, and test runs do not initialize collection even if their persisted consent is `Enabled`. `VITE_DISABLE_ANALYTICS=true` also disables collection in a production build.
 
-Значения берутся из Vite env и переопределяются через:
+## Initialization boundary
+
+`composables/analytics/service.ts` contains the consent FSM, `composables/analytics/consent.ts` owns persistence, and `plugins/firebase.client.ts` is the lazy Firebase adapter. The adapter uses dynamic imports for both `firebase/app` and `firebase/analytics`. The imports, `initializeApp`, `initializeAnalytics`, Firebase installation traffic, Google Tag Manager, and Google Analytics traffic cannot occur before `Enabled`. Automatic `page_view` is disabled so route/location data cannot bypass the event allowlist.
+
+Electron adds an independent default-deny guard in `electron/privacyNetwork.ts`. The guard applies only to analytics hosts. It deliberately does not block the LINKa backend, Firebase Authentication, Firebase Storage, online TTS, predictor, or dialog services.
+
+## Event allowlist
+
+`types/analytics.ts` is the typed and runtime-enforced allowlist. Callers can use only the specific trackers returned by `useAnalytics()`; the generic event sender is not exposed.
+
+Allowed events never include entered content, account addresses, authentication or device identifiers, section/item identifiers or names, recordings, file locations, or exception messages. Settings are not sent as events or user properties. No analytics user ID or user properties are set.
+
+The current events contain only coarse action metadata:
+
+| Event | Parameters |
+| --- | --- |
+| `predicator_use` | numeric position |
+| `spotlight` | open/close |
+| `say` | coarse length bucket, playback/download |
+| `quickes_say` | numeric position |
+| `bank_cselect` | none |
+| `bank_sselect` | paste mode boolean |
+| `login`, `logout`, `register` | none |
+| update/mobile prompt events | none or broad platform |
+| `bank_cache_started`, `bank_cache_completed` | item count |
+
+## Functional external processing
+
+The privacy notice and Privacy settings disclose these operations separately from telemetry:
+
+- Account and synchronized data are processed by the LINKa backend and Firebase Authentication/Storage for sign-in, storage, and synchronization.
+- Content selected for an online voice is sent to the TTS service for synthesis.
+- Input is sent to the predictor service while that feature is enabled and used.
+- Microphone recordings, sound, and utterances are sent to recognition and dialog-helper services when dialog features are used.
+
+These requests are controlled by their corresponding product features, not analytics consent.
+
+## Verification
+
+Run:
 
 ```bash
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-VITE_FIREBASE_MEASUREMENT_ID=...
+npm run test:unit
+npm run test:main
+npm run test:e2e:electron
 ```
 
-## Отслеживаемые события
-
-### Основные действия
-| Событие | Параметры | Описание |
-|---------|-----------|----------|
-| `page_view` | page_path, page_title | Автоматически при переходах |
-| `say` | text_length, has_text, download | Озвучивание текста |
-| `predicator_use` | word, position | Выбор слова из предиктора |
-| `quickes_say` | phrase, index | Клик по быстрой фразе |
-| `spotlight` | action (open/close) | Открытие/закрытие spotlight |
-
-### Банк фраз
-| Событие | Параметры | Описание |
-|---------|-----------|----------|
-| `bank_cselect` | category_id | Выбор категории |
-| `bank_sselect` | statement_id, is_paste | Выбор фразы |
-| `category_cache_started` | category_id, phrase_count | Начало кэширования |
-| `category_cache_completed` | category_id, phrase_count | Конец кэширования |
-
-### Авторизация
-| Событие | Параметры | Описание |
-|---------|-----------|----------|
-| `login` | method | Вход в систему |
-| `logout` | — | Выход |
-| `register` | method | Регистрация |
-
-### PWA и промпты
-| Событие | Параметры | Описание |
-|---------|-----------|----------|
-| `update_prompt_shown` | — | Показан промпт обновления |
-| `update_accepted` | — | Пользователь принял обновление |
-| `mobile_app_prompt_shown` | platform | Показан промпт нативного приложения |
-| `mobile_app_link_clicked` | platform | Клик по ссылке на приложение |
-| `pwa_install_prompt` | — | Показан промпт установки PWA |
-| `pwa_installed` | — | PWA установлено |
-
-### Настройки
-| Событие | Параметры | Описание |
-|---------|-----------|----------|
-| `settings_changed` | setting, value | Изменение любой настройки |
-
-## User Properties
-
-Синхронизируются автоматически при:
-- Загрузке настроек пользователя
-- Изменении настроек
-
-| Свойство | Тип | Описание |
-|----------|-----|----------|
-| `voice_engine` | browser/yandex | Используемый TTS |
-| `voice_uri` | string | ID голоса браузера |
-| `yandex_voice` | string | ID голоса Яндекса |
-| `show_predictor` | boolean | Показывать предиктор |
-| `show_quickes` | boolean | Показывать быстрые фразы |
-| `show_bank` | boolean | Показывать банк |
-| `speak_last_word` | boolean | Озвучивать последнее слово |
-| `save_on_say` | boolean | Сохранять при озвучивании |
-| `type_sound` | boolean | Звук набора |
-| `dark_theme` | boolean | Тёмная тема |
-| `locale` | ru/en | Язык интерфейса |
-| `volume` | number | Громкость |
-| `rate` | number | Скорость речи |
-| `pitch` | number | Высота голоса |
-| `is_pwa` | boolean | Запущено как PWA |
-| `platform` | web/ios/android | Платформа |
-
-## Использование
-
-### В компонентах
-
-```typescript
-const { trackSay, trackSpotlight } = useAnalytics()
-
-// Трекинг события
-trackSay(text.length, false)
-trackSpotlight('open')
-```
-
-### В stores
-
-```typescript
-import { useAnalytics } from '~/composables/useAnalytics'
-
-// В action
-if (import.meta.client) {
-  const { trackLogin, setAnalyticsUserId } = useAnalytics()
-  setAnalyticsUserId(user.id)
-  trackLogin()
-}
-```
-
-### Добавление нового события
-
-1. Добавить тип в `types/analytics.ts`:
-```typescript
-export type AnalyticsEventName =
-  | ...existing...
-  | 'new_event'
-
-export interface AnalyticsEventParams {
-  ...existing...
-  new_event: { param1: string; param2: number }
-}
-```
-
-2. Добавить метод в `composables/useAnalytics.ts`:
-```typescript
-const trackNewEvent = (param1: string, param2: number) => {
-  trackEvent('new_event', { param1, param2 })
-}
-
-return {
-  ...existing...,
-  trackNewEvent,
-}
-```
-
-3. Вызвать в компоненте:
-```typescript
-const { trackNewEvent } = useAnalytics()
-trackNewEvent('value', 42)
-```
-
-## Отладка
-
-### Development режим
-- События логируются в консоль с префиксом `[Analytics]`
-- Если Firebase недоступен — `[Analytics Debug]`
-
-### Firebase DebugView
-1. Добавить `?debug_mode=true` к URL
-2. Открыть Firebase Console → Analytics → DebugView
-3. События появятся в реальном времени
-
-### Chrome Extension
-Установить "Google Analytics Debugger" для детального логирования.
-
-## Offline
-
-Firebase Analytics автоматически:
-- Кэширует события в IndexedDB при офлайне
-- Отправляет накопленные события при восстановлении связи
-- Хранит до ~100k событий
-
-Дополнительная настройка не требуется.
-
-## Consent
-
-Реализовано базовое управление согласием:
-
-```typescript
-const { setConsent, getConsent } = useAnalytics()
-
-// Проверить статус
-const status = getConsent() // 'granted' | 'denied' | 'unknown'
-
-// Установить согласие
-setConsent(false) // отключить сбор
-setConsent(true)  // включить сбор
-```
-
-Статус сохраняется в `localStorage` под ключом `analytics_consent`.
+The unit suite verifies FSM persistence, delayed SDK loading, transitions, test collection disablement, legacy migration, and parameter sanitization. Main-process tests verify the network allow/block boundary. Electron E2E verifies that `Unknown` loads no Firebase analytics module, sends no analytics requests, remains dismissible, and does not block offline AAC or later settings changes.

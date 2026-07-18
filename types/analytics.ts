@@ -1,71 +1,71 @@
-// Firebase Analytics event names
-export type AnalyticsEventName =
-  // V1 legacy events
-  | 'predicator_use'
-  | 'spotlight'
-  | 'say'
-  | 'quickes_say'
-  | 'bank_cselect'
-  | 'bank_sselect'
-  // Auth events
-  | 'login'
-  | 'logout'
-  | 'register'
-  // PWA events
-  | 'update_prompt_shown'
-  | 'update_accepted'
-  | 'mobile_app_prompt_shown'
-  | 'mobile_app_link_clicked'
-  | 'pwa_install_prompt'
-  | 'pwa_installed'
-  // Feature events
-  | 'category_cache_started'
-  | 'category_cache_completed'
-  | 'settings_changed'
-  | 'reader_mode_opened'
-  | 'text_editor_opened'
+export const ANALYTICS_CONSENT = {
+  Unknown: 'Unknown',
+  Enabled: 'Enabled',
+  Disabled: 'Disabled',
+} as const
 
-// Event parameter types for type-safety
+export type AnalyticsConsentState = typeof ANALYTICS_CONSENT[keyof typeof ANALYTICS_CONSENT]
+export type AnalyticsConsentDecision = Exclude<AnalyticsConsentState, 'Unknown'>
+
+type NoAnalyticsParams = Record<never, never>
+
 export interface AnalyticsEventParams {
-  predicator_use: { word: string; position: number }
+  predicator_use: { position: number }
   spotlight: { action: 'open' | 'close' }
-  say: { text_length: number; has_text: boolean; download?: boolean }
-  quickes_say: { phrase: string; index: number }
-  bank_cselect: { category_id: string; key?: string }
-  bank_sselect: { statement_id: string; key?: string; is_paste: boolean }
-  login: { method: 'email' }
-  logout: Record<string, never>
-  register: { method: 'email' }
-  update_prompt_shown: Record<string, never>
-  update_accepted: Record<string, never>
+  say: {
+    length_bucket: 'empty' | 'short' | 'medium' | 'long'
+    delivery: 'playback' | 'download'
+  }
+  quickes_say: { position: number }
+  bank_cselect: NoAnalyticsParams
+  bank_sselect: { is_paste: boolean }
+  login: NoAnalyticsParams
+  logout: NoAnalyticsParams
+  register: NoAnalyticsParams
+  update_prompt_shown: NoAnalyticsParams
+  update_accepted: NoAnalyticsParams
   mobile_app_prompt_shown: { platform: 'ios' | 'android' }
   mobile_app_link_clicked: { platform: 'ios' | 'android' }
-  pwa_install_prompt: Record<string, never>
-  pwa_installed: Record<string, never>
-  category_cache_started: { category_id: string; phrase_count: number }
-  category_cache_completed: { category_id: string; phrase_count: number }
-  settings_changed: { setting: string; value: string | boolean | number }
-  reader_mode_opened: { category_id: string; statement_count: number }
-  text_editor_opened: { category_id: string }
+  bank_cache_started: { item_count: number }
+  bank_cache_completed: { item_count: number }
 }
 
-// User properties matching settings store
-export interface AnalyticsUserProperties {
-  voice_engine: 'browser' | 'yandex'
-  voice_uri?: string
-  yandex_voice?: string
-  show_predictor: boolean
-  show_spotlight_predictor: boolean
-  show_quickes: boolean
-  show_bank: boolean
-  speak_last_word: boolean
-  save_on_say: boolean
-  type_sound: boolean
-  dark_theme: boolean
-  locale: 'ru' | 'en'
-  volume: number
-  rate: number
-  pitch: number
-  is_pwa: boolean
-  platform: 'web' | 'ios' | 'android'
+export type AnalyticsEventName = keyof AnalyticsEventParams
+export type AnalyticsParamValue = string | number | boolean
+
+export const ANALYTICS_EVENT_PARAMETER_KEYS = {
+  predicator_use: ['position'],
+  spotlight: ['action'],
+  say: ['length_bucket', 'delivery'],
+  quickes_say: ['position'],
+  bank_cselect: [],
+  bank_sselect: ['is_paste'],
+  login: [],
+  logout: [],
+  register: [],
+  update_prompt_shown: [],
+  update_accepted: [],
+  mobile_app_prompt_shown: ['platform'],
+  mobile_app_link_clicked: ['platform'],
+  bank_cache_started: ['item_count'],
+  bank_cache_completed: ['item_count'],
+} as const satisfies {
+  [EventName in AnalyticsEventName]: readonly (keyof AnalyticsEventParams[EventName])[]
+}
+
+export function sanitizeAnalyticsParams<EventName extends AnalyticsEventName>(
+  eventName: EventName,
+  params: AnalyticsEventParams[EventName],
+): Record<string, AnalyticsParamValue> {
+  const source = params as unknown as Record<string, unknown>
+  const sanitized: Record<string, AnalyticsParamValue> = {}
+
+  for (const key of ANALYTICS_EVENT_PARAMETER_KEYS[eventName] as readonly string[]) {
+    const value = source[key]
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      sanitized[key] = value
+    }
+  }
+
+  return sanitized
 }

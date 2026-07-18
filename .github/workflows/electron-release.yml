@@ -14,12 +14,17 @@ on:
 permissions:
   contents: write
 
+env:
+  RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.tag }}
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,11 +32,38 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Validate release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(node -p "require('./package.json').version")"
+          lock_version="$(node -p "require('./package-lock.json').version")"
+          if [ "${RELEASE_TAG}" != "v${package_version}" ]; then
+            echo "::error::Tag ${RELEASE_TAG} must equal package version v${package_version}"
+            exit 1
+          fi
+          if [ "${lock_version}" != "${package_version}" ]; then
+            echo "::error::package-lock version ${lock_version} differs from package version ${package_version}"
+            exit 1
+          fi
+
       - name: Install dependencies
         run: npm ci
 
       - name: Validate project
         run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run main-process tests
+        run: npm run test:main
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run Electron privacy and smoke tests
+        run: xvfb-run -a npm run test:e2e:electron
 
   build:
     needs: verify
@@ -50,6 +82,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -142,7 +176,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.tag }}
     steps:
       - name: Validate release tag
         run: |
@@ -183,7 +216,7 @@ jobs:
           else
             gh release create "${RELEASE_TAG}" "${assets[@]}" \
               --repo "${GITHUB_REPOSITORY}" \
-              --target "${GITHUB_SHA}" \
+              --verify-tag \
               --title "${RELEASE_TAG}" \
               --generate-notes
           fi

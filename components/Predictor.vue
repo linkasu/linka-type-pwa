@@ -92,7 +92,7 @@ const buildPredictionText = (prediction: string) => {
 }
 
 const selectPrediction = (prediction: string, index?: number) => {
-  trackPredicatorUse(prediction, index ?? predictions.value.indexOf(prediction))
+  trackPredicatorUse(index ?? predictions.value.indexOf(prediction))
   emit('update:modelValue', buildPredictionText(prediction))
   predictions.value = []
 }

@@ -8,6 +8,9 @@ contextBridge.exposeInMainWorld('desktop', {
   media: {
     ensureMicrophoneAccess: () => ipcRenderer.invoke('media:ensure-microphone-access'),
   },
+  privacy: {
+    setAnalyticsEnabled: (enabled) => ipcRenderer.invoke('privacy:set-analytics-enabled', enabled),
+  },
   updates: {
     check: () => ipcRenderer.invoke('updates:check'),
     download: () => ipcRenderer.invoke('updates:download'),

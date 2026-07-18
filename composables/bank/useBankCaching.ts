@@ -15,8 +15,8 @@ type StatementsStoreLike = {
 type UseBankCachingOptions = {
   settingsStore: SettingsStoreLike
   statementsStore: StatementsStoreLike
-  trackCategoryCacheStarted: (categoryId: string, phraseCount: number) => void
-  trackCategoryCacheCompleted: (categoryId: string, phraseCount: number) => void
+  trackCategoryCacheStarted: (itemCount: number) => void
+  trackCategoryCacheCompleted: (itemCount: number) => void
 }
 
 export const useBankCaching = (options: UseBankCachingOptions) => {
@@ -35,7 +35,7 @@ export const useBankCaching = (options: UseBankCachingOptions) => {
       const voice = options.settingsStore.yandexVoice || 'alena'
       const phrases = statements.map(statement => statement.text)
 
-      options.trackCategoryCacheStarted(category.id, phrases.length)
+      options.trackCategoryCacheStarted(phrases.length)
       isCaching.value = true
       cachingCategoryName.value = category.label
       cachingProgress.value = 0
@@ -57,7 +57,7 @@ export const useBankCaching = (options: UseBankCachingOptions) => {
         },
       )
 
-      options.trackCategoryCacheCompleted(category.id, phrases.length)
+      options.trackCategoryCacheCompleted(phrases.length)
     } catch (err) {
       console.error('Failed to cache category:', err)
     } finally {

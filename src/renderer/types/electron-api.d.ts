@@ -22,6 +22,10 @@ interface DesktopMediaApi {
   ensureMicrophoneAccess: () => Promise<DesktopMediaAccessResult>
 }
 
+interface DesktopPrivacyApi {
+  setAnalyticsEnabled: (enabled: boolean) => Promise<boolean>
+}
+
 type DesktopBackendFormDataEntry =
   | {
     kind: 'text'
@@ -68,6 +72,7 @@ declare global {
     desktop?: {
       app: DesktopAppApi
       media: DesktopMediaApi
+      privacy: DesktopPrivacyApi
       updates: DesktopUpdatesApi
       backend: DesktopBackendApi
     }

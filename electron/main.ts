@@ -1,8 +1,12 @@
-import { app, BrowserWindow, ipcMain, shell, systemPreferences } from 'electron'
+import { app, BrowserWindow, ipcMain, session, shell, systemPreferences } from 'electron'
 import updater from 'electron-updater'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerBackendRequestIpc } from './backendRequest.js'
+import {
+  AnalyticsNetworkPolicy,
+  registerAnalyticsNetworkGuard,
+} from './privacyNetwork.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -12,6 +16,7 @@ const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://127.0.0.1:5173'
 
 let mainWindow: BrowserWindow | null = null
 const { autoUpdater } = updater
+const analyticsNetworkPolicy = new AnalyticsNetworkPolicy()
 
 type MediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
 
@@ -152,12 +157,20 @@ const registerMediaIpc = () => {
 const registerIpc = () => {
   ipcMain.handle('app:get-version', () => app.getVersion())
   ipcMain.handle('app:get-platform', () => process.platform)
+  ipcMain.handle('privacy:set-analytics-enabled', (event, enabled: unknown) => {
+    if (event.sender !== mainWindow?.webContents || typeof enabled !== 'boolean') {
+      return false
+    }
+    analyticsNetworkPolicy.setEnabled(enabled)
+    return true
+  })
   registerUpdateIpc()
   registerMediaIpc()
   registerBackendRequestIpc()
 }
 
 app.whenReady().then(async () => {
+  registerAnalyticsNetworkGuard(session.defaultSession, analyticsNetworkPolicy)
   registerIpc()
   configureAutoUpdater()
   await createWindow()

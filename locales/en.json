@@ -148,6 +148,7 @@
     "adaptive": "Interface",
     "import": "Import",
     "account": "Account",
+    "privacy": "Privacy",
     "voiceSettings": {
       "title": "Voice Settings",
       "selectVoice": "Select voice",
@@ -205,6 +206,30 @@
       "deleteAccount": "Delete account",
       "deleteWarning": "This action cannot be undone. All your data will be deleted.",
       "confirmDelete": "Type DELETE to confirm"
+    }
+  },
+  "privacy": {
+    "title": "Privacy and external services",
+    "analyticsDescription": "Optional usage analytics is off by default. Firebase Analytics is loaded and given network access only after you explicitly enable it. Events contain no entered content, account address, identifiers, section or item names, recordings, files, or error messages.",
+    "enable": "Enable analytics",
+    "disable": "Do not collect analytics",
+    "later": "Decide later",
+    "unknown": "No decision has been made. Analytics remains off and every application feature is available.",
+    "processingTitle": "Functional external processing",
+    "processingIntro": "The following network requests provide selected features and are not telemetry:",
+    "accountTitle": "Account and sync",
+    "accountDescription": "The LINKa backend and Firebase Authentication/Storage process account and synchronized data only for sign-in, storage, and synchronization.",
+    "ttsTitle": "Online speech",
+    "ttsDescription": "Content selected for speech is sent to the TTS service only when an online voice is used.",
+    "predictorTitle": "Predictor",
+    "predictorDescription": "Input is sent to the suggestion service when the predictor is enabled and used.",
+    "dialogTitle": "Dialog helper",
+    "dialogDescription": "Microphone recordings, sound, and utterances are sent to recognition and helper services only when dialog is used.",
+    "notTelemetry": "These requests provide application features, are independent of the analytics choice, and are not used as telemetry. Offline mode and its change queue continue to work without analytics.",
+    "notice": {
+      "title": "Analytics and external processing control",
+      "analytics": "Analytics is off and has no network access until you explicitly enable it. You may continue without deciding: the app, AAC, account, and offline mode remain fully available.",
+      "processing": "Account/Firebase, online TTS, predictor, and dialog helper use the network only for their functions; this is external processing, not telemetry. Details and the choice remain available in Privacy settings."
     }
   },
   "tutorial": {

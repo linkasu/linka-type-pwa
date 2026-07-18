@@ -36,8 +36,7 @@ export const loginAction = async (
     })
 
     applyOnlineSession(store, response)
-    const { trackLogin, setAnalyticsUserId } = useAnalytics()
-    setAnalyticsUserId(response.user.id)
+    const { trackLogin } = useAnalytics()
     trackLogin()
 
     return response
@@ -66,8 +65,7 @@ export const registerAction = async (
     })
 
     applyOnlineSession(store, response)
-    const { trackRegister, setAnalyticsUserId } = useAnalytics()
-    setAnalyticsUserId(response.user.id)
+    const { trackRegister } = useAnalytics()
     trackRegister()
 
     return response
@@ -82,9 +80,8 @@ export const registerAction = async (
 
 export const logoutAction = async (store: AuthStoreContext) => {
   const userId = store.user?.id
-  const { trackLogout, setAnalyticsUserId } = useAnalytics()
+  const { trackLogout } = useAnalytics()
   trackLogout()
-  setAnalyticsUserId(null)
 
   try {
     const { api } = useAppServices()
@@ -134,9 +131,6 @@ export const refreshTokenAction = async (store: AuthStoreContext) => {
     store.user = response.user
     store.initialized = true
     store.saveToStorage()
-
-    const { setAnalyticsUserId } = useAnalytics()
-    setAnalyticsUserId(response.user.id)
 
     return true
   } catch {

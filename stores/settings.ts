@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_PREFERENCES } from '~/types'
 import type { UserPreferences } from '~/types/api'
-import { useAnalytics } from '~/composables/useAnalytics'
 import { useAuthStore } from './auth'
 import { useUserStore } from './user'
-import { buildAnalyticsUserProperties, trackSettingsPatch } from './settings/analytics'
 import { pickUserPreferences } from './settings/preferences'
 import { schedulePreferenceSync } from './settings/sync'
 
@@ -65,11 +63,6 @@ export const useSettingsStore = defineStore('settings', {
       this.yandexVoice = undefined
       Object.assign(this, { ...DEFAULT_PREFERENCES, ...preferences })
       this.saveToStorage()
-
-      // Sync user properties after loading preferences
-      if (import.meta.client) {
-        this.syncAnalyticsUserProperties()
-      }
     },
 
     saveToStorage() {
@@ -82,31 +75,12 @@ export const useSettingsStore = defineStore('settings', {
       Object.assign(this, settings)
       this.saveToStorage()
       this.queuePreferenceSync(pickUserPreferences(settings))
-
-      // Track settings changes
-      if (import.meta.client) {
-        const { trackSettingsChanged } = useAnalytics()
-        trackSettingsPatch(settings as Record<string, unknown>, trackSettingsChanged)
-        this.syncAnalyticsUserProperties()
-      }
-    },
-
-    syncAnalyticsUserProperties() {
-      if (!import.meta.client) return
-      const { updateUserProperties, isPwa, detectPlatform } = useAnalytics()
-      updateUserProperties(buildAnalyticsUserProperties(this, isPwa, detectPlatform))
     },
 
     toggleDarkTheme() {
       this.darkTheme = !this.darkTheme
       this.saveToStorage()
       this.queuePreferenceSync({ darkTheme: this.darkTheme })
-
-      if (import.meta.client) {
-        const { trackSettingsChanged } = useAnalytics()
-        trackSettingsChanged('darkTheme', this.darkTheme)
-        this.syncAnalyticsUserProperties()
-      }
     },
 
     setLocale(locale: 'ru' | 'en') {
@@ -122,12 +96,6 @@ export const useSettingsStore = defineStore('settings', {
       if (settings.yandexVoice !== undefined) this.yandexVoice = settings.yandexVoice
       this.saveToStorage()
       this.queuePreferenceSync(pickUserPreferences(settings))
-
-      if (import.meta.client) {
-        const { trackSettingsChanged } = useAnalytics()
-        trackSettingsPatch(settings as Record<string, unknown>, trackSettingsChanged)
-        this.syncAnalyticsUserProperties()
-      }
     },
 
     setYandexTTS(enabled: boolean) {
@@ -136,12 +104,6 @@ export const useSettingsStore = defineStore('settings', {
       this.yandex = enabled
       this.saveToStorage()
       this.queuePreferenceSync({ yandex: this.yandex })
-
-      if (import.meta.client) {
-        const { trackSettingsChanged } = useAnalytics()
-        trackSettingsChanged('yandex', this.yandex)
-        this.syncAnalyticsUserProperties()
-      }
     },
 
     toggleYandexTTS() {

@@ -1,3 +1,5 @@
+import { mkdtemp, rm } from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 import { expect, test } from '@playwright/test'
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright'
@@ -63,11 +65,15 @@ async function continueInOfflineMode(page: Page) {
 }
 
 test('electron launch smoke', async () => {
+  const userDataDir = await mkdtemp(path.join(os.tmpdir(), 'linka-type-smoke-'))
   let app: ElectronApplication | undefined
 
   try {
     app = await electron.launch({
-      args: [path.join(process.cwd(), 'dist/electron/main.js')],
+      args: [
+        path.join(process.cwd(), 'dist/electron/main.js'),
+        `--user-data-dir=${userDataDir}`,
+      ],
       env: {
         ...noProxyEnv,
         VITE_DEV_SERVER_URL: devServerUrl,
@@ -126,5 +132,6 @@ test('electron launch smoke', async () => {
     ).toBeFalsy()
   } finally {
     await app?.close()
+    await rm(userDataDir, { recursive: true, force: true })
   }
 })

@@ -44,10 +44,13 @@ What this smoke covers:
 - first-run mode selection (offline)
 - navigation `login -> main -> settings -> main -> chat`
 - core input interactions on `main` and `chat`
+- analytics `Unknown` network isolation and deferred Firebase module loading
+- dismissible privacy notice, offline AAC availability, and later Privacy settings
 
 Notes:
 - test launches Electron against `http://127.0.0.1:4174`
 - `playwright.electron.config.ts` auto-builds `dist/electron/main.js` and starts `vite` automatically
+- Vite development and automated environments never initialize analytics collection
 
 ## Voices (unauthorized) smoke
 
@@ -73,9 +76,7 @@ npm run test:e2e:sync
 
 ## CI recommendation
 
-Use two mandatory jobs:
-- `verify`: `npm run typecheck && npm run test:unit && npm run test:main`
-- `desktop-e2e`: `npm run test:e2e:electron` with artifact export (`trace`, `video`, screenshots)
+Required release checks before packaging are `typecheck`, unit tests, main-process tests, build, and Electron E2E. Linux CI runs Electron through `xvfb-run`.
 
 ## Troubleshooting
 

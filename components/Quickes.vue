@@ -31,7 +31,7 @@ defineExpose({ focus })
 const handleClick = (index: number) => {
   const text = quickesStore.quickes[index]
   if (text) {
-    trackQuickesSay(text, index)
+    trackQuickesSay(index)
     emit('click', text)
   }
 }

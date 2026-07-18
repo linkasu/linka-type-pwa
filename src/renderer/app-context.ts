@@ -1,8 +1,7 @@
 import type { App, InjectionKey } from 'vue'
 import { getCurrentInstance, inject } from 'vue'
 import type { Router } from 'vue-router'
-import type { Analytics } from 'firebase/analytics'
-import type { FirebaseApp } from 'firebase/app'
+import type { AnalyticsService } from '~/composables/analytics/service'
 import type { authApi } from '~/api/auth'
 import type { categoriesApi } from '~/api/categories'
 import type { statementsApi } from '~/api/statements'
@@ -23,6 +22,7 @@ export interface RuntimePublicConfig {
   firebaseMessagingSenderId?: string
   firebaseAppId?: string
   firebaseMeasurementId?: string
+  analyticsCollectionAllowed: boolean
 }
 
 export interface RuntimeConfig {
@@ -44,8 +44,7 @@ export interface AppApi {
 
 export interface AppServices {
   api: AppApi
-  analytics: Analytics | null
-  firebase: FirebaseApp | null
+  analytics: AnalyticsService
   config: RuntimeConfig
   router: Router
 }

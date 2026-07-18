@@ -1,6 +1,6 @@
 {
   "name": "linka-type-pwa-v2",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "type": "module",
   "private": true,
   "main": "dist/electron/main.js",
@@ -18,7 +18,7 @@
     "icons:desktop": "bash scripts/generate-desktop-icons.sh",
     "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && npm run lint:any && npm run lint:electron-imports",
     "lint:electron-imports": "tsx scripts/check-electron-imports.ts",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run tests/unit",
     "test:main": "vitest run tests/main",
     "test:e2e:electron": "playwright test --config playwright.electron.config.ts",
     "test:e2e:sync": "playwright test --config playwright.sync.config.ts",

@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import PrivacyNotice from '~/components/PrivacyNotice.vue'
+
 const { t } = useI18n()
 </script>
 
 <template>
   <VApp>
     <VMain class="auth-layout">
+      <PrivacyNotice />
       <VContainer
         fluid
         class="fill-height"
@@ -49,4 +52,3 @@ const { t } = useI18n()
   min-height: 100vh;
 }
 </style>
-

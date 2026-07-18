@@ -16,8 +16,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: npm run test:all
+      - run: npm run test:unit
+      - run: npm run test:main
       - run: npm run build
+      - run: xvfb-run -a npm run test:e2e:electron
 
   package-smoke:
     if: github.event_name == 'push'
