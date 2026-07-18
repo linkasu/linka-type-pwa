@@ -136,7 +136,11 @@ jobs:
             printf '%s' "$CERT_B64" | base64 -D >"$CERT_FILE"
           fi
 
-          if ! openssl pkcs12 -in "$CERT_FILE" -passin "pass:$APPLE_CERTIFICATE_PASSWORD" -nokeys >/dev/null 2>&1; then
+          if openssl pkcs12 -in "$CERT_FILE" -passin "pass:$APPLE_CERTIFICATE_PASSWORD" -nokeys >/dev/null 2>&1; then
+            :
+          elif openssl pkcs12 -legacy -in "$CERT_FILE" -passin "pass:$APPLE_CERTIFICATE_PASSWORD" -nokeys >/dev/null 2>&1; then
+            :
+          else
             echo "::error::Unable to parse PKCS#12 certificate. Check APPLE_CERTIFICATE_P12_BASE64 and APPLE_CERTIFICATE_PASSWORD."
             exit 1
           fi
