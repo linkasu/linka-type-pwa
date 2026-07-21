@@ -9,7 +9,9 @@ contextBridge.exposeInMainWorld('desktop', {
     ensureMicrophoneAccess: () => ipcRenderer.invoke('media:ensure-microphone-access'),
   },
   privacy: {
-    setAnalyticsEnabled: (enabled) => ipcRenderer.invoke('privacy:set-analytics-enabled', enabled),
+    getTelemetryPreference: () => ipcRenderer.invoke('telemetry:get-preference'),
+    setTelemetryPreference: (preference) => ipcRenderer.invoke('telemetry:set-preference', preference),
+    recordOutcome: (outcome) => ipcRenderer.send('telemetry:outcome', outcome),
   },
   updates: {
     check: () => ipcRenderer.invoke('updates:check'),

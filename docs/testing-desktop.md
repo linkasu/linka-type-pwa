@@ -44,13 +44,13 @@ What this smoke covers:
 - first-run mode selection (offline)
 - navigation `login -> main -> settings -> main -> chat`
 - core input interactions on `main` and `chat`
-- analytics `Unknown` network isolation and deferred Firebase module loading
+- telemetry `unknown` mode, consent bridge, and offline AAC availability
 - dismissible privacy notice, offline AAC availability, and later Privacy settings
 
 Notes:
 - test launches Electron against `http://127.0.0.1:4174`
 - `playwright.electron.config.ts` auto-builds `dist/electron/main.js` and starts `vite` automatically
-- Vite development and automated environments never initialize analytics collection
+- Vite development and automated environments do not start telemetry unless explicitly forced
 
 ## Voices (unauthorized) smoke
 

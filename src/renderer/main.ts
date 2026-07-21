@@ -25,21 +25,11 @@ async function bootstrap() {
   const runtimeConfig: RuntimeConfig = {
     public: {
       apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'https://backend.linka.su',
-      firebaseApiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      firebaseAuthDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      firebaseProjectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      firebaseStorageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-      firebaseMessagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      firebaseAppId: import.meta.env.VITE_FIREBASE_APP_ID,
-      firebaseMeasurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-      analyticsCollectionAllowed: import.meta.env.PROD
-        && import.meta.env.VITE_DISABLE_ANALYTICS !== 'true'
-        && navigator.webdriver !== true,
     },
   }
 
   const api = createAppApi(runtimeConfig)
-  const analytics = createAnalyticsService(runtimeConfig)
+  const analytics = createAnalyticsService()
 
   const services: AppServices = {
     api,
