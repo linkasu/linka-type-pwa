@@ -1,78 +1,34 @@
-import type { AnalyticsEventName, AnalyticsEventParams } from '~/types/analytics'
+import type { TelemetryCountBucket, TelemetryOutcome } from '~/types/analytics'
 
-type TrackEvent = <T extends AnalyticsEventName>(
-  eventName: T,
-  params: AnalyticsEventParams[T],
-) => void
+type TrackOutcome = (outcome: TelemetryOutcome) => void
 
-const getLengthBucket = (length: number): AnalyticsEventParams['say']['length_bucket'] => {
-  if (length <= 0) return 'empty'
-  if (length <= 40) return 'short'
-  if (length <= 160) return 'medium'
-  return 'long'
+const countBucket = (count: number): TelemetryCountBucket => {
+  if (count <= 1) return 'one'
+  if (count <= 5) return 'two_to_five'
+  if (count <= 20) return 'six_to_twenty'
+  return 'more_than_twenty'
 }
 
-export const createAnalyticsTrackers = (trackEvent: TrackEvent) => ({
-  trackPredicatorUse: (position: number) => {
-    trackEvent('predicator_use', { position })
+export const createAnalyticsTrackers = (trackOutcome: TrackOutcome) => ({
+  trackPredicatorUse: (_position: number): void => {},
+  trackSpotlight: (_action: 'open' | 'close'): void => {},
+  trackSay: (characterCount: number, _download = false) => {
+    if (characterCount > 0) trackOutcome({ kind: 'phrase_composed', source: 'input', count_bucket: countBucket(characterCount) })
   },
-
-  trackSpotlight: (action: 'open' | 'close') => {
-    trackEvent('spotlight', { action })
+  trackQuickesSay: (_position: number): void => {
+    trackOutcome({ kind: 'phrase_composed', source: 'quick', count_bucket: 'one' })
   },
-
-  trackSay: (textLength: number, download = false) => {
-    trackEvent('say', {
-      length_bucket: getLengthBucket(textLength),
-      delivery: download ? 'download' : 'playback',
-    })
+  trackBankCategorySelect: (): void => {},
+  trackBankStatementSelect: (_isPaste: boolean): void => {
+    trackOutcome({ kind: 'phrase_composed', source: 'bank', count_bucket: 'one' })
   },
-
-  trackQuickesSay: (position: number) => {
-    trackEvent('quickes_say', { position })
-  },
-
-  trackBankCategorySelect: () => {
-    trackEvent('bank_cselect', {})
-  },
-
-  trackBankStatementSelect: (isPaste: boolean) => {
-    trackEvent('bank_sselect', { is_paste: isPaste })
-  },
-
-  trackLogin: () => {
-    trackEvent('login', {})
-  },
-
-  trackLogout: () => {
-    trackEvent('logout', {})
-  },
-
-  trackRegister: () => {
-    trackEvent('register', {})
-  },
-
-  trackUpdatePromptShown: () => {
-    trackEvent('update_prompt_shown', {})
-  },
-
-  trackUpdateAccepted: () => {
-    trackEvent('update_accepted', {})
-  },
-
-  trackMobileAppPrompt: (platform: 'ios' | 'android') => {
-    trackEvent('mobile_app_prompt_shown', { platform })
-  },
-
-  trackMobileAppLinkClicked: (platform: 'ios' | 'android') => {
-    trackEvent('mobile_app_link_clicked', { platform })
-  },
-
-  trackCategoryCacheStarted: (itemCount: number) => {
-    trackEvent('bank_cache_started', { item_count: itemCount })
-  },
-
-  trackCategoryCacheCompleted: (itemCount: number) => {
-    trackEvent('bank_cache_completed', { item_count: itemCount })
-  },
+  trackLogin: (): void => {},
+  trackLogout: (): void => {},
+  trackRegister: (): void => {},
+  trackUpdatePromptShown: (): void => {},
+  trackUpdateAccepted: (): void => {},
+  trackMobileAppPrompt: (_platform: 'ios' | 'android'): void => {},
+  trackMobileAppLinkClicked: (_platform: 'ios' | 'android'): void => {},
+  trackCategoryCacheStarted: (_itemCount: number): void => {},
+  trackCategoryCacheCompleted: (_itemCount: number): void => {},
 })

@@ -1,62 +1,45 @@
-# Analytics and privacy
+# Telemetry and privacy
 
-## Consent FSM
+## Consent V3
 
-Analytics consent has three persisted states under `analytics_consent`:
+Desktop telemetry is opt-in. Its V3 preference is stored only by Electron main process in `userData/telemetry-consent-v3.json`:
 
-- `Unknown`: the default. Firebase modules are not loaded, no Firebase app exists, and Electron blocks analytics endpoints.
-- `Enabled`: set only by an explicit user action. Production builds may dynamically load Firebase Analytics and open its network policy.
-- `Disabled`: collection is stopped, the Firebase app is deleted, and Electron blocks analytics endpoints again.
+- `unknown`: default; no telemetry runtime, identity request, queue delivery, or renderer event forwarding.
+- `enabled`: set by an explicit desktop UI action; collection starts only when `safeStorage` is available and the packaged app (or explicit `LINKA_METRICS_FORCE=1`) can collect.
+- `disabled`: collection stops, the durable queue is cleared, and main process requests suppression for an existing installation identity.
 
-Legacy explicit values `granted` and `denied` migrate to `Enabled` and `Disabled`. Dismissing the first-run notice stores only `analytics_notice_dismissed`; it leaves consent at `Unknown`. Account, AAC, authentication, offline mode, synchronization, and the offline change queue do not depend on analytics consent.
+Previous `analytics_consent`, `granted`, `denied`, Firebase configuration, and other browser storage are never read as V3 consent. Enabling V3 clears the telemetry directory first, so an earlier queue cannot be delivered after the first opt-in.
 
-Development, automated, and test runs do not initialize collection even if their persisted consent is `Enabled`. `VITE_DISABLE_ANALYTICS=true` also disables collection in a production build.
+## Main-process boundary
 
-## Initialization boundary
+The renderer has no Identity credential, metrics endpoint, or network transport. It can invoke only the preload bridge to submit a typed outcome. Electron main process validates the IPC payload, creates an anonymous installation identity, stores its refresh credential with `safeStorage`, writes an atomic file queue, and sends acknowledged V2 batches to Metrics.
 
-`composables/analytics/service.ts` contains the consent FSM, `composables/analytics/consent.ts` owns persistence, and `plugins/firebase.client.ts` is the lazy Firebase adapter. The adapter uses dynamic imports for both `firebase/app` and `firebase/analytics`. The imports, `initializeApp`, `initializeAnalytics`, Firebase installation traffic, Google Tag Manager, and Google Analytics traffic cannot occur before `Enabled`. Automatic `page_view` is disabled so route/location data cannot bypass the event allowlist.
+The queue is capped, uses per-record files and an active-batch journal, and retains a batch ID as its Idempotency-Key until Metrics acknowledges it.
 
-Electron adds an independent default-deny guard in `electron/privacyNetwork.ts`. The guard applies only to analytics hosts. It deliberately does not block the LINKa backend, Firebase Authentication, Firebase Storage, online TTS, predictor, or dialog services.
+## Closed outcomes
 
-## Event allowlist
+`electron/telemetry/sanitize.ts` rejects unknown fields and values. The only outgoing stream is Metrics V2 `outcome` for product `linka-type`:
 
-`types/analytics.ts` is the typed and runtime-enforced allowlist. Callers can use only the specific trackers returned by `useAnalytics()`; the generic event sender is not exposed.
-
-Allowed events never include entered content, account addresses, authentication or device identifiers, section/item identifiers or names, recordings, file locations, or exception messages. Settings are not sent as events or user properties. No analytics user ID or user properties are set.
-
-The current events contain only coarse action metadata:
-
-| Event | Parameters |
+| Outcome | Closed fields |
 | --- | --- |
-| `predicator_use` | numeric position |
-| `spotlight` | open/close |
-| `say` | coarse length bucket, playback/download |
-| `quickes_say` | numeric position |
-| `bank_cselect` | none |
-| `bank_sselect` | paste mode boolean |
-| `login`, `logout`, `register` | none |
-| update/mobile prompt events | none or broad platform |
-| `bank_cache_started`, `bank_cache_completed` | item count |
+| `phrase_composed` | `source`, `count_bucket` |
+| `speech_completed` | `result`, `source`, `mode`, `count_bucket`, `duration_bucket`, optional `failure_code` |
+| `bank_action_completed` | `result`, `source`, optional `failure_code` |
+| `dialog_action_completed` | `result`, `source`, optional `failure_code` |
+| `sync_completed` | `result`, `count_bucket`, optional `failure_code` |
+
+Phrase text, UI text and names, account data, identifiers, recordings, files, URLs, error messages, arbitrary properties, and free-form metadata are rejected. Required app metadata is normalized to closed platform and locale values; version fields are restricted to a safe token format.
 
 ## Functional external processing
 
-The privacy notice and Privacy settings disclose these operations separately from telemetry:
-
-- Account and synchronized data are processed by the LINKa backend and Firebase Authentication/Storage for sign-in, storage, and synchronization.
-- Content selected for an online voice is sent to the TTS service for synthesis.
-- Input is sent to the predictor service while that feature is enabled and used.
-- Microphone recordings, sound, and utterances are sent to recognition and dialog-helper services when dialog features are used.
-
-These requests are controlled by their corresponding product features, not analytics consent.
+The privacy notice and settings describe account/sync, online TTS, predictor, and dialog-helper network requests separately. They remain controlled by their feature settings, not telemetry consent.
 
 ## Verification
 
-Run:
-
 ```bash
+npm run typecheck
 npm run test:unit
 npm run test:main
-npm run test:e2e:electron
 ```
 
-The unit suite verifies FSM persistence, delayed SDK loading, transitions, test collection disablement, legacy migration, and parameter sanitization. Main-process tests verify the network allow/block boundary. Electron E2E verifies that `Unknown` loads no Firebase analytics module, sends no analytics requests, remains dismissible, and does not block offline AAC or later settings changes.
+Focused tests verify the main-process consent bridge, rejection of legacy grants and free fields, and durable outcome-only batches.

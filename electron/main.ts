@@ -1,12 +1,18 @@
-import { app, BrowserWindow, ipcMain, session, shell, systemPreferences } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import updater from 'electron-updater'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerBackendRequestIpc } from './backendRequest.js'
+import { registerMediaIpc } from './mediaIpc.js'
 import {
-  AnalyticsNetworkPolicy,
-  registerAnalyticsNetworkGuard,
-} from './privacyNetwork.js'
+  type TypeMetricsTelemetry,
+} from './telemetry/index.js'
+import { registerTelemetryIpc } from './telemetry/ipc.js'
+import { canStartTypeTelemetry, clearTypeTelemetryData, createTypeMetricsTelemetry } from './telemetry/runtime.js'
+import {
+  TelemetryPreferenceStore,
+  TelemetryPrivacyController,
+} from './telemetry/privacy.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -16,9 +22,7 @@ const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://127.0.0.1:5173'
 
 let mainWindow: BrowserWindow | null = null
 const { autoUpdater } = updater
-const analyticsNetworkPolicy = new AnalyticsNetworkPolicy()
-
-type MediaAccessStatus = 'not-determined' | 'granted' | 'denied' | 'restricted' | 'unknown'
+let telemetryPrivacy: TelemetryPrivacyController<TypeMetricsTelemetry> | undefined
 
 const sendUpdateStatus = (payload: Record<string, unknown>) => {
   if (!mainWindow || mainWindow.isDestroyed()) return
@@ -123,54 +127,24 @@ const registerUpdateIpc = () => {
   })
 }
 
-const registerMediaIpc = () => {
-  ipcMain.handle('media:ensure-microphone-access', async () => {
-    if (process.platform !== 'darwin') {
-      return {
-        granted: true,
-        status: 'granted' as MediaAccessStatus,
-        needsSystemSettings: false,
-      }
-    }
-
-    let status = systemPreferences.getMediaAccessStatus('microphone') as MediaAccessStatus
-
-    if (status === 'not-determined') {
-      const granted = await systemPreferences.askForMediaAccess('microphone')
-      status = systemPreferences.getMediaAccessStatus('microphone') as MediaAccessStatus
-
-      return {
-        granted,
-        status,
-        needsSystemSettings: !granted && (status === 'denied' || status === 'restricted'),
-      }
-    }
-
-    return {
-      granted: status === 'granted',
-      status,
-      needsSystemSettings: status === 'denied' || status === 'restricted',
-    }
-  })
-}
-
 const registerIpc = () => {
   ipcMain.handle('app:get-version', () => app.getVersion())
   ipcMain.handle('app:get-platform', () => process.platform)
-  ipcMain.handle('privacy:set-analytics-enabled', (event, enabled: unknown) => {
-    if (event.sender !== mainWindow?.webContents || typeof enabled !== 'boolean') {
-      return false
-    }
-    analyticsNetworkPolicy.setEnabled(enabled)
-    return true
-  })
   registerUpdateIpc()
   registerMediaIpc()
   registerBackendRequestIpc()
 }
 
 app.whenReady().then(async () => {
-  registerAnalyticsNetworkGuard(session.defaultSession, analyticsNetworkPolicy)
+  const userDataPath = app.getPath('userData')
+  telemetryPrivacy = new TelemetryPrivacyController({
+    store: new TelemetryPreferenceStore(userDataPath),
+    canStart: () => canStartTypeTelemetry(app.isPackaged),
+    createTelemetry: createTypeMetricsTelemetry,
+    clearTelemetryData: preference => clearTypeTelemetryData(userDataPath, preference),
+  })
+  await telemetryPrivacy.initialize().catch((): undefined => undefined)
+  registerTelemetryIpc(() => mainWindow, () => telemetryPrivacy)
   registerIpc()
   configureAutoUpdater()
   await createWindow()

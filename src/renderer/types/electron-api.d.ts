@@ -23,7 +23,9 @@ interface DesktopMediaApi {
 }
 
 interface DesktopPrivacyApi {
-  setAnalyticsEnabled: (enabled: boolean) => Promise<boolean>
+  getTelemetryPreference: () => Promise<'unknown' | 'enabled' | 'disabled'>
+  setTelemetryPreference: (preference: 'enabled' | 'disabled') => Promise<'enabled' | 'disabled'>
+  recordOutcome: (outcome: import('../../../electron/telemetry/types').TelemetryOutcome) => void
 }
 
 type DesktopBackendFormDataEntry =

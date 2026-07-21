@@ -13,15 +13,8 @@ npm install
 - `API_BASE_URL` (default `https://backend.linka.su`)
 - `PREDICTOR_API_KEY` (optional, used by backend)
 
-### Firebase Analytics (optional)
-По умолчанию используется проект `distypepro-android`. Для переопределения:
-- `FIREBASE_API_KEY`
-- `FIREBASE_AUTH_DOMAIN`
-- `FIREBASE_PROJECT_ID`
-- `FIREBASE_STORAGE_BUCKET`
-- `FIREBASE_MESSAGING_SENDER_ID`
-- `FIREBASE_APP_ID`
-- `FIREBASE_MEASUREMENT_ID`
+### Desktop telemetry (optional)
+Telemetry is disabled until V3 consent is explicitly granted in the desktop app. The main process uses the production Identity and Metrics endpoints by default. Set `LINKA_METRICS_FORCE=1` only to exercise telemetry in a non-packaged development build.
 
 См. `docs/analytics.md` для деталей.
 

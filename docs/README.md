@@ -16,5 +16,5 @@ This folder documents the LINKa Type PWA v2. It is written to help AI agents und
 - `docs/ui-flows.md` - pages, layouts, and major components
 - `docs/ui-style-standards.md` - visual standards and UI style decisions
 - `docs/api.md` - API client and server proxy behavior
-- `docs/analytics.md` - Firebase Analytics events and user properties
+- `docs/analytics.md` - consent-first desktop telemetry and closed outcome contract
 - `docs/development.md` - local dev, env vars, and scripts
