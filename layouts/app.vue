@@ -34,8 +34,9 @@ watch(
       @open-shortcuts="showShortcuts = true"
     />
 
-    <VMain id="main-content">
+    <VMain id="main-content" class="app-main">
       <PrivacyNotice />
+      <OfflineIndicator />
       <slot />
     </VMain>
 
@@ -49,8 +50,6 @@ watch(
       @close="showTutorial = false"
     />
 
-    <OfflineIndicator />
-
     <ConflictResolver />
 
     <UpdatePrompt />
@@ -58,3 +57,7 @@ watch(
     <MobileAppPrompt />
   </VApp>
 </template>
+
+<style scoped>
+.app-main { padding-bottom: 80px; }
+</style>

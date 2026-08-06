@@ -264,26 +264,6 @@ body {
   justify-content: center;
 }
 
-// Offline indicator
-.offline-indicator {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 8px 16px;
-  background: #ff5252;
-  color: white;
-  text-align: center;
-  font-weight: bold;
-  z-index: 1000;
-  transform: translateY(100%);
-  transition: transform 0.3s;
-
-  &.visible {
-    transform: translateY(0);
-  }
-}
-
 // Sync indicator
 .sync-indicator {
   display: inline-flex;
@@ -371,5 +351,4 @@ body {
     max-width: 400px;
   }
 }
-
 

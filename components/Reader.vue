@@ -43,6 +43,7 @@ const {
           icon
           variant="text"
           color="white"
+          :aria-label="t('reader.close')"
           @click="emit('close')"
         >
           <VIcon>mdi-close</VIcon>
@@ -66,6 +67,7 @@ const {
             variant="outlined"
             color="white"
             :disabled="!canGoPrev"
+            :aria-label="t('reader.previous')"
             @click="prev"
           >
             <VIcon size="large">
@@ -78,6 +80,7 @@ const {
             size="x-large"
             variant="flat"
             color="white"
+            :aria-label="isPlaying ? t('reader.pause') : t('reader.play')"
             @click="togglePlay"
           >
             <VIcon
@@ -94,6 +97,7 @@ const {
             variant="outlined"
             color="white"
             :disabled="!canGoNext"
+            :aria-label="t('reader.next')"
             @click="next"
           >
             <VIcon size="large">

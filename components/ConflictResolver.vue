@@ -67,8 +67,9 @@ const resolveWithRemote = async () => {
     :model-value="hasConflicts"
     persistent
     max-width="500"
+    scrollable
   >
-    <VCard v-if="currentConflict">
+    <VCard v-if="currentConflict" class="conflict-card">
       <VCardTitle class="d-flex align-center">
         <VIcon
           color="warning"
@@ -83,7 +84,7 @@ const resolveWithRemote = async () => {
         {{ t('conflict.conflictCount', { count: conflicts.length }, conflicts.length) }}
       </VCardSubtitle>
 
-      <VCardText>
+      <VCardText class="conflict-text">
         <p class="mb-4">
           {{ isDeletedRemotely ? t('conflict.deletedRemotely') : t('conflict.description') }}
         </p>
@@ -157,4 +158,12 @@ const resolveWithRemote = async () => {
 .conflict-version {
   flex: 1;
 }
+
+.conflict-card {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+}
+
+.conflict-text { overflow-wrap: anywhere; }
 </style>

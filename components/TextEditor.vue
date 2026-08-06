@@ -42,13 +42,14 @@ const lineCount = computed(() => {
     fullscreen
     @update:model-value="emit('close')"
   >
-    <VCard>
+    <VCard class="editor-card">
       <VToolbar
         color="primary"
         dark
       >
         <VBtn
           icon
+          :aria-label="t('reader.close')"
           @click="emit('close')"
         >
           <VIcon>mdi-close</VIcon>
@@ -63,7 +64,7 @@ const lineCount = computed(() => {
         </VBtn>
       </VToolbar>
 
-      <VCardText class="pa-0">
+      <VCardText class="editor-card-content pa-0">
         <div class="editor-container">
           <div class="editor-hint pa-4 bg-surface-variant">
             <VIcon
@@ -85,8 +86,7 @@ const lineCount = computed(() => {
             v-model="textContent"
             :placeholder="t('textEditor.placeholder')"
             variant="plain"
-            auto-grow
-            rows="20"
+            rows="1"
             class="editor-textarea"
             hide-details
           />
@@ -116,7 +116,8 @@ const lineCount = computed(() => {
 .editor-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 64px - 72px);
+  height: 100%;
+  min-height: 0;
 }
 
 .editor-hint {
@@ -128,6 +129,7 @@ const lineCount = computed(() => {
 
 .editor-textarea {
   flex: 1;
+  min-height: 0;
   padding: 24px;
   font-family: 'Roboto Mono', monospace;
   font-size: 1rem;
@@ -135,9 +137,23 @@ const lineCount = computed(() => {
 }
 
 .editor-textarea :deep(textarea) {
+  height: 100%;
+  overflow-y: auto;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
 }
-</style>
 
+.editor-textarea :deep(.v-input__control),
+.editor-textarea :deep(.v-field),
+.editor-textarea :deep(.v-field__field) { height: 100%; }
+
+.editor-card {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.editor-card-content { flex: 1; min-height: 0; }
+.editor-card :deep(.v-card-actions) { flex-shrink: 0; }
+</style>

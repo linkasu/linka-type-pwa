@@ -66,6 +66,7 @@ onUnmounted(() => {
       >
         <VBtn
           icon
+          :aria-label="t('tutorial.close')"
           @click="emit('close')"
         >
           <VIcon>mdi-close</VIcon>
@@ -144,11 +145,13 @@ onUnmounted(() => {
 .tutorial-card {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
 }
 
 .tutorial-content {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,5 +186,10 @@ onUnmounted(() => {
   border-radius: 4px;
   background: rgb(var(--v-theme-primary));
 }
-</style>
 
+@media (max-height: 600px) {
+  .tutorial-content { align-items: start; padding: 20px; }
+  .step-icon { margin-bottom: 12px; }
+  .step-indicators { margin-top: 20px !important; }
+}
+</style>

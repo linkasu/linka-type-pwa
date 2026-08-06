@@ -55,6 +55,7 @@ onUnmounted(() => {
       >
         <VBtn
           icon
+          :aria-label="t('actions.close')"
           @click="emit('close')"
         >
           <VIcon>mdi-close</VIcon>
@@ -138,4 +139,3 @@ onUnmounted(() => {
   justify-content: center;
 }
 </style>
-

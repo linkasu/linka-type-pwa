@@ -169,6 +169,7 @@ onMounted(() => {
 .sync-btn,
 .retry-btn {
   flex-shrink: 0;
+  min-height: 44px;
 }
 
 .sync-spin {
@@ -184,5 +185,4 @@ onMounted(() => {
   }
 }
 </style>
-
 

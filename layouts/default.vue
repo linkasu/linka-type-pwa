@@ -19,9 +19,9 @@ watch(
   <VApp>
     <VMain>
       <PrivacyNotice />
+      <OfflineIndicator />
       <slot />
     </VMain>
-    <OfflineIndicator />
     <ConflictResolver />
   </VApp>
 </template>

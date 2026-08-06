@@ -80,6 +80,7 @@ const handleKeydown = (event: KeyboardEvent) => {
           :value="props.text"
           class="spotlight-textarea"
           :placeholder="t('main.placeholder')"
+          :aria-label="t('main.placeholder')"
           @input="emit('update:text', ($event.target as HTMLTextAreaElement).value)"
           @keydown="handleKeydown"
         />
@@ -101,9 +102,10 @@ const handleKeydown = (event: KeyboardEvent) => {
             @update:model-value="emit('update:text', $event)"
           />
         </div>
-        <div class="spotlight-hint">
-          Esc - {{ t('reader.close') }} | Ctrl+Enter - {{ t('main.say') }} | Ctrl+B - {{ t('reader.close') }}
-        </div>
+        <MainSpotlightActions
+          :close="() => emit('update:modelValue', false)"
+          :say="() => emit('say')"
+        />
       </div>
     </div>
   </VDialog>
@@ -150,13 +152,6 @@ const handleKeydown = (event: KeyboardEvent) => {
   color: rgba(255, 255, 255, 0.3);
 }
 
-.spotlight-hint {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-  text-align: right;
-  padding: 8px 0;
-}
-
 .spotlight-footer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -169,13 +164,15 @@ const handleKeydown = (event: KeyboardEvent) => {
   justify-items: center;
 }
 
-.spotlight-footer--solo .spotlight-hint {
-  text-align: center;
-}
-
 .spotlight-predictor {
   width: 100%;
   max-width: 720px;
+}
+
+@media (max-height: 600px) {
+  .spotlight-container { padding: 10px; gap: 8px; }
+  .spotlight-textarea { padding: 16px; border-radius: 16px; }
+  .spotlight-footer { gap: 8px; }
 }
 </style>
 
