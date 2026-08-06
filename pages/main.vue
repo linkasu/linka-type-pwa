@@ -7,7 +7,6 @@ import { useMainKeyboard } from '~/composables/useMainKeyboard'
 import { useTypeSound } from '~/composables/useTypeSound'
 import { useAnalytics } from '~/composables/useAnalytics'
 import { useDisplay } from 'vuetify'
-
 type MainSection = 'input' | 'quickes' | 'bank'
 
 const { t } = useI18n()
@@ -54,7 +53,7 @@ const toggleSpotlight = () => {
 
 const focusMainInput = () => {
   activeSection.value = 'input'
-  mainInputRef.value?.focus()
+  nextTick(() => mainInputRef.value?.focus())
 }
 
 const focusQuickes = () => {
@@ -108,6 +107,15 @@ const handleSpeak = (text: string) => {
 watch(() => settingsStore.yandex, (value) => {
   showDownload.value = value
 }, { immediate: true })
+
+watch(
+  [() => settingsStore.showQuickes, () => settingsStore.showBank],
+  ([showQuickes, showBank]) => {
+    if ((activeSection.value === 'quickes' && !showQuickes) || (activeSection.value === 'bank' && !showBank)) {
+      activeSection.value = 'input'
+    }
+  },
+)
 </script>
 
 <template>
