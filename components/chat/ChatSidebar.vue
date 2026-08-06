@@ -90,8 +90,15 @@ const formatTime = (timestamp: number) => {
 
 <style scoped>
 .chat-list-body {
-  max-height: calc(100vh - 200px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+}
+
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .chat-delete-btn {
@@ -104,9 +111,4 @@ const formatTime = (timestamp: number) => {
   color: rgb(var(--v-theme-error));
 }
 
-@media (max-width: 959px) {
-  .chat-list-body {
-    max-height: 30vh;
-  }
-}
 </style>

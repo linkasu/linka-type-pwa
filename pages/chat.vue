@@ -3,12 +3,15 @@ import ChatComposer from '~/components/chat/ChatComposer.vue'
 import ChatMessagesList from '~/components/chat/ChatMessagesList.vue'
 import ChatSidebar from '~/components/chat/ChatSidebar.vue'
 import ChatSuggestions from '~/components/chat/ChatSuggestions.vue'
+import { useDisplay } from 'vuetify'
 import { useAudioRecording } from '~/composables/chat/useAudioRecording'
 import { useChatDialogs } from '~/composables/chat/useChatDialogs'
 import { useChatKeyboard } from '~/composables/useChatKeyboard'
 import { useChatMessaging } from '~/composables/chat/useChatMessaging'
 
 const { t } = useI18n()
+const { mdAndUp } = useDisplay()
+const compactView = ref<'list' | 'conversation'>('list')
 
 const {
   chats,
@@ -69,6 +72,11 @@ useChatKeyboard({
   onStopRecordingAndSend: () => stopRecording(true),
 })
 
+const selectChat = (chatId: string) => {
+  activeChatId.value = chatId
+  if (!mdAndUp.value) compactView.value = 'conversation'
+}
+
 onMounted(async () => {
   await loadChats()
 })
@@ -79,8 +87,9 @@ onMounted(async () => {
     fluid
     class="pa-4 chat-page"
   >
-    <VRow>
+    <VRow class="chat-row">
       <VCol
+        v-show="mdAndUp || compactView === 'list'"
         cols="12"
         md="4"
         lg="3"
@@ -90,18 +99,28 @@ onMounted(async () => {
           :active-chat-id="activeChatId"
           :is-loading-chats="isLoadingChats"
           @create-chat="createChat"
-          @select-chat="activeChatId = $event"
+          @select-chat="selectChat"
           @delete-chat="deleteChat"
         />
       </VCol>
 
       <VCol
+        v-show="mdAndUp || compactView === 'conversation'"
         cols="12"
         md="8"
         lg="9"
       >
         <VCard class="chat-panel">
           <VCardTitle class="d-flex align-center">
+            <VBtn
+              v-if="!mdAndUp"
+              icon
+              variant="text"
+              :aria-label="t('chat.backToChats')"
+              @click="compactView = 'list'"
+            >
+              <VIcon>mdi-arrow-left</VIcon>
+            </VBtn>
             <div>
               {{ chats.find(chat => chat.id === activeChatId)?.title || t('chat.title') }}
             </div>
@@ -151,28 +170,30 @@ onMounted(async () => {
 
 <style scoped>
 .chat-page {
-  height: calc(100vh - 64px);
-  overflow: hidden;
+  height: calc(100dvh - 64px); overflow: hidden;
 }
+
+.chat-row { height: 100%; }
 
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 96px);
-  max-height: calc(100vh - 96px);
+  height: calc(100dvh - 96px); max-height: calc(100dvh - 96px); min-height: 0;
 }
 
 @media (max-width: 959px) {
   .chat-page {
-    height: auto;
-    min-height: calc(100vh - 64px);
-    overflow: visible;
+    height: calc(100dvh - 64px); padding: 8px !important; overflow: hidden;
+  }
+
+  .chat-row { margin: 0; }
+
+  .chat-row > :deep(.v-col) {
+    height: 100%; padding: 0;
   }
 
   .chat-panel {
-    height: auto;
-    min-height: 60vh;
-    max-height: none;
+    height: 100%; max-height: none;
   }
 }
 </style>

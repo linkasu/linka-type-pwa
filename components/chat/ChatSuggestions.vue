@@ -44,12 +44,14 @@ const { t } = useI18n()
 
 .suggestion-chips {
   display: flex;
-  flex-wrap: wrap;
+  overflow-x: auto;
   gap: 8px;
+  padding-bottom: 4px;
 }
 
 .suggestion-chip {
   cursor: pointer;
+  flex: 0 0 auto;
 }
 
 .suggestion-number {

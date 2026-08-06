@@ -184,29 +184,11 @@ const testVoice = () => {
 </template>
 
 <style scoped>
-.setup-page {
-  min-height: 100dvh;
-}
-
+.setup-page { min-height: 100dvh; }
 @media (max-height: 700px) {
-  .setup-card {
-    padding: 16px !important;
-  }
-
-  .setup-card :deep(.v-stepper-header) {
-    overflow-x: auto;
-  }
-
-  .setup-card :deep(.v-stepper-item) {
-    min-width: max-content;
-  }
-
-  .setup-card :deep(.v-card-text) {
-    padding: 16px !important;
-  }
-
-  .setup-card :deep(.v-icon) {
-    max-width: 72px;
-  }
+  .setup-card { padding: 16px !important; }
+  .setup-card :deep(.v-stepper-header) { overflow-x: auto; }
+  .setup-card :deep(.v-stepper-item) { min-width: max-content; }
+  .setup-card :deep(.v-card-text) { padding: 16px !important; }
 }
 </style>

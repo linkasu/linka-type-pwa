@@ -6,6 +6,11 @@
   gap: 12px;
 }
 
+.chat-input :deep(textarea) {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
 .chat-actions {
   display: flex;
   flex-wrap: wrap;
@@ -90,8 +95,17 @@
 }
 
 @media (max-width: 959px) {
+  .chat-input {
+    gap: 8px;
+    padding: 10px;
+  }
+
   .chat-actions .v-btn:not(.v-btn--icon) {
     min-width: 100px;
     flex: 1;
+  }
+
+  .hotkey-bar {
+    display: none;
   }
 }

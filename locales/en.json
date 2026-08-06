@@ -76,6 +76,7 @@
     "recording": "Recording...",
     "pushToTalk": "Hold to record",
     "suggestions": "Suggested replies",
+    "backToChats": "Back to chats",
     "errors": {
       "loadChats": "Failed to load chats",
       "loadMessages": "Failed to load messages",
