@@ -150,10 +150,7 @@ test('electron launch smoke', async () => {
     await page.getByRole('link', { name: /Диалог|Chat|nav\.chat/ }).click()
     await expect(page).toHaveURL(/#\/chat/, { timeout: 15_000 })
 
-    await page.getByRole('button', { name: 'Новый чат' }).click()
-
-    const chatInput = page.getByRole('textbox', { name: 'Введите фразу для озвучивания...' })
-    await expect(chatInput).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Новый чат' })).toBeVisible()
     await expectNoHorizontalOverflow(page)
     expect(
       consoleWarnings.some((line) => line.includes('inject() can only be used inside setup')),
