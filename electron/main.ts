@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, screen, shell } from 'electron'
 import updater from 'electron-updater'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -13,6 +13,8 @@ import {
   TelemetryPreferenceStore,
   TelemetryPrivacyController,
 } from './telemetry/privacy.js'
+import { MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, resolveWindowState } from './windowBounds.js'
+import { readWindowState, writeWindowState } from './windowState.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -62,11 +64,16 @@ const configureAutoUpdater = () => {
 }
 
 const createWindow = async () => {
+  const userDataPath = app.getPath('userData')
+  const windowState = resolveWindowState(
+    readWindowState(userDataPath),
+    screen.getAllDisplays().map(display => display.workArea),
+  )
+
   mainWindow = new BrowserWindow({
-    width: 1366,
-    height: 900,
-    minWidth: 1024,
-    minHeight: 700,
+    ...windowState.bounds,
+    minWidth: MIN_WINDOW_WIDTH,
+    minHeight: MIN_WINDOW_HEIGHT,
     show: false,
     title: 'LINKa: напиши',
     webPreferences: {
@@ -77,6 +84,22 @@ const createWindow = async () => {
       webSecurity: false,
     },
   })
+
+  const persistWindowState = () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    writeWindowState(userDataPath, {
+      bounds: mainWindow.getNormalBounds(),
+      isMaximized: mainWindow.isMaximized(),
+    })
+  }
+
+  mainWindow.on('resize', persistWindowState)
+  mainWindow.on('move', persistWindowState)
+  mainWindow.on('maximize', persistWindowState)
+  mainWindow.on('unmaximize', persistWindowState)
+  mainWindow.on('close', persistWindowState)
+
+  if (windowState.isMaximized) mainWindow.maximize()
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
