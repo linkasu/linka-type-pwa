@@ -63,7 +63,7 @@ const {
 
 useChatKeyboard({
   onToggleRecording: toggleRecording,
-  onNewChat: createChat,
+  onNewChat: createAndSelectChat,
   onStopRecording: stopRecordingAndDiscard,
   onSelectSuggestion: selectSuggestion,
   onStopSpeech: stop,
@@ -75,6 +75,11 @@ useChatKeyboard({
 const selectChat = (chatId: string) => {
   activeChatId.value = chatId
   if (!mdAndUp.value) compactView.value = 'conversation'
+}
+
+async function createAndSelectChat() {
+  await createChat()
+  if (!mdAndUp.value && activeChatId.value) compactView.value = 'conversation'
 }
 
 onMounted(async () => {
@@ -98,7 +103,7 @@ onMounted(async () => {
           :chats="chats"
           :active-chat-id="activeChatId"
           :is-loading-chats="isLoadingChats"
-          @create-chat="createChat"
+          @create-chat="createAndSelectChat"
           @select-chat="selectChat"
           @delete-chat="deleteChat"
         />
@@ -182,18 +187,9 @@ onMounted(async () => {
 }
 
 @media (max-width: 959px) {
-  .chat-page {
-    height: calc(100dvh - 64px); padding: 8px !important; overflow: hidden;
-  }
-
+  .chat-page { height: calc(100dvh - 64px); padding: 8px !important; overflow: hidden; }
   .chat-row { margin: 0; }
-
-  .chat-row > :deep(.v-col) {
-    height: 100%; padding: 0;
-  }
-
-  .chat-panel {
-    height: 100%; max-height: none;
-  }
+  .chat-row > :deep(.v-col) { height: 100%; padding: 0; }
+  .chat-panel { height: 100%; max-height: none; }
 }
 </style>

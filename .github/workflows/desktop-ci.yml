@@ -19,11 +19,32 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:main
       - run: npm run build
-      - run: xvfb-run -a npm run test:e2e:electron
+
+  electron-e2e:
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            test_command: xvfb-run -a npm run test:e2e:electron
+          - os: windows-latest
+            test_command: npm run test:e2e:electron
+          - os: macos-latest
+            test_command: npm run test:e2e:electron
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: ${{ matrix.test_command }}
 
   package-smoke:
     if: github.event_name == 'push'
-    needs: verify
+    needs: electron-e2e
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

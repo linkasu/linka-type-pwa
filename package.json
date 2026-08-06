@@ -5,9 +5,9 @@
   "private": true,
   "main": "dist/electron/main.js",
   "scripts": {
-    "dev": "concurrently -k -n RENDERER,MAIN,ELECTRON \"vite\" \"tsc -p electron/tsconfig.json --watch\" \"wait-on dist/electron/main.js http://127.0.0.1:5173 && cp electron/preload.cjs dist/electron/preload.cjs && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron dist/electron/main.js\"",
+    "dev": "concurrently -k -n RENDERER,MAIN,ELECTRON \"vite\" \"tsc -p electron/tsconfig.json --watch\" \"wait-on dist/electron/main.js http://127.0.0.1:5173 && tsx scripts/copy-electron-preload.ts && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron dist/electron/main.js\"",
     "build:renderer": "vite build",
-    "build:electron": "tsc -p electron/tsconfig.json && cp electron/preload.cjs dist/electron/preload.cjs",
+    "build:electron": "tsc -p electron/tsconfig.json && tsx scripts/copy-electron-preload.ts",
     "build": "npm run build:renderer && npm run build:electron",
     "preview": "vite preview",
     "dist": "npm run build && electron-builder",

@@ -18,6 +18,20 @@ const noProxyEnv = {
   all_proxy: '',
 }
 
+async function setWindowSize(app: ElectronApplication, width: number, height: number) {
+  return app.evaluate(({ BrowserWindow }, size) => {
+    const window = BrowserWindow.getAllWindows()[0]
+    window.setSize(size.width, size.height)
+    return window.getBounds()
+  }, { width, height })
+}
+
+async function expectNoHorizontalOverflow(page: Page) {
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth <= window.innerWidth,
+  )).toBeTruthy()
+}
+
 async function resetModeSelection(page: Page) {
   await page.waitForURL(/#\/(login|main|settings|chat)/, { timeout: 30_000 })
   if (!page.url().includes('#/login')) {
@@ -82,6 +96,8 @@ test('electron launch smoke', async () => {
     })
 
     const page = await app.firstWindow()
+    const bounds = await setWindowSize(app, 640, 480)
+    expect(bounds).toMatchObject({ width: 640, height: 480 })
     const consoleWarnings: string[] = []
     page.on('console', (msg) => {
       const text = msg.text()
@@ -99,6 +115,13 @@ test('electron launch smoke', async () => {
     await resetModeSelection(page)
     await continueInOfflineMode(page)
     await expect(page).toHaveURL(/#\/main/, { timeout: 20_000 })
+    await expectNoHorizontalOverflow(page)
+
+    await page.getByRole('tab', { name: 'Быстрые' }).click()
+    await expect(page.getByRole('region', { name: 'Быстрые фразы' })).toBeVisible()
+    await page.getByRole('tab', { name: 'Банк' }).click()
+    await expect(page.getByRole('region', { name: 'Список категорий' })).toBeVisible()
+    await page.getByRole('tab', { name: 'Ввод' }).click()
 
     const mainInput = page.getByRole('textbox', { name: 'Введите текст для озвучивания...' })
     await mainInput.fill('Smoke test: electron click flow')
@@ -110,6 +133,7 @@ test('electron launch smoke', async () => {
     await page.getByRole('button', { name: /Открыть меню|Open menu|a11y\.menuButton/ }).click()
     await page.getByRole('link', { name: /Настройки|Settings|nav\.settings/ }).click()
     await expect(page).toHaveURL(/#\/settings/, { timeout: 15_000 })
+    await expectNoHorizontalOverflow(page)
     await expect(page.getByText('Настройки').first()).toBeVisible()
     await expect(page.getByText('nav.backToMain')).toHaveCount(0)
     await expect(page.getByText('settings.voiceSettings.cache.title')).toHaveCount(0)
@@ -126,8 +150,11 @@ test('electron launch smoke', async () => {
     await page.getByRole('link', { name: /Диалог|Chat|nav\.chat/ }).click()
     await expect(page).toHaveURL(/#\/chat/, { timeout: 15_000 })
 
+    await page.getByRole('button', { name: 'Новый чат' }).click()
+
     const chatInput = page.getByRole('textbox', { name: 'Введите фразу для озвучивания...' })
     await expect(chatInput).toBeVisible()
+    await expectNoHorizontalOverflow(page)
     expect(
       consoleWarnings.some((line) => line.includes('inject() can only be used inside setup')),
     ).toBeFalsy()
