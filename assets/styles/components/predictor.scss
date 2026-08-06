@@ -14,7 +14,7 @@
 }
 
 .predictor-body {
-  height: 32px;
+  min-height: 32px;
   display: flex;
   align-items: center;
 }
@@ -92,7 +92,7 @@
 }
 
 .predictor--compact .predictor-body {
-  min-height: 40px;
+  min-height: 32px;
 }
 
 .predictor--compact .predictor-loading,

@@ -23,6 +23,7 @@ declare module 'vue' {
     LayoutLayoutDrawer: typeof import('./../../components/layout/LayoutDrawer.vue')['default']
     LayoutLayoutHeader: typeof import('./../../components/layout/LayoutHeader.vue')['default']
     MainChatTabs: typeof import('./../../components/main/ChatTabs.vue')['default']
+    MainCompactSectionTabs: typeof import('./../../components/main/CompactSectionTabs.vue')['default']
     MainInput: typeof import('./../../components/main/Input.vue')['default']
     MainSpotlightDialog: typeof import('./../../components/main/SpotlightDialog.vue')['default']
     MobileAppPrompt: typeof import('./../../components/MobileAppPrompt.vue')['default']

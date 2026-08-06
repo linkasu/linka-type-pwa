@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRealtimeStore } from '~/stores/realtime'
+import { useDisplay } from 'vuetify'
 
 const emit = defineEmits<{
   toggleDrawer: []
@@ -10,6 +11,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const realtimeStore = useRealtimeStore()
+const { mdAndUp } = useDisplay()
 const activeChat = useSharedState<number>('activeChat', () => 0)
 
 const isMainRoute = computed(() => route.path === '/main')
@@ -33,7 +35,7 @@ const handleSettingsClick = () => {
       @click="emit('toggleDrawer')"
     />
 
-    <VAppBarTitle>{{ t('app.name') }}</VAppBarTitle>
+    <VAppBarTitle v-if="mdAndUp">{{ t('app.name') }}</VAppBarTitle>
 
     <div
       v-if="isMainRoute"
@@ -90,6 +92,7 @@ const handleSettingsClick = () => {
     </div>
 
     <VBtn
+      v-if="mdAndUp"
       icon
       :aria-label="t('nav.shortcuts')"
       @click="emit('openShortcuts')"

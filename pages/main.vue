@@ -6,6 +6,9 @@ import { useTTS } from '~/composables/useTTS'
 import { useMainKeyboard } from '~/composables/useMainKeyboard'
 import { useTypeSound } from '~/composables/useTypeSound'
 import { useAnalytics } from '~/composables/useAnalytics'
+import { useDisplay } from 'vuetify'
+
+type MainSection = 'input' | 'quickes' | 'bank'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
@@ -14,11 +17,13 @@ const quickesStore = useQuickesStore()
 const { speak, stop, isPlaying } = useTTS()
 const { handleTextInput } = useTypeSound()
 const { trackSay, trackSpotlight } = useAnalytics()
+const { mdAndUp } = useDisplay()
 
 const chats = ref(['', '', ''])
 const activeChat = useSharedState<number>('activeChat', () => 0)
 const showMode = ref(false)
 const showDownload = ref(false)
+const activeSection = ref<MainSection>('input')
 const mainInputRef = ref<{ focus: () => void } | null>(null)
 const quickesRef = ref<{ focus: () => void } | null>(null)
 const bankRef = ref<{ focus: () => void } | null>(null)
@@ -48,15 +53,18 @@ const toggleSpotlight = () => {
 }
 
 const focusMainInput = () => {
+  activeSection.value = 'input'
   mainInputRef.value?.focus()
 }
 
 const focusQuickes = () => {
-  quickesRef.value?.focus()
+  activeSection.value = 'quickes'
+  nextTick(() => quickesRef.value?.focus())
 }
 
 const focusBank = () => {
-  bankRef.value?.focus()
+  activeSection.value = 'bank'
+  nextTick(() => bankRef.value?.focus())
 }
 
 useMainKeyboard({
@@ -83,6 +91,10 @@ const handleSay = (download = false) => {
 
 const handlePaste = (text: string) => {
   currentText.value += (currentText.value ? ' ' : '') + text
+  if (!mdAndUp.value) {
+    activeSection.value = 'input'
+    nextTick(() => mainInputRef.value?.focus())
+  }
 }
 
 const handleQuickeClick = (text: string) => {
@@ -103,32 +115,50 @@ watch(() => settingsStore.yandex, (value) => {
     fluid
     class="pa-4"
   >
-    <MainInput
-      v-model="currentText"
-      ref="mainInputRef"
-      :is-playing="isPlaying"
-      :show-download="showDownload"
-      :show-predictor="settingsStore.showPredictor && !showMode"
-      @say="handleSay"
-      @clear="currentText = ''"
-      @toggle-spotlight="toggleSpotlight"
-      @text-input="onTextInput"
+    <MainCompactSectionTabs
+      v-if="!mdAndUp"
+      v-model="activeSection"
+      :show-quickes="settingsStore.showQuickes"
+      :show-bank="settingsStore.showBank"
+      class="mb-4"
     />
 
-    <Quickes
+    <div v-show="mdAndUp || activeSection === 'input'">
+      <MainInput
+        v-model="currentText"
+        ref="mainInputRef"
+        :is-playing="isPlaying"
+        :show-download="showDownload"
+        :show-predictor="settingsStore.showPredictor && !showMode"
+        @say="handleSay"
+        @clear="currentText = ''"
+        @toggle-spotlight="toggleSpotlight"
+        @text-input="onTextInput"
+      />
+    </div>
+
+    <div
       v-if="settingsStore.showQuickes"
-      ref="quickesRef"
-      class="mt-4"
-      @click="handleQuickeClick"
-    />
+      v-show="mdAndUp || activeSection === 'quickes'"
+    >
+      <Quickes
+        ref="quickesRef"
+        :class="{ 'mt-4': mdAndUp }"
+        @click="handleQuickeClick"
+      />
+    </div>
 
-    <Bank
+    <div
       v-if="settingsStore.showBank"
-      ref="bankRef"
-      class="mt-4"
-      @paste="handlePaste"
-      @speak="handleSpeak"
-    />
+      v-show="mdAndUp || activeSection === 'bank'"
+    >
+      <Bank
+        ref="bankRef"
+        :class="{ 'mt-4': mdAndUp }"
+        @paste="handlePaste"
+        @speak="handleSpeak"
+      />
+    </div>
 
     <div
       class="sr-only"
