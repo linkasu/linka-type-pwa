@@ -10,21 +10,20 @@ const { t } = useI18n()
       <PrivacyNotice />
       <VContainer
         fluid
-        class="fill-height"
+        class="auth-container"
       >
         <VRow
           align="center"
           justify="center"
-          class="fill-height"
+          class="auth-row"
         >
           <VCol
             cols="12"
-            sm="8"
             md="6"
             lg="4"
           >
             <VCard
-              class="pa-6"
+              class="auth-card pa-6"
               elevation="8"
             >
               <VCardTitle class="text-center mb-4">
@@ -49,6 +48,26 @@ const { t } = useI18n()
 <style scoped>
 .auth-layout {
   background: linear-gradient(135deg, #197377 0%, #bed64f 100%);
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-y: auto;
+}
+
+.auth-container,
+.auth-row {
+  min-height: 100%;
+}
+
+@media (max-height: 700px) {
+  .auth-container {
+    padding-block: 16px;
+  }
+
+  .auth-row {
+    align-items: flex-start !important;
+  }
+
+  .auth-card {
+    padding: 16px !important;
+  }
 }
 </style>

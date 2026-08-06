@@ -33,10 +33,10 @@ const testVoice = () => {
 <template>
   <VContainer
     fluid
-    class="fill-height"
+    class="setup-page pa-4"
   >
     <VRow
-      align="center"
+      align="start"
       justify="center"
     >
       <VCol
@@ -44,7 +44,7 @@ const testVoice = () => {
         md="8"
         lg="6"
       >
-        <VCard class="pa-6">
+        <VCard class="setup-card pa-6">
           <VCardTitle class="text-center mb-4">
             <div class="text-h4 text-primary">
               {{ t('setup.welcome') }}
@@ -182,3 +182,31 @@ const testVoice = () => {
     </VRow>
   </VContainer>
 </template>
+
+<style scoped>
+.setup-page {
+  min-height: 100dvh;
+}
+
+@media (max-height: 700px) {
+  .setup-card {
+    padding: 16px !important;
+  }
+
+  .setup-card :deep(.v-stepper-header) {
+    overflow-x: auto;
+  }
+
+  .setup-card :deep(.v-stepper-item) {
+    min-width: max-content;
+  }
+
+  .setup-card :deep(.v-card-text) {
+    padding: 16px !important;
+  }
+
+  .setup-card :deep(.v-icon) {
+    max-width: 72px;
+  }
+}
+</style>

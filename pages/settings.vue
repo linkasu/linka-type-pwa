@@ -27,7 +27,7 @@ const goToMain = () => {
     fluid
     class="pa-4"
   >
-    <div class="d-flex align-center flex-wrap gap-2 mb-4">
+    <div class="d-flex align-center flex-wrap ga-2 mb-4">
       <VBtn
         color="primary"
         variant="tonal"
@@ -49,7 +49,9 @@ const goToMain = () => {
       <VTabs
         v-model="activeTab"
         color="primary"
-        class="mb-4"
+        class="settings-tabs mb-4"
+        show-arrows
+        density="compact"
       >
         <VTab value="voice">
           <VIcon start>
@@ -107,3 +109,20 @@ const goToMain = () => {
     </template>
   </VContainer>
 </template>
+
+<style scoped>
+.settings-tabs :deep(.v-slide-group__content) {
+  min-width: max-content;
+}
+
+@media (max-width: 959px) {
+  .settings-tabs :deep(.v-tab) {
+    min-width: 88px;
+    padding-inline: 10px;
+  }
+
+  .settings-tabs :deep(.v-tab .v-icon) {
+    display: none;
+  }
+}
+</style>
