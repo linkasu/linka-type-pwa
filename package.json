@@ -1,6 +1,6 @@
 {
   "name": "linka-type-pwa-v2",
-  "version": "2.0.10",
+  "version": "2.0.11",
   "type": "module",
   "private": true,
   "main": "dist/electron/main.js",
