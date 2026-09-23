@@ -1,4 +1,9 @@
-import type { Category, Statement } from '~/types/api'
+import type {
+  Category,
+  ReplaceStatementsRequest,
+  Statement,
+  StatementReplaceResult,
+} from '~/types/api'
 import type {
   OfflineQueueItem,
   SyncConflict,
@@ -19,6 +24,10 @@ export interface QueueApi {
     update: (id: string, payload: { text: string }) => Promise<Statement>
     delete: (id: string) => Promise<void>
     getById: (id: string) => Promise<Statement>
+    replaceCategory: (
+      categoryId: string,
+      payload: ReplaceStatementsRequest,
+    ) => Promise<StatementReplaceResult>
   }
   quickes: {
     update: (payload: { quickes: string[] }) => Promise<void>
@@ -40,6 +49,7 @@ export interface QueueStores {
     replaceStatementId: (tempId: string, statement: Statement) => Promise<void>
     updateStatement: (statement: Statement) => void
     removeStatement: (id: string) => void
+    replaceCategoryStatements: (categoryId: string, statements: Statement[]) => Promise<void>
   }
   quickesStore: {
     setQuickes: (quickes: string[]) => void

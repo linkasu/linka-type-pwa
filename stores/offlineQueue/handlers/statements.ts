@@ -3,6 +3,7 @@ import type { Statement } from '~/types/api'
 import type {
   StatementCreatePayload,
   StatementDeletePayload,
+  StatementReplacePayload,
   StatementUpdatePayloadWithOriginal,
 } from '~/types/offline'
 import type { QueueFlushContext, QueueItemResult } from '../flushTypes'
@@ -76,6 +77,57 @@ export const handleStatementQueueItem = async (
       const resolvedId = context.idMap.get(payload.id) ?? payload.id
       await context.api.statements.delete(resolvedId)
       context.stores.statementsStore.removeStatement(resolvedId)
+      return 'processed'
+    }
+
+    case 'statement_replace': {
+      const payload = context.item.payload as StatementReplacePayload
+      const resolvedCategoryId = context.idMap.get(payload.categoryId) ?? payload.categoryId
+      let result = await context.api.statements.replaceCategory(resolvedCategoryId, {
+        text: payload.text,
+      })
+      if (!result.applied && result.confirmationToken) {
+        result = await context.api.statements.replaceCategory(resolvedCategoryId, {
+          text: payload.text,
+          confirmationToken: result.confirmationToken,
+        })
+      }
+      if (!result.applied || !result.statements) {
+        throw new Error('Failed to apply statement replacement')
+      }
+
+      const serverByText = new Map(result.statements.map(statement => [statement.text, statement]))
+      const draftIds = new Set(payload.drafts.map(statement => statement.id))
+      for (const draft of payload.drafts) {
+        const serverStatement = serverByText.get(draft.text)
+        if (!serverStatement || draft.id === serverStatement.id) continue
+        draftIds.add(serverStatement.id)
+        context.idMap.set(draft.id, serverStatement.id)
+        await remapFutureQueueItems(context.items, context.index, draft.id, serverStatement.id)
+      }
+      const hasPendingLocalChanges = context.items.slice(context.index + 1).some((item) => {
+        if (item.op === 'statement_replace') {
+          const next = item.payload as StatementReplacePayload
+          return (context.idMap.get(next.categoryId) ?? next.categoryId) === resolvedCategoryId
+        }
+        if (item.op === 'statement_create') {
+          const next = item.payload as StatementCreatePayload
+          return (context.idMap.get(next.statement.categoryId) ?? next.statement.categoryId) === resolvedCategoryId
+        }
+        if (item.op === 'statement_update') {
+          return draftIds.has((item.payload as StatementUpdatePayloadWithOriginal).id)
+        }
+        if (item.op === 'statement_delete') {
+          return draftIds.has((item.payload as StatementDeletePayload).id)
+        }
+        return false
+      })
+      if (!hasPendingLocalChanges) {
+        await context.stores.statementsStore.replaceCategoryStatements(
+          resolvedCategoryId,
+          result.statements,
+        )
+      }
       return 'processed'
     }
 

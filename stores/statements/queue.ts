@@ -4,7 +4,9 @@ import {
   addStatementToState,
   removeStatementFromState,
   type StatementsCollections,
+  setCategoryStatementsInState,
 } from './state'
+import type { StatementReplacePayload } from '~/types/offline'
 
 type StatementCreatePayload = { statement: Statement }
 type StatementUpdatePayload = { id: string; text: string }
@@ -37,6 +39,13 @@ export const applyPendingStatementQueue = (
         const existing = state.statements.get(payload.id)
         if (existing && existing.categoryId === categoryId) {
           removeStatementFromState(state, payload.id)
+        }
+        break
+      }
+      case 'statement_replace': {
+        const payload = item.payload as StatementReplacePayload
+        if (payload.categoryId === categoryId) {
+          setCategoryStatementsInState(state, categoryId, payload.drafts)
         }
         break
       }

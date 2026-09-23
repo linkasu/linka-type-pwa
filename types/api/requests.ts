@@ -30,6 +30,26 @@ export interface UpdateStatementRequest {
   text: string
 }
 
+export interface ReplaceStatementsRequest {
+  text: string
+  confirmationToken?: string
+}
+
+export interface StatementReplaceSummary {
+  added: number
+  kept: number
+  removed: number
+  duplicates: number
+  total: number
+}
+
+export interface StatementReplaceResult {
+  applied: boolean
+  summary: StatementReplaceSummary
+  confirmationToken?: string
+  statements?: import('./entities').Statement[]
+}
+
 export interface UpdateQuickesRequest {
   quickes: string[]
 }

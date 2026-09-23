@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import type { Statement } from '~/types/api'
+import type { Statement, StatementReplaceSummary } from '~/types/api'
+import { normalizeStatementText } from '~/utils/statementText'
 
 const props = defineProps<{
   statements: Statement[]
-  categoryId: string
+  saving: boolean
+  confirmation: StatementReplaceSummary | null
+  error: string | null
 }>()
 
 const emit = defineEmits<{
   close: []
-  save: [statements: string[]]
+  save: [text: string]
+  confirm: []
+  cancelConfirmation: []
 }>()
 
 const { t } = useI18n()
@@ -22,25 +27,25 @@ onMounted(() => {
 })
 
 const handleSave = () => {
-  const lines = textContent.value
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-
-  emit('save', lines)
+  emit('save', textContent.value)
 }
 
-const lineCount = computed(() => {
-  const lines = textContent.value.split('\n').filter(line => line.trim().length > 0)
-  return lines.length
-})
+const normalized = computed(() => normalizeStatementText(textContent.value))
+const lineCount = computed(() => normalized.value.texts.length)
+const duplicateCount = computed(() => normalized.value.duplicates)
+const confirmationParams = computed(() => props.confirmation ? { ...props.confirmation } : {})
+
+const close = () => {
+  if (!props.saving) emit('close')
+}
 </script>
 
 <template>
   <VDialog
     :model-value="true"
     fullscreen
-    @update:model-value="emit('close')"
+    :persistent="saving"
+    @update:model-value="close"
   >
     <VCard class="editor-card">
       <VToolbar
@@ -49,8 +54,9 @@ const lineCount = computed(() => {
       >
         <VBtn
           icon
+          :disabled="saving"
           :aria-label="t('reader.close')"
-          @click="emit('close')"
+          @click="close"
         >
           <VIcon>mdi-close</VIcon>
         </VBtn>
@@ -58,6 +64,8 @@ const lineCount = computed(() => {
         <VSpacer />
         <VBtn
           variant="text"
+          :loading="saving"
+          :disabled="saving || Boolean(confirmation)"
           @click="handleSave"
         >
           {{ t('actions.save') }}
@@ -79,6 +87,9 @@ const lineCount = computed(() => {
             <VSpacer />
             <span class="text-caption text-medium-emphasis">
               {{ t('textEditor.lineCount') }}: {{ lineCount }}
+              <template v-if="duplicateCount > 0">
+                · {{ t('textEditor.duplicates', { count: duplicateCount }) }}
+              </template>
             </span>
           </div>
 
@@ -89,23 +100,47 @@ const lineCount = computed(() => {
             rows="1"
             class="editor-textarea"
             hide-details
+            :disabled="saving || Boolean(confirmation)"
           />
         </div>
       </VCardText>
 
+      <VAlert
+        v-if="error"
+        type="error"
+        variant="tonal"
+        class="mx-4 mt-4"
+      >
+        {{ error }}
+      </VAlert>
+
+      <VAlert
+        v-if="confirmation"
+        type="warning"
+        variant="tonal"
+        class="mx-4 mt-4"
+      >
+        <div class="font-weight-medium">{{ t('textEditor.confirmTitle') }}</div>
+        <div class="mt-1">
+          {{ t('textEditor.summary', confirmationParams) }}
+        </div>
+      </VAlert>
+
       <VCardActions class="justify-end pa-4">
         <VBtn
           variant="text"
-          @click="emit('close')"
+          :disabled="saving"
+          @click="confirmation ? emit('cancelConfirmation') : close()"
         >
-          {{ t('actions.cancel') }}
+          {{ confirmation ? t('textEditor.keepEditing') : t('actions.cancel') }}
         </VBtn>
         <VBtn
           color="primary"
           variant="flat"
-          @click="handleSave"
+          :loading="saving"
+          @click="confirmation ? emit('confirm') : handleSave()"
         >
-          {{ t('actions.save') }}
+          {{ confirmation ? t('textEditor.confirmReplace') : t('actions.save') }}
         </VBtn>
       </VCardActions>
     </VCard>

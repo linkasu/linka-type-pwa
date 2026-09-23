@@ -18,10 +18,12 @@ import {
   remapCategoryIdAction,
   removeStatementsByCategoryAction,
   replaceStatementIdAction,
+  replaceCategoryStatementsAction,
 } from './statements/readActions'
 import {
   createStatementAction,
   deleteStatementAction,
+  replaceStatementsAction,
   updateStatementTextAction,
 } from './statements/writeActions'
 
@@ -58,6 +60,14 @@ export const useStatementsStore = defineStore('statements', {
 
     async deleteStatement(id: string): Promise<void> {
       return deleteStatementAction(this, id)
+    },
+
+    async replaceStatements(
+      categoryId: string,
+      text: string,
+      confirmationToken?: string,
+    ) {
+      return replaceStatementsAction(this, categoryId, text, confirmationToken)
     },
 
     updateStatement(statement: Statement) {
@@ -118,6 +128,10 @@ export const useStatementsStore = defineStore('statements', {
 
     async removeStatementsByCategory(categoryId: string) {
       await removeStatementsByCategoryAction(this, categoryId)
+    },
+
+    async replaceCategoryStatements(categoryId: string, statements: Statement[]) {
+      await replaceCategoryStatementsAction(this, categoryId, statements)
     },
 
     getRandomFromCategory(categoryId: string): Statement | null {

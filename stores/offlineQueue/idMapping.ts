@@ -5,6 +5,7 @@ import type {
   OfflineQueueItem,
   StatementCreatePayload,
   StatementDeletePayload,
+  StatementReplacePayload,
   StatementUpdatePayload,
 } from '~/types/offline'
 
@@ -68,6 +69,18 @@ export const applyIdMappingToItem = (
       }
       if (payload.categoryId === fromId) {
         payload.categoryId = toId
+        changed = true
+      }
+      break
+    }
+    case 'statement_replace': {
+      const payload = item.payload as StatementReplacePayload
+      if (payload.categoryId === fromId) {
+        payload.categoryId = toId
+        payload.drafts = payload.drafts.map(statement => ({
+          ...statement,
+          categoryId: toId,
+        }))
         changed = true
       }
       break

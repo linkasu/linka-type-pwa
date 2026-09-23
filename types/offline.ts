@@ -9,6 +9,7 @@ export type OfflineOperation =
   | 'statement_create'
   | 'statement_update'
   | 'statement_delete'
+  | 'statement_replace'
   | 'quickes_update'
   | 'user_prefs_update'
 
@@ -40,6 +41,12 @@ export interface StatementDeletePayload {
   categoryId?: string
 }
 
+export interface StatementReplacePayload {
+  categoryId: string
+  text: string
+  drafts: Statement[]
+}
+
 export interface QuickesUpdatePayload {
   quickes: string[]
 }
@@ -55,6 +62,7 @@ export type OfflinePayload =
   | StatementCreatePayload
   | StatementUpdatePayloadWithOriginal
   | StatementDeletePayload
+  | StatementReplacePayload
   | QuickesUpdatePayload
   | UserPrefsUpdatePayload
 

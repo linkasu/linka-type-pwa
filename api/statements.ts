@@ -1,6 +1,12 @@
 import { getApiClient } from './client'
 import { normalizeStatement, normalizeStatements } from './normalize'
-import type { Statement, CreateStatementRequest, UpdateStatementRequest } from '~/types/api'
+import type {
+  Statement,
+  CreateStatementRequest,
+  ReplaceStatementsRequest,
+  StatementReplaceResult,
+  UpdateStatementRequest,
+} from '~/types/api'
 
 export const statementsApi = {
   async getByCategory(categoryId: string): Promise<Statement[]> {
@@ -13,6 +19,23 @@ export const statementsApi = {
     const client = getApiClient()
     const response = await client.get<Statement>(`/statements/${id}`)
     return normalizeStatement(response.data as Statement)
+  },
+
+  async replaceCategory(
+    categoryId: string,
+    data: ReplaceStatementsRequest,
+  ): Promise<StatementReplaceResult> {
+    const client = getApiClient()
+    const response = await client.put<StatementReplaceResult>(
+      `/categories/${categoryId}/statements`,
+      data,
+    )
+    return {
+      ...response.data,
+      statements: response.data.statements
+        ? normalizeStatements(response.data.statements)
+        : undefined,
+    }
   },
 
   async create(data: CreateStatementRequest): Promise<Statement> {

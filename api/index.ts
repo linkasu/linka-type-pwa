@@ -30,6 +30,8 @@ export const api = {
   statements: {
     getByCategory: (categoryId: string) => import('./statements').then(m => m.statementsApi.getByCategory(categoryId)),
     getById: (id: string) => import('./statements').then(m => m.statementsApi.getById(id)),
+    replaceCategory: (categoryId: string, data: import('~/types/api').ReplaceStatementsRequest) =>
+      import('./statements').then(m => m.statementsApi.replaceCategory(categoryId, data)),
     create: (data: import('~/types/api').CreateStatementRequest) => import('./statements').then(m => m.statementsApi.create(data)),
     update: (id: string, data: import('~/types/api').UpdateStatementRequest) => import('./statements').then(m => m.statementsApi.update(id, data)),
     delete: (id: string) => import('./statements').then(m => m.statementsApi.delete(id)),

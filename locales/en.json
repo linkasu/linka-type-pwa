@@ -344,7 +344,13 @@
     "title": "Text editor",
     "hint": "Each line is a separate phrase. Empty lines will be ignored.",
     "placeholder": "Enter phrases (one per line)...",
-    "lineCount": "Lines"
+    "lineCount": "Phrases",
+    "duplicates": "duplicates: {count}",
+    "confirmTitle": "Some phrases will be removed",
+    "summary": "Added: {added}, kept: {kept}, removed: {removed}, duplicates skipped: {duplicates}.",
+    "keepEditing": "Keep editing",
+    "confirmReplace": "Replace category",
+    "saved": "Category updated: {added} added, {kept} kept, {removed} removed."
   },
   "errors": {
     "generic": "An error occurred",

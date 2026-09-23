@@ -9,7 +9,7 @@ import BankHeader from '~/components/bank/BankHeader.vue'
 import BankCachingDialog from '~/components/bank/BankCachingDialog.vue'
 import BankList from '~/components/bank/BankList.vue'
 import BankItemDialog from '~/components/bank/BankItemDialog.vue'
-import type { Category, Statement } from '~/types/api'
+import type { Category, Statement, StatementReplaceSummary } from '~/types/api'
 
 const emit = defineEmits<{
   paste: [text: string]
@@ -22,6 +22,13 @@ const containerRef = ref<HTMLElement | null>(null)
 const isPasteMode = ref(false)
 const isReaderMode = ref(false)
 const isTextEditorMode = ref(false)
+const textEditorStatus = ref<'editing' | 'saving' | 'confirming'>('editing')
+const textEditorConfirmation = ref<StatementReplaceSummary | null>(null)
+const textEditorConfirmationToken = ref<string | null>(null)
+const textEditorPendingText = ref('')
+const textEditorError = ref<string | null>(null)
+const saveResultMessage = ref('')
+const showSaveResult = ref(false)
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const editingItem = ref<Category | Statement | null>(null)
@@ -118,13 +125,48 @@ const handleEditSave = async (payload: { text: string; aiUse?: boolean }) => {
   }
 }
 
-const handleTextEditorSave = async (statements: string[]) => {
+const closeTextEditor = () => {
+  if (textEditorStatus.value === 'saving') return
+  isTextEditorMode.value = false
+  textEditorStatus.value = 'editing'
+  textEditorConfirmation.value = null
+  textEditorConfirmationToken.value = null
+  textEditorError.value = null
+}
+
+const handleTextEditorSave = async (text: string, confirmationToken?: string) => {
+  textEditorPendingText.value = text
+  textEditorStatus.value = 'saving'
+  textEditorError.value = null
   try {
-    await saveTextEditorChanges(statements)
-    isTextEditorMode.value = false
+    const result = await saveTextEditorChanges(text, confirmationToken)
+    if (!result) return
+    if (!result.applied) {
+      textEditorConfirmation.value = result.summary
+      textEditorConfirmationToken.value = result.confirmationToken ?? null
+      textEditorStatus.value = 'confirming'
+      return
+    }
+    saveResultMessage.value = t('textEditor.saved', { ...result.summary })
+    textEditorStatus.value = 'editing'
+    closeTextEditor()
+    showSaveResult.value = true
   } catch (err) {
     console.error('Failed to save text editor changes:', err)
+    textEditorStatus.value = 'editing'
+    textEditorError.value = err instanceof Error ? err.message : t('errors.generic')
   }
+}
+
+const confirmTextEditorSave = () => {
+  if (!textEditorConfirmationToken.value) return
+  void handleTextEditorSave(textEditorPendingText.value, textEditorConfirmationToken.value)
+}
+
+const cancelTextEditorConfirmation = () => {
+  textEditorStatus.value = 'editing'
+  textEditorConfirmation.value = null
+  textEditorConfirmationToken.value = null
 }
 
 const focus = () => containerRef.value?.focus()
@@ -184,10 +226,18 @@ defineExpose({ focus })
     <TextEditor
       v-if="isTextEditorMode && selectedCategoryId"
       :statements="currentItems as Statement[]"
-      :category-id="selectedCategoryId"
-      @close="isTextEditorMode = false"
+      :saving="textEditorStatus === 'saving'"
+      :confirmation="textEditorConfirmation"
+      :error="textEditorError"
+      @close="closeTextEditor"
       @save="handleTextEditorSave"
+      @confirm="confirmTextEditorSave"
+      @cancel-confirmation="cancelTextEditorConfirmation"
     />
+
+    <VSnackbar v-model="showSaveResult" :timeout="5000">
+      {{ saveResultMessage }}
+    </VSnackbar>
 
     <BankCachingDialog
       :is-caching="isCaching"

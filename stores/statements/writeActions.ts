@@ -1,13 +1,20 @@
-import type { Statement } from '~/types/api'
+import type { Statement, StatementReplaceResult } from '~/types/api'
 import type { OfflineQueueItem } from '~/types/offline'
 import { generateTempId, isOffline, shouldQueueOffline } from '~/utils/offline'
 import {
   addQueueItem,
   deleteStatement as deleteStatementCache,
   upsertStatement,
+  replaceStatementsForCategory,
 } from '~/utils/offlineDb'
-import { addStatementToState, removeStatementFromState } from './state'
+import {
+  addStatementToState,
+  getStatementsByCategory,
+  removeStatementFromState,
+  setCategoryStatementsInState,
+} from './state'
 import { resolveStatementsUserId, type StatementsStoreContext } from './context'
+import { normalizeStatementText, summarizeStatementReplace } from '~/utils/statementText'
 
 const createDraftStatement = (categoryId: string, text: string): Statement => ({
   id: generateTempId('stmt'),
@@ -48,6 +55,93 @@ const queueDeleteStatement = async (userId: string, statement: Statement) => {
     payload: { id: statement.id, categoryId: statement.categoryId },
     createdAt: Date.now(),
   } satisfies OfflineQueueItem)
+}
+
+const sameStatementTexts = (current: Statement[], texts: string[]) =>
+  current.length === texts.length && current.every((statement, index) => statement.text === texts[index])
+
+const createReplacementDrafts = (
+  categoryId: string,
+  texts: string[],
+  current: Statement[],
+): Statement[] => {
+  const existingByText = new Map(current.map(statement => [statement.text, statement]))
+  const now = Date.now()
+  return texts.map((text, index) => ({
+    id: existingByText.get(text)?.id ?? generateTempId('stmt'),
+    categoryId,
+    text,
+    created: now + index,
+  }))
+}
+
+const applyOfflineReplacement = async (
+  store: StatementsStoreContext,
+  userId: string,
+  categoryId: string,
+  text: string,
+  confirmationToken?: string,
+): Promise<StatementReplaceResult> => {
+  const current = getStatementsByCategory(store, categoryId)
+  const normalized = normalizeStatementText(text)
+  const summary = summarizeStatementReplace(current, normalized.texts, normalized.duplicates)
+
+  if (sameStatementTexts(current, normalized.texts)) {
+    return { applied: true, summary, statements: current }
+  }
+
+  const token = JSON.stringify({
+    current: current.map(statement => [statement.id, statement.text]),
+    result: normalized.texts,
+  })
+  if (summary.removed > 0 && confirmationToken !== token) {
+    return { applied: false, summary, confirmationToken: token }
+  }
+
+  const drafts = createReplacementDrafts(categoryId, normalized.texts, current)
+  setCategoryStatementsInState(store, categoryId, drafts)
+  await replaceStatementsForCategory(userId, categoryId, drafts)
+  await addQueueItem({
+    userId,
+    op: 'statement_replace',
+    payload: { categoryId, text, drafts },
+    createdAt: Date.now(),
+  } satisfies OfflineQueueItem)
+  return { applied: true, summary, statements: drafts }
+}
+
+export const replaceStatementsAction = async (
+  store: StatementsStoreContext,
+  categoryId: string,
+  text: string,
+  confirmationToken?: string,
+): Promise<StatementReplaceResult> => {
+  store.error = null
+  const userId = resolveStatementsUserId()
+
+  if (isOffline()) {
+    if (!userId) throw new Error('Missing user for offline statement replacement')
+    return applyOfflineReplacement(store, userId, categoryId, text, confirmationToken)
+  }
+
+  try {
+    const { api } = useAppServices()
+    const result = await api.statements.replaceCategory(categoryId, { text, confirmationToken })
+    if (result.applied && result.statements) {
+      setCategoryStatementsInState(store, categoryId, result.statements)
+      if (import.meta.client && userId) {
+        await replaceStatementsForCategory(userId, categoryId, result.statements)
+      }
+    }
+    return result
+  } catch (err: unknown) {
+    if (shouldQueueOffline(err) && userId) {
+      return applyOfflineReplacement(store, userId, categoryId, text, confirmationToken)
+    }
+    const error = err as Error
+    store.error = error.message || 'Failed to replace statements'
+    throw error
+  }
 }
 
 export const createStatementAction = async (

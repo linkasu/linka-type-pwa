@@ -122,6 +122,19 @@ export const removeStatementsByCategoryAction = async (
   }
 }
 
+export const replaceCategoryStatementsAction = async (
+  store: StatementsStoreContext,
+  categoryId: string,
+  statements: Statement[],
+) => {
+  setCategoryStatementsInState(store, categoryId, statements)
+  store.loadedCategories.add(categoryId)
+  const userId = resolveStatementsUserId()
+  if (import.meta.client && userId) {
+    await replaceStatementsForCategory(userId, categoryId, statements)
+  }
+}
+
 export const getRandomStatementFromCategory = (
   store: StatementsStoreContext,
   categoryId: string,

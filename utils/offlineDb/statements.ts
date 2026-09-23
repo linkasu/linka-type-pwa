@@ -5,6 +5,7 @@ import {
   getAllFromIndex,
   getKey,
   isIdbAvailable,
+  requestToPromise,
   withStore,
 } from './core'
 
@@ -80,8 +81,21 @@ export const replaceStatementsForCategory = async (
   statements: Statement[],
 ): Promise<void> => {
   if (!isIdbAvailable()) return
-  await clearStatementsByCategory(userId, categoryId)
-  await upsertStatements(userId, statements)
+  await withStore(STORES.statements, 'readwrite', async (store) => {
+    const records = await requestToPromise<CachedStatement[]>(
+      store.index('byUserCategory').getAll(IDBKeyRange.only([userId, categoryId])),
+    )
+    for (const record of records) {
+      store.delete(record.key)
+    }
+    for (const statement of statements) {
+      store.put({
+        ...statement,
+        key: getKey(userId, statement.id),
+        userId,
+      } satisfies CachedStatement)
+    }
+  })
 }
 
 export const replaceStatementId = async (
