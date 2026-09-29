@@ -12,6 +12,8 @@ COPY . .
 RUN npm run build:renderer
 
 FROM nginx:1.27-alpine
+ENV PORT=8080
 COPY --from=builder /app/dist/renderer /usr/share/nginx/html
-EXPOSE 80
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
