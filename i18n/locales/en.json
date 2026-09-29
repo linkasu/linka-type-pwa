@@ -50,6 +50,7 @@
     "download": "Download",
     "clear": "Clear",
     "loadError": "Failed to load data. Please try again.",
+    "loadWarning": "Local data is available, but synchronization is unavailable.",
     "placeholder": "Enter text to speak...",
     "chat": "Chat",
     "chatSwitch": "Switch chat",

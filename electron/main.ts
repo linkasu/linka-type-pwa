@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerBackendRequestIpc } from './backendRequest.js'
 import { registerMediaIpc } from './mediaIpc.js'
+import { getDevRendererUrl, INITIAL_ROUTE_HASH } from './startup.js'
 import {
   type TypeMetricsTelemetry,
 } from './telemetry/index.js'
@@ -111,11 +112,11 @@ const createWindow = async () => {
   })
 
   if (isDev) {
-    await mainWindow.loadURL(`${devServerUrl}/app.html#/login`)
+    await mainWindow.loadURL(getDevRendererUrl(devServerUrl))
     mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     await mainWindow.loadFile(path.join(__dirname, '../renderer/app.html'), {
-      hash: '/login',
+      hash: INITIAL_ROUTE_HASH,
     })
   }
 }

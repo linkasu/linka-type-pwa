@@ -76,6 +76,7 @@ declare global {
   const useI18n: typeof import('~/src/renderer/use-i18n-compat')['useI18n']
   const useId: typeof import('vue')['useId']
   const useLink: typeof import('vue-router')['useLink']
+  const useMainDataLoading: typeof import('../../composables/useMainDataLoading')['useMainDataLoading']
   const useMainKeyboard: typeof import('../../composables/useMainKeyboard')['useMainKeyboard']
   const useModel: typeof import('vue')['useModel']
   const useOnboardingSteps: typeof import('../../composables/useOnboardingSteps')['useOnboardingSteps']

@@ -40,10 +40,12 @@ async function bootstrap() {
 
   installAppServices(app, services)
   void analytics.initialize()
-  await initializeOfflineSync()
 
   await router.isReady()
   app.mount('#app')
+  void initializeOfflineSync().catch((err: unknown) => {
+    console.error('Failed to initialize offline sync:', err)
+  })
 }
 
 bootstrap().catch((err) => {

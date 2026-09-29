@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useSettingsStore } from '~/stores/settings'
-import { useCategoriesStore } from '~/stores/categories'
-import { useQuickesStore } from '~/stores/quickes'
+import { useAuthStore } from '~/stores/auth'
 import { useTTS } from '~/composables/useTTS'
+import { useMainDataLoading } from '~/composables/useMainDataLoading'
 import { useMainKeyboard } from '~/composables/useMainKeyboard'
 import { useTypeSound } from '~/composables/useTypeSound'
 import { useAnalytics } from '~/composables/useAnalytics'
@@ -10,9 +10,10 @@ import { useDisplay } from 'vuetify'
 type MainSection = 'input' | 'quickes' | 'bank'
 
 const { t } = useI18n()
+const router = useRouter()
 const settingsStore = useSettingsStore()
-const categoriesStore = useCategoriesStore()
-const quickesStore = useQuickesStore()
+const authStore = useAuthStore()
+const { loadMainData, loadState } = useMainDataLoading()
 const { speak, stop, isPlaying } = useTTS()
 const { handleTextInput } = useTypeSound()
 const { trackSay, trackSpotlight } = useAnalytics()
@@ -22,25 +23,10 @@ const chats = ref(['', '', ''])
 const activeChat = useSharedState<number>('activeChat', () => 0)
 const showMode = ref(false)
 const showDownload = computed(() => settingsStore.yandex)
-const loadError = ref(false)
 const activeSection = ref<MainSection>('input')
 const mainInputRef = ref<{ focus: () => void } | null>(null)
 const quickesRef = ref<{ focus: () => void } | null>(null)
 const bankRef = ref<{ focus: () => void } | null>(null)
-
-const loadMainData = async () => {
-  loadError.value = false
-  await settingsStore.initialize()
-  try {
-    await Promise.all([
-      categoriesStore.fetchCategories(),
-      quickesStore.fetchQuickes(),
-    ])
-  } catch (err) {
-    console.error('Failed to load data:', err)
-    loadError.value = true
-  }
-}
 
 onMounted((): void => { void loadMainData() })
 
@@ -139,9 +125,12 @@ watch(
     />
 
     <MainLoadError
-      v-if="loadError"
+      v-if="loadState"
       class="mb-4"
+      :warning="loadState === 'warning'"
+      :show-login="authStore.mode === 'online' && !authStore.isAuthenticated"
       @retry="loadMainData"
+      @login="router.push('/login')"
     />
 
     <div v-show="mdAndUp || activeSection === 'input'">
