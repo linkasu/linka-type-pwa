@@ -44,6 +44,7 @@ cp .env.example .env
 Переменные окружения:
 - PREDICTOR_API_KEY - ключ для Яндекс Predictor (опционально, для автодополнения слов)
 - API_BASE_URL - URL backend API (по умолчанию https://backend.linka.su)
+- VITE_TTS_INSTALLATION_TOKENS_ENABLED - включает анонимный TTS через installation token; по умолчанию `false`
 
 ## Development
 
