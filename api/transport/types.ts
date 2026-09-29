@@ -3,6 +3,7 @@ import type { InternalAxiosRequestConfig } from 'axios'
 export interface RequestConfig extends InternalAxiosRequestConfig {
   _authRetried?: boolean
   _serverRetried?: boolean
+  _skipServerRetry?: boolean
   _skipAuth?: boolean
 }
 

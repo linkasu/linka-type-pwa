@@ -103,7 +103,8 @@ export function createApiClient(
         error.response?.status &&
         error.response.status >= 500 &&
         originalRequest &&
-        !originalRequest._serverRetried
+        !originalRequest._serverRetried &&
+        !originalRequest._skipServerRetry
       ) {
         originalRequest._serverRetried = true
         await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -112,8 +113,10 @@ export function createApiClient(
 
       const apiError = error.response?.data?.error
       if (apiError) {
-        const err = new Error(apiError.message)
-        ;(err as unknown as Record<string, unknown>).code = apiError.code
+        const err = Object.assign(new Error(apiError.message), {
+          code: apiError.code,
+          status: error.response.status,
+        })
         return Promise.reject(err)
       }
 
