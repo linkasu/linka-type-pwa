@@ -47,20 +47,30 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
   }
 
   const handleKeydown = (event: KeyboardEvent) => {
+    if (event.repeat) return
+
+    const target = event.target as HTMLElement | null
+    const isInteractive = target?.matches('button, a, input, textarea, select, [contenteditable="true"]')
+    if (isInteractive && event.key !== 'Escape') return
+
     switch (event.key) {
       case 'Escape':
+        event.stopPropagation()
         onClose()
         break
       case ' ':
         event.preventDefault()
+        event.stopPropagation()
         togglePlay()
         break
       case 'ArrowLeft':
         event.preventDefault()
+        event.stopPropagation()
         prev()
         break
       case 'ArrowRight':
         event.preventDefault()
+        event.stopPropagation()
         next()
         break
     }
@@ -86,4 +96,3 @@ export function useReaderNavigation(options: UseReaderNavigationOptions) {
     togglePlay,
   }
 }
-

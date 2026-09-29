@@ -19,19 +19,19 @@ import type {
   TtsCacheInfo,
 } from './types'
 
-export const generateCacheKey = (text: string, voice: string): string => {
-  const source = `${voice}:${text}`
+export const generateCacheKey = (text: string, voice: string, rate: number): string => {
+  const source = `${voice}:${rate}:${text}`
   let hash = 0
   for (let i = 0; i < source.length; i += 1) {
     const char = source.charCodeAt(i)
     hash = (hash << 5) - hash + char
     hash &= hash
   }
-  return Math.abs(hash).toString(16).padStart(8, '0')
+  return `v2-${Math.abs(hash).toString(16).padStart(8, '0')}`
 }
 
 export const getCachedAudio = async (cacheKey: string): Promise<Blob | null> => {
-  if (!isIdbAvailable()) return null
+  if (!isIdbAvailable() || !(await getCacheEnabled())) return null
 
   try {
     const db = await openDb()
@@ -50,7 +50,7 @@ export const getCachedAudio = async (cacheKey: string): Promise<Blob | null> => 
 }
 
 export const isCached = async (cacheKey: string): Promise<boolean> => {
-  if (!isIdbAvailable()) return false
+  if (!isIdbAvailable() || !(await getCacheEnabled())) return false
 
   try {
     const db = await openDb()
@@ -72,21 +72,36 @@ const ensureCacheLimit = async (pendingAdditionBytes: number): Promise<void> => 
     if (limitBytes <= 0) return
 
     const db = await openDb()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    const store = tx.objectStore(STORE_NAME)
-    const index = store.index('byLastUsed')
+    const tx = db.transaction(STORE_NAME, 'readonly')
+    const index = tx.objectStore(STORE_NAME).index('byLastUsed')
 
-    const allRecords = await requestToPromise<CachedAudio[]>(index.getAll())
-    let currentSize = allRecords.reduce((sum, r) => sum + r.size, 0)
+    let currentSize = 0
+    const oldestRecords: Array<Pick<CachedAudio, 'key' | 'size'>> = []
+    await new Promise<void>((resolve, reject) => {
+      const request = index.openCursor()
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        const cursor = request.result
+        if (!cursor) return resolve()
+        const record = cursor.value as CachedAudio
+        currentSize += record.size
+        oldestRecords.push({ key: record.key, size: record.size })
+        cursor.continue()
+      }
+    })
 
     if (currentSize + pendingAdditionBytes <= limitBytes) return
 
-    allRecords.sort((a, b) => a.lastUsedAt - b.lastUsedAt)
-    for (const record of allRecords) {
+    const keysToDelete: string[] = []
+    for (const record of oldestRecords) {
       if (currentSize + pendingAdditionBytes <= limitBytes) break
-      store.delete(record.key)
+      keysToDelete.push(record.key)
       currentSize -= record.size
     }
+
+    const deleteTx = db.transaction(STORE_NAME, 'readwrite')
+    const deleteStore = deleteTx.objectStore(STORE_NAME)
+    await Promise.all(keysToDelete.map(key => requestToPromise(deleteStore.delete(key))))
   } catch {
     // Ignore errors
   }

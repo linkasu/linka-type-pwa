@@ -29,9 +29,7 @@ watch(() => props.modelValue, (open) => {
 })
 
 const isPredictionShortcut = (event: KeyboardEvent) => {
-  const usesAlt = event.altKey && !event.ctrlKey && !event.metaKey
-  const usesMeta = event.metaKey && !event.ctrlKey && !event.altKey
-  if (!usesAlt && !usesMeta) return false
+  if (!event.altKey || event.ctrlKey || event.metaKey) return false
   const keyNum = Number.parseInt(event.key, 10)
   if (!Number.isNaN(keyNum)) return keyNum >= 1 && keyNum <= 5
   const codeMatch = /^(Digit|Numpad)(\d)$/.exec(event.code)

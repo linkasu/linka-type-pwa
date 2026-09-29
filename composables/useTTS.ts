@@ -62,7 +62,7 @@ export const useTTS = () => {
       options.onStart?.()
 
       const voice = settingsStore.yandexVoice || 'alena'
-      const cacheKey = generateCacheKey(text, voice)
+      const cacheKey = generateCacheKey(text, voice, settingsStore.rate)
 
       // Try to get from cache first
       let blob = await getCachedAudio(cacheKey)

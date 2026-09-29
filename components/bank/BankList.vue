@@ -50,6 +50,7 @@ const getItemLabel = (item: Category | Statement): string => {
           icon
           variant="text"
           size="small"
+          class="touch-target"
           color="primary"
           :aria-label="t('bank.cacheCategory')"
           @click.stop="emit('cache', item as Category)"
@@ -62,6 +63,7 @@ const getItemLabel = (item: Category | Statement): string => {
           icon
           variant="text"
           size="small"
+          class="touch-target"
           :aria-label="t('actions.edit')"
           @click.stop="emit('edit', item)"
         >
@@ -73,6 +75,7 @@ const getItemLabel = (item: Category | Statement): string => {
           icon
           variant="text"
           size="small"
+          class="touch-target"
           color="error"
           :aria-label="t('actions.delete')"
           @click.stop="emit('delete', item)"
@@ -88,8 +91,9 @@ const getItemLabel = (item: Category | Statement): string => {
   <div
     v-else
     class="text-center pa-8 text-medium-emphasis"
+    role="status"
+    aria-live="polite"
   >
     {{ t('bank.empty') }}
   </div>
 </template>
-

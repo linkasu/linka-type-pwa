@@ -11,6 +11,7 @@ import { useStatementsStore } from './statements'
 import { useQuickesStore } from './quickes'
 import { useSettingsStore } from './settings'
 import { useUserStore } from './user'
+import { getErrorMessage } from '~/utils/error'
 
 export const useOfflineQueueStore = defineStore('offlineQueue', {
   state: () => ({
@@ -51,13 +52,12 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
 
         if (conflict.localChange.id !== undefined) {
           await deleteQueueItem(conflict.localChange.id)
-          this.pendingCount -= 1
         }
 
         this.conflicts = this.conflicts.filter((c: SyncConflict) => c.id !== conflictId)
+        await this.hydrate()
       } catch (err: unknown) {
-        const error = err as Error
-        this.lastError = error.message || 'Failed to resolve conflict'
+        this.lastError = getErrorMessage(err, 'Failed to resolve conflict')
       }
     },
 
@@ -138,8 +138,7 @@ export const useOfflineQueueStore = defineStore('offlineQueue', {
               this.lastError = 'Offline, retry later'
               break
             }
-            const error = err as Error
-            this.lastError = error.message || 'Failed to sync offline queue'
+            this.lastError = getErrorMessage(err, 'Failed to sync offline queue')
             break
           }
         }

@@ -10,6 +10,7 @@ watch(
   () => settingsStore.darkTheme,
   (isDark) => {
     theme.global.name.value = isDark ? 'dark' : 'light'
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
   },
   { immediate: true }
 )

@@ -23,7 +23,7 @@ const { t } = useI18n()
       {{ t('main.say') }}
     </VBtn>
     <div class="spotlight-hint">
-      Esc - {{ t('reader.close') }} | Ctrl+Enter - {{ t('main.say') }} | Ctrl+B - {{ t('reader.close') }}
+      Esc - {{ t('reader.close') }} | Ctrl/Cmd+Enter - {{ t('main.say') }} | Ctrl/Cmd+B - {{ t('reader.close') }}
     </div>
   </div>
 </template>

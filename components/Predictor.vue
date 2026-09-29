@@ -97,7 +97,7 @@ const selectPrediction = (prediction: string, index?: number) => {
   predictions.value = []
 }
 
-// Keyboard shortcuts Alt/Cmd+1-5
+// Keyboard shortcuts Alt+1-5
 const getShortcutNumber = (event: KeyboardEvent) => {
   const keyNum = Number.parseInt(event.key, 10)
   if (!Number.isNaN(keyNum)) return keyNum
@@ -108,9 +108,7 @@ const getShortcutNumber = (event: KeyboardEvent) => {
 const handleKeydown = (event: KeyboardEvent) => {
   if (predictions.value.length === 0) return
 
-  const usesAlt = event.altKey && !event.ctrlKey && !event.metaKey
-  const usesMeta = event.metaKey && !event.ctrlKey && !event.altKey
-  if (!usesAlt && !usesMeta) return
+  if (!event.altKey || event.ctrlKey || event.metaKey) return
 
   const num = getShortcutNumber(event)
   if (num >= 1 && num <= 5 && num <= predictions.value.length) {
@@ -173,7 +171,7 @@ onUnmounted(() => {
           color="primary"
           :size="buttonSize"
           class="prediction-btn"
-          :aria-keyshortcuts="`Alt+${index + 1} Meta+${index + 1}`"
+          :aria-keyshortcuts="`Alt+${index + 1}`"
           @click="selectPrediction(word)"
         >
           <span class="prediction-badge">{{ index + 1 }}</span>
@@ -182,7 +180,7 @@ onUnmounted(() => {
       </div>
 
       <div
-        v-else
+        v-else-if="props.modelValue.trim()"
         class="predictor-empty text-caption text-medium-emphasis"
       >
         {{ t('predictor.noSuggestions') }}

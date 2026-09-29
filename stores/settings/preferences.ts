@@ -12,18 +12,18 @@ const PREFERENCE_KEYS: Array<keyof UserPreferences> = [
   'showSpotlightPredictor',
   'showQuickes',
   'showBank',
-  'saveOnSay',
   'typeSound',
   'speakLastWord',
 ]
 
 export const pickUserPreferences = (
-  state: Partial<UserPreferences> & Record<string, unknown>,
+  state: Partial<UserPreferences> | Record<string, unknown>,
 ): Partial<UserPreferences> => {
   const patch: Partial<UserPreferences> = {}
+  const values = state as Record<string, unknown>
   for (const key of PREFERENCE_KEYS) {
-    if (state[key] !== undefined) {
-      ;(patch as Record<string, unknown>)[key] = state[key]
+    if (values[key] !== undefined) {
+      ;(patch as Record<string, unknown>)[key] = values[key]
     }
   }
   return patch

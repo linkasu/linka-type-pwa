@@ -42,8 +42,9 @@ const goToMain = () => {
       </div>
     </div>
 
-    <div v-if="isInitializing" class="d-flex justify-center py-8">
+    <div v-if="isInitializing" class="d-flex justify-center py-8" role="status" aria-live="polite">
       <VProgressCircular indeterminate color="primary" />
+      <span class="sr-only">{{ t('status.loading') }}</span>
     </div>
     <template v-else>
       <VTabs
@@ -111,6 +112,18 @@ const goToMain = () => {
 </template>
 
 <style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .settings-tabs :deep(.v-slide-group__content) {
   min-width: max-content;
 }

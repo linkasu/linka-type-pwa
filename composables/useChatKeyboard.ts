@@ -32,7 +32,7 @@ export function useChatKeyboard(options: UseChatKeyboardOptions) {
 
   const handleKeydown = (event: KeyboardEvent) => {
     const isCtrlOrMeta = event.ctrlKey || event.metaKey
-    const isAltOrMeta = event.altKey || event.metaKey
+    const isAltOnly = event.altKey && !event.ctrlKey && !event.metaKey
 
     // Ctrl/Cmd + N - new chat
     if (isCtrlOrMeta && event.code === 'KeyN') {
@@ -56,8 +56,8 @@ export function useChatKeyboard(options: UseChatKeyboardOptions) {
       return
     }
 
-    // Alt/Cmd + 1-5 - select suggestion
-    if (isAltOrMeta && !event.ctrlKey) {
+    // Alt + 1-5 - select suggestion
+    if (isAltOnly) {
       const digit = parseInt(event.key, 10)
       if (digit >= 1 && digit <= 5) {
         event.preventDefault()

@@ -15,6 +15,7 @@ import {
 } from './state'
 import { resolveStatementsUserId, type StatementsStoreContext } from './context'
 import { normalizeStatementText, summarizeStatementReplace } from '~/utils/statementText'
+import { getErrorMessage } from '~/utils/error'
 
 const createDraftStatement = (categoryId: string, text: string): Statement => ({
   id: generateTempId('stmt'),
@@ -138,9 +139,8 @@ export const replaceStatementsAction = async (
     if (shouldQueueOffline(err) && userId) {
       return applyOfflineReplacement(store, userId, categoryId, text, confirmationToken)
     }
-    const error = err as Error
-    store.error = error.message || 'Failed to replace statements'
-    throw error
+    store.error = getErrorMessage(err, 'Failed to replace statements')
+    throw err
   }
 }
 
@@ -176,9 +176,8 @@ export const createStatementAction = async (
       return statement
     }
 
-    const error = err as Error
-    store.error = error.message || 'Failed to create statement'
-    throw error
+    store.error = getErrorMessage(err, 'Failed to create statement')
+    throw err
   }
 }
 
@@ -214,9 +213,8 @@ export const updateStatementTextAction = async (
     }
 
     store.statements.set(id, original)
-    const error = err as Error
-    store.error = error.message || 'Failed to update statement'
-    throw error
+    store.error = getErrorMessage(err, 'Failed to update statement')
+    throw err
   }
 }
 
@@ -249,8 +247,7 @@ export const deleteStatementAction = async (
     }
 
     addStatementToState(store, original)
-    const error = err as Error
-    store.error = error.message || 'Failed to delete statement'
-    throw error
+    store.error = getErrorMessage(err, 'Failed to delete statement')
+    throw err
   }
 }

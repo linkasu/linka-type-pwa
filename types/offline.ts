@@ -55,24 +55,24 @@ export interface UserPrefsUpdatePayload {
   preferences: Partial<UserPreferences>
 }
 
-export type OfflinePayload =
-  | CategoryCreatePayload
-  | CategoryUpdatePayloadWithOriginal
-  | CategoryDeletePayload
-  | StatementCreatePayload
-  | StatementUpdatePayloadWithOriginal
-  | StatementDeletePayload
-  | StatementReplacePayload
-  | QuickesUpdatePayload
-  | UserPrefsUpdatePayload
-
-export interface OfflineQueueItem {
+interface OfflineQueueItemBase {
   id?: number
   userId: string
-  op: OfflineOperation
-  payload: OfflinePayload
   createdAt: number
 }
+
+// `op` already persists with every record, so this adds compile-time narrowing only.
+export type OfflineQueueItem = OfflineQueueItemBase & (
+  | { op: 'category_create'; payload: CategoryCreatePayload }
+  | { op: 'category_update'; payload: CategoryUpdatePayloadWithOriginal }
+  | { op: 'category_delete'; payload: CategoryDeletePayload }
+  | { op: 'statement_create'; payload: StatementCreatePayload }
+  | { op: 'statement_update'; payload: StatementUpdatePayloadWithOriginal }
+  | { op: 'statement_delete'; payload: StatementDeletePayload }
+  | { op: 'statement_replace'; payload: StatementReplacePayload }
+  | { op: 'quickes_update'; payload: QuickesUpdatePayload }
+  | { op: 'user_prefs_update'; payload: UserPrefsUpdatePayload }
+)
 
 // Conflict resolution types
 export type ConflictType =

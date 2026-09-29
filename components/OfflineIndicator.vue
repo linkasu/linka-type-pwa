@@ -81,8 +81,9 @@ onMounted(() => {
     <div
       v-if="showIndicator"
       :class="indicatorClass"
-      role="alert"
-      aria-live="assertive"
+      :role="syncError ? 'alert' : 'status'"
+      :aria-live="syncError ? 'assertive' : 'polite'"
+      aria-atomic="true"
     >
       <VIcon
         size="small"
@@ -108,6 +109,7 @@ onMounted(() => {
         variant="text"
         class="ml-2 retry-btn"
         :loading="isSyncing"
+        :aria-label="`${t('actions.retry')}: ${statusText}`"
         @click="syncNow"
       >
         {{ t('actions.retry') }}
@@ -166,6 +168,12 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.offline-indicator.error .status-text {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
 .sync-btn,
 .retry-btn {
   flex-shrink: 0;
@@ -185,4 +193,3 @@ onMounted(() => {
   }
 }
 </style>
-

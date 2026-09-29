@@ -48,7 +48,6 @@ export interface UserPreferences {
   showSpotlightPredictor: boolean
   showQuickes: boolean
   showBank: boolean
-  saveOnSay: boolean
   typeSound: boolean
   speakLastWord: boolean
 }

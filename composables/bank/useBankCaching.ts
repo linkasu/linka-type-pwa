@@ -44,6 +44,7 @@ export const useBankCaching = (options: UseBankCachingOptions) => {
       await preloadPhrases(
         phrases,
         voice,
+        options.settingsStore.rate,
         async (text: string, voiceId: string) => {
           return ttsApi.synthesize({
             text,

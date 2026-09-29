@@ -63,8 +63,9 @@ const handleClick = (index: number) => {
         color="accent"
         variant="tonal"
         class="quickes-btn"
-        :aria-label="`${t('quickes.title')} ${index + 1}: ${phrase}`"
-        :aria-keyshortcuts="`${index + 1}`"
+        :aria-label="phrase ? `${t('quickes.title')} ${index + 1}: ${phrase}` : `${t('quickes.title')} ${index + 1}: ${t('quickes.empty')}`"
+        :aria-keyshortcuts="phrase ? `${index + 1}` : undefined"
+        :disabled="!phrase"
         @click="handleClick(index)"
       >
         <span class="quickes-badge">{{ index + 1 }}</span>

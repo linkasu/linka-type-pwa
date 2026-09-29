@@ -49,8 +49,12 @@ export const useSettingsStore = defineStore('settings', {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
           try {
-            const parsed = JSON.parse(stored)
-            Object.assign(this, { ...DEFAULT_PREFERENCES, ...parsed })
+            const parsed = JSON.parse(stored) as Record<string, unknown>
+            Object.assign(this, {
+              ...DEFAULT_PREFERENCES,
+              ...pickUserPreferences(parsed),
+              locale: parsed.locale === 'en' ? 'en' : 'ru',
+            })
           } catch {
             // Invalid JSON, use defaults
           }
@@ -61,7 +65,7 @@ export const useSettingsStore = defineStore('settings', {
     applyUserPreferences(preferences: UserPreferences) {
       this.voiceUri = undefined
       this.yandexVoice = undefined
-      Object.assign(this, { ...DEFAULT_PREFERENCES, ...preferences })
+      Object.assign(this, { ...DEFAULT_PREFERENCES, ...pickUserPreferences(preferences) })
       this.saveToStorage()
     },
 

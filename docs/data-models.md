@@ -9,7 +9,7 @@ All types are defined in `types/api.ts` and `types/index.ts`.
   - `darkTheme`, `yandex`, `voiceUri?`, `yandexVoice?`
   - `volume`, `rate`, `pitch`
   - `showPredictor`, `showQuickes`, `showBank`
-  - `saveOnSay`, `typeSound`, `speakLastWord`
+  - `typeSound`, `speakLastWord`
 
 ## Bank
 - `Category`:

@@ -2,6 +2,7 @@ import type { UserPreferences } from '~/types/api'
 import type { OfflineQueueItem } from '~/types/offline'
 import { addQueueItem } from '~/utils/offlineDb'
 import { isOffline, shouldQueueOffline } from '~/utils/offline'
+import { getErrorMessage } from '~/utils/error'
 
 const SYNC_DEBOUNCE_MS = 800
 
@@ -63,7 +64,7 @@ export const schedulePreferenceSync = (
         await queueOfflinePatch(authStore.user.id, patch, userStore)
         return
       }
-      console.warn('Failed to sync preferences:', err)
+      console.warn(getErrorMessage(err, 'Failed to sync preferences'))
     }
   }, SYNC_DEBOUNCE_MS)
 }

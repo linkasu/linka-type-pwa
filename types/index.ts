@@ -31,7 +31,6 @@ export interface AppSettings {
   showSpotlightPredictor: boolean
   showQuickes: boolean
   showBank: boolean
-  saveOnSay: boolean
   typeSound: boolean
   speakLastWord: boolean
   locale: 'ru' | 'en'
@@ -76,7 +75,6 @@ export const DEFAULT_PREFERENCES: import('./api').UserPreferences = {
   showSpotlightPredictor: true,
   showQuickes: true,
   showBank: true,
-  saveOnSay: false,
   typeSound: false,
   speakLastWord: false,
 }

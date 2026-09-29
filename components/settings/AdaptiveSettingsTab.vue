@@ -5,6 +5,7 @@ import { useAuthStore } from '~/stores/auth'
 const { t, setLocale } = useI18n()
 const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
+const router = useRouter()
 
 const handleLocaleChange = (newLocale: 'ru' | 'en') => {
   setLocale(newLocale)
@@ -14,6 +15,9 @@ const handleLocaleChange = (newLocale: 'ru' | 'en') => {
 const handleModeChange = async (mode: 'online' | 'offline' | null) => {
   if (!mode) return
   await authStore.setMode(mode)
+  if (mode === 'online' && !authStore.isAuthenticated) {
+    await router.push('/login')
+  }
 }
 </script>
 
@@ -59,14 +63,6 @@ const handleModeChange = async (mode: 'online' | 'offline' | null) => {
 
       <div class="settings-section">
         <div class="settings-section-title">Поведение</div>
-        <VSwitch
-          :model-value="Boolean(settingsStore.saveOnSay)"
-          :label="t('settings.adaptiveSettings.saveOnSay')"
-          color="primary"
-          density="compact"
-          hide-details
-          @update:model-value="settingsStore.updateSettings({ saveOnSay: $event })"
-        />
         <VSwitch
           :model-value="Boolean(settingsStore.typeSound)"
           :label="t('settings.adaptiveSettings.typeSound')"

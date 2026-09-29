@@ -7,10 +7,6 @@ import {
   type CategoriesCollection,
 } from './state'
 
-type CategoryCreatePayload = { category: Category }
-type CategoryUpdatePayload = { id: string; label: string; aiUse?: boolean }
-type CategoryDeletePayload = { id: string }
-
 export const applyPendingCategoryQueue = (
   state: CategoriesCollection,
   items: OfflineQueueItem[],
@@ -18,14 +14,14 @@ export const applyPendingCategoryQueue = (
   for (const item of items) {
     switch (item.op) {
       case 'category_create': {
-        const payload = item.payload as CategoryCreatePayload
+        const payload = item.payload
         if (!state.categories.has(payload.category.id)) {
           setCategoryInState(state, payload.category)
         }
         break
       }
       case 'category_update': {
-        const payload = item.payload as CategoryUpdatePayload
+        const payload = item.payload
         const existing = state.categories.get(payload.id)
         if (existing) {
           setCategoryInState(state, {
@@ -37,7 +33,7 @@ export const applyPendingCategoryQueue = (
         break
       }
       case 'category_delete': {
-        const payload = item.payload as CategoryDeletePayload
+        const payload = item.payload
         removeCategoryFromState(state, payload.id)
         break
       }

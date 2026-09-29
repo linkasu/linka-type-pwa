@@ -49,6 +49,7 @@
     "stop": "Stop",
     "download": "Download",
     "clear": "Clear",
+    "loadError": "Failed to load data. Please try again.",
     "placeholder": "Enter text to speak...",
     "chat": "Chat",
     "chatSwitch": "Switch chat",
@@ -91,6 +92,7 @@
   },
   "quickes": {
     "title": "Quick Phrases",
+    "empty": "phrase is not set",
     "edit": "Edit",
     "default": {
       "1": "Yes",
@@ -181,7 +183,6 @@
       "showSpotlightPredictor": "Show spotlight predictor (desktop)",
       "showQuickes": "Show quick phrases",
       "showBank": "Show phrase bank",
-      "saveOnSay": "Save on speak",
       "typeSound": "Typing sound",
       "speakLastWord": "Speak last word",
       "darkTheme": "Dark theme"
@@ -191,7 +192,8 @@
       "globalCategories": "Global categories",
       "import": "Import",
       "preview": "Preview",
-      "importSuccess": "Category imported!"
+      "importSuccess": "Category imported!",
+      "importError": "Failed to import category."
     },
     "accountSettings": {
       "title": "Account",

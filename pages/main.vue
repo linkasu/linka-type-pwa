@@ -21,13 +21,15 @@ const { mdAndUp } = useDisplay()
 const chats = ref(['', '', ''])
 const activeChat = useSharedState<number>('activeChat', () => 0)
 const showMode = ref(false)
-const showDownload = ref(false)
+const showDownload = computed(() => settingsStore.yandex)
+const loadError = ref(false)
 const activeSection = ref<MainSection>('input')
 const mainInputRef = ref<{ focus: () => void } | null>(null)
 const quickesRef = ref<{ focus: () => void } | null>(null)
 const bankRef = ref<{ focus: () => void } | null>(null)
 
-onMounted(async () => {
+const loadMainData = async () => {
+  loadError.value = false
   await settingsStore.initialize()
   try {
     await Promise.all([
@@ -36,8 +38,11 @@ onMounted(async () => {
     ])
   } catch (err) {
     console.error('Failed to load data:', err)
+    loadError.value = true
   }
-})
+}
+
+onMounted((): void => { void loadMainData() })
 
 const currentText = computed({
   get: () => chats.value[activeChat.value],
@@ -54,6 +59,11 @@ const toggleSpotlight = () => {
 const focusMainInput = () => {
   activeSection.value = 'input'
   nextTick(() => mainInputRef.value?.focus())
+}
+
+const updateSpotlight = (open: boolean) => {
+  showMode.value = open
+  if (!open) focusMainInput()
 }
 
 const focusQuickes = () => {
@@ -83,6 +93,7 @@ const handleSay = (download = false) => {
   if (isPlaying.value) {
     stop()
   } else {
+    if (!currentText.value.trim()) return
     trackSay(currentText.value.length, download)
     speak(currentText.value, { download })
   }
@@ -103,10 +114,6 @@ const handleQuickeClick = (text: string) => {
 const handleSpeak = (text: string) => {
   speak(text)
 }
-
-watch(() => settingsStore.yandex, (value) => {
-  showDownload.value = value
-}, { immediate: true })
 
 watch(
   [() => settingsStore.showQuickes, () => settingsStore.showBank],
@@ -129,6 +136,12 @@ watch(
       :show-quickes="settingsStore.showQuickes"
       :show-bank="settingsStore.showBank"
       class="mb-4"
+    />
+
+    <MainLoadError
+      v-if="loadError"
+      class="mb-4"
+      @retry="loadMainData"
     />
 
     <div v-show="mdAndUp || activeSection === 'input'">
@@ -169,31 +182,18 @@ watch(
     </div>
 
     <div
-      class="sr-only"
+      class="d-sr-only"
       aria-live="polite"
     >
       {{ isPlaying ? t('status.playing') : t('status.stopped') }}
     </div>
 
     <MainSpotlightDialog
-      v-model="showMode"
+      :model-value="showMode"
       :text="currentText"
+      @update:model-value="updateSpotlight"
       @update:text="currentText = $event"
       @say="handleSay(false)"
     />
   </VContainer>
 </template>
-
-<style scoped>
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-</style>

@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import type { GlobalCategory, Statement } from '~/types/api'
+import { useCategoriesStore } from '~/stores/categories'
 
 const { t } = useI18n()
 const { api } = useAppServices()
+const categoriesStore = useCategoriesStore()
 
 const globalCategories = ref<GlobalCategory[]>([])
 const isLoading = ref(false)
 const expandedCategory = ref<string | null>(null)
 const categoryStatements = ref<Map<string, Statement[]>>(new Map())
 const importingId = ref<string | null>(null)
+const failedImportId = ref<string | null>(null)
+const loadError = ref(false)
+const importStatus = ref<'success' | 'error' | null>(null)
 
 onMounted(async () => {
   await loadGlobalCategories()
@@ -16,10 +21,12 @@ onMounted(async () => {
 
 const loadGlobalCategories = async () => {
   isLoading.value = true
+  loadError.value = false
   try {
     globalCategories.value = await api.global.getCategories()
   } catch (err) {
     console.error('Failed to load global categories:', err)
+    loadError.value = true
   } finally {
     isLoading.value = false
   }
@@ -47,11 +54,18 @@ const toggleCategory = async (categoryId: string) => {
 
 const importCategory = async (categoryId: string) => {
   importingId.value = categoryId
+  importStatus.value = null
+  failedImportId.value = null
   try {
     await api.global.importCategory({ categoryId, force: false })
-    // Show success message
+    importStatus.value = 'success'
+    await categoriesStore.fetchCategories().catch((err: unknown) => {
+      console.error('Failed to refresh imported categories:', err)
+    })
   } catch (err) {
     console.error('Failed to import category:', err)
+    failedImportId.value = categoryId
+    importStatus.value = 'error'
   } finally {
     importingId.value = null
   }
@@ -60,15 +74,46 @@ const importCategory = async (categoryId: string) => {
 
 <template>
   <div>
+    <VAlert
+      v-if="importStatus"
+      :type="importStatus === 'success' ? 'success' : 'error'"
+      variant="tonal"
+      class="mb-3"
+      :role="importStatus === 'error' ? 'alert' : 'status'"
+    >
+      {{ importStatus === 'success' ? t('settings.importSettings.importSuccess') : t('settings.importSettings.importError') }}
+      <template v-if="importStatus === 'error' && failedImportId" #append>
+        <VBtn variant="text" @click="importCategory(failedImportId!)">
+          {{ t('actions.retry') }}
+        </VBtn>
+      </template>
+    </VAlert>
+
     <div
       v-if="isLoading"
       class="text-center pa-8"
+      role="status"
+      aria-live="polite"
     >
       <VProgressCircular
         indeterminate
         color="primary"
       />
     </div>
+
+    <VAlert
+      v-else-if="loadError"
+      type="error"
+      variant="tonal"
+      role="alert"
+    >
+      {{ t('settings.importSettings.importError') }}
+      <template #append>
+        <VBtn variant="text" @click="loadGlobalCategories">
+          {{ t('actions.retry') }}
+        </VBtn>
+      </template>
+    </VAlert>
 
     <VList
       v-else-if="globalCategories.length > 0"
@@ -138,4 +183,3 @@ const importCategory = async (categoryId: string) => {
     </div>
   </div>
 </template>
-

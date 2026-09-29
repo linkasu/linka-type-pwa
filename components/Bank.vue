@@ -85,6 +85,12 @@ const handleRandomStatement = () => {
   }
 }
 
+const openReader = () => {
+  if (currentItems.value.length > 0) {
+    isReaderMode.value = true
+  }
+}
+
 useBankKeyboard({
   selectedCategoryId,
   isPasteMode,
@@ -183,11 +189,12 @@ defineExpose({ focus })
     tabindex="0"
   >
     <BankHeader
-      :is-showing-categories="isShowingCategories"
-      :is-paste-mode="isPasteMode"
-      @back="selectedCategoryId = null"
-      @toggle-paste-mode="isPasteMode = !isPasteMode"
-      @open-reader="isReaderMode = true"
+       :is-showing-categories="isShowingCategories"
+       :is-paste-mode="isPasteMode"
+       :has-statements="currentItems.length > 0"
+       @back="selectedCategoryId = null"
+       @toggle-paste-mode="isPasteMode = !isPasteMode"
+       @open-reader="openReader"
       @open-text-editor="isTextEditorMode = true"
       @random="handleRandomStatement"
       @add="showAddDialog = true"
@@ -218,7 +225,7 @@ defineExpose({ focus })
     />
 
     <Reader
-      v-if="isReaderMode && selectedCategoryId"
+      v-if="isReaderMode && selectedCategoryId && currentItems.length > 0"
       :statements="currentItems as Statement[]"
       @close="isReaderMode = false"
     />

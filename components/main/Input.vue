@@ -38,6 +38,7 @@ const focus = () => {
 defineExpose({ focus })
 
 const handleEnter = () => {
+  if (!props.modelValue.trim()) return
   emit('say', false)
 }
 
@@ -63,8 +64,10 @@ const handleInput = (event: Event) => {
       auto-grow
       :aria-label="t('main.placeholder')"
       @update:model-value="emit('update:modelValue', $event)"
-      @keydown.enter.exact.prevent="handleEnter"
-      @keydown.ctrl.enter="emit('update:modelValue', props.modelValue + '\n')"
+       @keydown.enter.exact.prevent="handleEnter"
+       @keydown.ctrl.enter="emit('update:modelValue', props.modelValue + '\n')"
+       @keydown.ctrl.b.stop.prevent="emit('toggleSpotlight')"
+       @keydown.meta.b.stop.prevent="emit('toggleSpotlight')"
       @input="handleInput"
     >
       <template #append-inner>
@@ -87,6 +90,7 @@ const handleInput = (event: Event) => {
         :prepend-icon="props.isPlaying ? 'mdi-stop' : 'mdi-volume-high'"
         :aria-label="props.isPlaying ? t('a11y.stopButton') : t('a11y.playButton')"
         class="main-input-btn flex-grow-1"
+        :disabled="!props.isPlaying && !props.modelValue.trim()"
         @click="emit('say', false)"
       >
         {{ props.isPlaying ? t('main.stop') : t('main.say') }}

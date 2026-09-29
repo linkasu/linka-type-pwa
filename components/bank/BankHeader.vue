@@ -2,6 +2,7 @@
 const props = defineProps<{
   isShowingCategories: boolean
   isPasteMode: boolean
+  hasStatements: boolean
 }>()
 
 const emit = defineEmits<{
@@ -23,6 +24,7 @@ const { t } = useI18n()
       icon
       variant="text"
       size="small"
+      class="touch-target"
       :aria-label="t('bank.back')"
       @click="emit('back')"
     >
@@ -58,7 +60,9 @@ const { t } = useI18n()
       icon
       variant="text"
       size="small"
+      class="touch-target"
       :aria-label="t('bank.reader')"
+      :disabled="!props.hasStatements"
       @click="emit('openReader')"
     >
       <VIcon>mdi-book-open-variant</VIcon>
@@ -69,6 +73,7 @@ const { t } = useI18n()
       icon
       variant="text"
       size="small"
+      class="touch-target"
       :aria-label="t('bank.textEditor')"
       @click="emit('openTextEditor')"
     >
@@ -80,6 +85,7 @@ const { t } = useI18n()
       icon
       variant="text"
       size="small"
+      class="touch-target"
       color="accent"
       :aria-label="t('bank.random')"
       @click="emit('random')"
@@ -91,6 +97,7 @@ const { t } = useI18n()
       icon
       variant="text"
       size="small"
+      class="touch-target"
       color="primary"
       :aria-label="props.isShowingCategories ? t('bank.addCategory') : t('bank.addStatement')"
       @click="emit('add')"
@@ -99,4 +106,3 @@ const { t } = useI18n()
     </VBtn>
   </div>
 </template>
-

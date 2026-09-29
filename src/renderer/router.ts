@@ -56,7 +56,7 @@ router.beforeEach(async (to) => {
     await authStore.initializeAuth()
   }
 
-  if (middleware.includes('auth') && !authStore.mode) {
+  if (middleware.includes('auth') && !authStore.isAuthenticated) {
     if (to.path !== '/login') return '/login'
   }
 

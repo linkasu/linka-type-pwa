@@ -1,6 +1,13 @@
 import { applyIdMappingToItem } from '../idMapping'
 import { updateQueueItem } from '~/utils/offlineDb'
 import type { OfflineQueueItem } from '~/types/offline'
+import type { SyncConflict } from '~/types/offline'
+
+export const addConflictOnce = (conflicts: SyncConflict[], conflict: SyncConflict): void => {
+  if (conflict.localChange.id === undefined || !conflicts.some(item => item.localChange.id === conflict.localChange.id)) {
+    conflicts.push(conflict)
+  }
+}
 
 export const remapFutureQueueItems = async (
   items: OfflineQueueItem[],

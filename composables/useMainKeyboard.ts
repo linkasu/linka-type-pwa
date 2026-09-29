@@ -26,14 +26,14 @@ export function useMainKeyboard(options: UseMainKeyboardOptions) {
     }
     const isCtrlOrMeta = event.ctrlKey || event.metaKey
 
+    if (isEditable(target) || isEditable(activeElement)) return
+
     // Use event.code for layout-independent key detection
     if (
       event.code === 'KeyI'
       && !event.ctrlKey
       && !event.metaKey
       && !event.altKey
-      && !isEditable(target)
-      && !isEditable(activeElement)
     ) {
       event.preventDefault()
       event.stopImmediatePropagation()

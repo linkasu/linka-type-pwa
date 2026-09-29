@@ -45,14 +45,15 @@
 
 ## Settings tabs
 - Voice settings: TTS provider, voice choice, volume/rate/pitch, test.
-- Adaptive settings: show predictor/quickes/bank, save-on-say, type sound, speak last word, dark theme, locale.
+- Adaptive settings: show predictor/quickes/bank, type sound, speak last word, dark theme, locale.
 - Import: view and import global categories.
 - Account: logout and delete account.
 
 ## Keyboard shortcuts
 Source of truth: `types/shortcuts.ts`.
-- Global: Ctrl/Cmd + Up/Down (switch chat), I (focus input), Ctrl+0 (quickes), Ctrl+; (bank), Ctrl/Cmd+B (spotlight)
-- Predictor: Alt/Cmd + 1-5
+- Global: Ctrl/Cmd + Up/Down (switch chat), I (focus input), Ctrl+0 (quickes), Ctrl+; (bank)
+- Main textarea: Ctrl/Cmd+B (spotlight)
+- Predictor: Alt + 1-5
 - Quickes: 1-6
 - Bank: 1-9, A-Z, R (random), V (paste mode), Esc (back)
 - Reader: Space (play/pause), Left/Right (navigate), Esc (close)

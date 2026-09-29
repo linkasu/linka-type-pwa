@@ -1,9 +1,5 @@
 import type { Category, Statement } from '~/types/api'
-import type {
-  CategoryUpdatePayload,
-  StatementUpdatePayload,
-  SyncConflict,
-} from '~/types/offline'
+import type { SyncConflict } from '~/types/offline'
 import type { AppApi } from '~/src/renderer/app-context'
 
 type CategoriesStoreLike = {
@@ -34,12 +30,12 @@ export const resolveSyncConflict = async (
 
   if (resolution === 'local') {
     if (conflict.entityType === 'category') {
+      if (conflict.localChange.op !== 'category_update') throw new Error('Invalid category conflict')
+      const payload = conflict.localChange.payload
       if (conflict.conflictType === 'update_delete') {
-        const payload = conflict.localChange.payload as CategoryUpdatePayload
         const created = await api.categories.create({ label: payload.label, aiUse: payload.aiUse })
         await categoriesStore.replaceCategoryId(conflict.entityId, created)
       } else {
-        const payload = conflict.localChange.payload as CategoryUpdatePayload
         const updated = await api.categories.update(conflict.entityId, {
           label: payload.label,
           aiUse: payload.aiUse,
@@ -47,8 +43,9 @@ export const resolveSyncConflict = async (
         await categoriesStore.updateCategory(updated)
       }
     } else if (conflict.entityType === 'statement') {
+      if (conflict.localChange.op !== 'statement_update') throw new Error('Invalid statement conflict')
+      const payload = conflict.localChange.payload
       if (conflict.conflictType === 'update_delete') {
-        const payload = conflict.localChange.payload as StatementUpdatePayload
         const original = statementsStore.getById(conflict.entityId)
         if (original) {
           const created = await api.statements.create({
@@ -58,7 +55,6 @@ export const resolveSyncConflict = async (
           await statementsStore.replaceStatementId(conflict.entityId, created)
         }
       } else {
-        const payload = conflict.localChange.payload as StatementUpdatePayload
         const updated = await api.statements.update(conflict.entityId, { text: payload.text })
         await statementsStore.updateStatement(updated)
       }

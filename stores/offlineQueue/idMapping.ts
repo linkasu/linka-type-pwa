@@ -1,13 +1,4 @@
-import type {
-  CategoryCreatePayload,
-  CategoryDeletePayload,
-  CategoryUpdatePayload,
-  OfflineQueueItem,
-  StatementCreatePayload,
-  StatementDeletePayload,
-  StatementReplacePayload,
-  StatementUpdatePayload,
-} from '~/types/offline'
+import type { OfflineQueueItem } from '~/types/offline'
 
 export const applyIdMappingToItem = (
   item: OfflineQueueItem,
@@ -18,7 +9,7 @@ export const applyIdMappingToItem = (
 
   switch (item.op) {
     case 'category_create': {
-      const payload = item.payload as CategoryCreatePayload
+      const payload = item.payload
       if (payload.category.id === fromId) {
         payload.category.id = toId
         changed = true
@@ -26,7 +17,7 @@ export const applyIdMappingToItem = (
       break
     }
     case 'category_update': {
-      const payload = item.payload as CategoryUpdatePayload
+      const payload = item.payload
       if (payload.id === fromId) {
         payload.id = toId
         changed = true
@@ -34,7 +25,7 @@ export const applyIdMappingToItem = (
       break
     }
     case 'category_delete': {
-      const payload = item.payload as CategoryDeletePayload
+      const payload = item.payload
       if (payload.id === fromId) {
         payload.id = toId
         changed = true
@@ -42,7 +33,7 @@ export const applyIdMappingToItem = (
       break
     }
     case 'statement_create': {
-      const payload = item.payload as StatementCreatePayload
+      const payload = item.payload
       if (payload.statement.id === fromId) {
         payload.statement.id = toId
         changed = true
@@ -54,7 +45,7 @@ export const applyIdMappingToItem = (
       break
     }
     case 'statement_update': {
-      const payload = item.payload as StatementUpdatePayload
+      const payload = item.payload
       if (payload.id === fromId) {
         payload.id = toId
         changed = true
@@ -62,7 +53,7 @@ export const applyIdMappingToItem = (
       break
     }
     case 'statement_delete': {
-      const payload = item.payload as StatementDeletePayload
+      const payload = item.payload
       if (payload.id === fromId) {
         payload.id = toId
         changed = true
@@ -74,7 +65,7 @@ export const applyIdMappingToItem = (
       break
     }
     case 'statement_replace': {
-      const payload = item.payload as StatementReplacePayload
+      const payload = item.payload
       if (payload.categoryId === fromId) {
         payload.categoryId = toId
         payload.drafts = payload.drafts.map(statement => ({

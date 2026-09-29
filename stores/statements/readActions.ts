@@ -16,6 +16,7 @@ import {
 } from './state'
 import { applyPendingStatementQueue } from './queue'
 import { resolveStatementsUserId, type StatementsStoreContext } from './context'
+import { getErrorMessage } from '~/utils/error'
 
 export const applyPendingStatementsForCategory = async (
   store: StatementsStoreContext,
@@ -68,9 +69,8 @@ export const fetchStatementsByCategory = async (
     return getStatementsByCategory(store, categoryId)
   } catch (err: unknown) {
     if (!shouldQueueOffline(err)) {
-      const error = err as Error
-      store.error = error.message || 'Failed to fetch statements'
-      throw error
+      store.error = getErrorMessage(err, 'Failed to fetch statements')
+      throw err
     }
     return getStatementsByCategory(store, categoryId)
   } finally {

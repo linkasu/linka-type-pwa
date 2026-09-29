@@ -1,19 +1,14 @@
 import { generateTempId } from '~/utils/offline'
 import type { Category } from '~/types/api'
-import type {
-  CategoryCreatePayload,
-  CategoryDeletePayload,
-  CategoryUpdatePayloadWithOriginal,
-} from '~/types/offline'
 import type { QueueFlushContext, QueueItemResult } from '../flushTypes'
-import { remapFutureQueueItems } from './utils'
+import { addConflictOnce, remapFutureQueueItems } from './utils'
 
 export const handleCategoryQueueItem = async (
   context: QueueFlushContext,
 ): Promise<QueueItemResult | null> => {
   switch (context.item.op) {
     case 'category_create': {
-      const payload = context.item.payload as CategoryCreatePayload
+      const payload = context.item.payload
       const created = await context.api.categories.create({
         label: payload.category.label,
         created: payload.category.created,
@@ -28,14 +23,14 @@ export const handleCategoryQueueItem = async (
     }
 
     case 'category_update': {
-      const payload = context.item.payload as CategoryUpdatePayloadWithOriginal
+      const payload = context.item.payload
       const resolvedId = context.idMap.get(payload.id) ?? payload.id
 
       if (payload.originalLabel !== undefined) {
         try {
           const current = await context.api.categories.getById(resolvedId)
           if (current.label !== payload.originalLabel || current.aiUse !== payload.originalAiUse) {
-            context.conflicts.push({
+            addConflictOnce(context.conflicts, {
               id: generateTempId('conflict'),
               entityType: 'category',
               entityId: resolvedId,
@@ -46,7 +41,7 @@ export const handleCategoryQueueItem = async (
                 ...current,
                 label: payload.label,
                 aiUse: payload.aiUse ?? current.aiUse,
-              } as Category,
+              },
               createdAt: Date.now(),
             })
             return 'deferred'
@@ -54,7 +49,7 @@ export const handleCategoryQueueItem = async (
         } catch (fetchErr: unknown) {
           const fetchError = fetchErr as { response?: { status?: number } }
           if (fetchError.response?.status === 404) {
-            context.conflicts.push({
+            addConflictOnce(context.conflicts, {
               id: generateTempId('conflict'),
               entityType: 'category',
               entityId: resolvedId,
@@ -77,7 +72,7 @@ export const handleCategoryQueueItem = async (
     }
 
     case 'category_delete': {
-      const payload = context.item.payload as CategoryDeletePayload
+      const payload = context.item.payload
       const resolvedId = context.idMap.get(payload.id) ?? payload.id
       await context.api.categories.delete(resolvedId)
       context.stores.categoriesStore.removeCategory(resolvedId)

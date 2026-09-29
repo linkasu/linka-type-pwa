@@ -61,7 +61,7 @@ export function createApiClient(
       if (
         error.response?.status === 401 &&
         originalRequest &&
-        !originalRequest._retry &&
+        !originalRequest._authRetried &&
         !originalRequest._skipAuth
       ) {
         const requestUrl = originalRequest.url || ''
@@ -72,15 +72,13 @@ export function createApiClient(
           return Promise.reject(error)
         }
 
-        originalRequest._retry = true
+        originalRequest._authRetried = true
+        let activeRefresh: Promise<AuthResponse>
 
         try {
-          if (!refreshPromise) {
-            refreshPromise = authApi.refresh()
-          }
+          activeRefresh = refreshPromise ?? (refreshPromise = authApi.refresh())
 
-          const response = await refreshPromise
-          refreshPromise = null
+          const response = await activeRefresh
 
           setToken(response.token)
           setUser(response.user)
@@ -94,9 +92,10 @@ export function createApiClient(
 
           return client(originalRequest)
         } catch (refreshError) {
-          refreshPromise = null
           clearAuth()
           return Promise.reject(refreshError)
+        } finally {
+          if (refreshPromise === activeRefresh) refreshPromise = null
         }
       }
 
@@ -104,9 +103,9 @@ export function createApiClient(
         error.response?.status &&
         error.response.status >= 500 &&
         originalRequest &&
-        !originalRequest._retry
+        !originalRequest._serverRetried
       ) {
-        originalRequest._retry = true
+        originalRequest._serverRetried = true
         await new Promise((resolve) => setTimeout(resolve, 1000))
         return client(originalRequest)
       }

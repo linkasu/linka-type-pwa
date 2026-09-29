@@ -51,6 +51,7 @@ export const initializeAuthAction = async (store: AuthStoreContext) => {
 }
 
 export const setModeAction = async (store: AuthStoreContext, mode: AppMode) => {
+  const wasOffline = store.mode === 'offline'
   store.mode = mode
 
   if (!store.deviceId) {
@@ -64,8 +65,10 @@ export const setModeAction = async (store: AuthStoreContext, mode: AppMode) => {
     }
   }
 
-  if (mode === 'online') {
+  if (mode === 'online' && wasOffline) {
     store.token = null
+    // Keep IndexedDB data under the local device id, but require a real online login.
+    store.user = null
   }
 
   store.initialized = true

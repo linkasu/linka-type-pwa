@@ -1,3 +1,5 @@
+import type { AppApi } from '~/src/renderer/app-context'
+
 export { createApiClient, getApiClient } from './client'
 export { authApi } from './auth'
 export { categoriesApi } from './categories'
@@ -84,4 +86,4 @@ export const api = {
     dismissSuggestions: (ids: string[]) =>
       import('./dialog').then(m => m.dialogApi.dismissSuggestions(ids)),
   },
-}
+} satisfies AppApi
