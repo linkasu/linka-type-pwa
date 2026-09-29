@@ -113,9 +113,11 @@ export function createApiClient(
 
       const apiError = error.response?.data?.error
       if (apiError) {
+        const retryAfter = error.response.headers?.['retry-after']
         const err = Object.assign(new Error(apiError.message), {
           code: apiError.code,
           status: error.response.status,
+          ...(retryAfter ? { retryAfter } : {}),
         })
         return Promise.reject(err)
       }
