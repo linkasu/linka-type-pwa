@@ -23,7 +23,7 @@ export function useTypeSound() {
       playTypeSound()
     }
 
-    if (settingsStore.speakLastWord && newValue.endsWith(' ') && !oldValue.endsWith(' ')) {
+    if (settingsStore.speakLastWord && newValue.length > oldValue.length && newValue.endsWith(' ') && !oldValue.endsWith(' ')) {
       const words = newValue.trim().split(/\s+/)
       const lastWord = words[words.length - 1]
       if (lastWord) {

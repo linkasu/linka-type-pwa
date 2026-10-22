@@ -41,6 +41,7 @@ export const schedulePreferenceSync = (
   if (!import.meta.client) return
   if (Object.keys(preferences).length === 0) return
 
+  userStore.applyPreferencesPatch(preferences)
   pendingPatch = { ...pendingPatch, ...preferences }
   if (pendingSync) return
 

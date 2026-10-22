@@ -13,7 +13,6 @@ const emit = defineEmits<{
   say: [download: boolean]
   clear: []
   toggleSpotlight: []
-  textInput: [event: Event]
 }>()
 
 const { t } = useI18n()
@@ -41,10 +40,6 @@ const handleEnter = () => {
   if (!props.modelValue.trim()) return
   emit('say', false)
 }
-
-const handleInput = (event: Event) => {
-  emit('textInput', event)
-}
 </script>
 
 <template>
@@ -68,7 +63,6 @@ const handleInput = (event: Event) => {
        @keydown.ctrl.enter="emit('update:modelValue', props.modelValue + '\n')"
        @keydown.ctrl.b.stop.prevent="emit('toggleSpotlight')"
        @keydown.meta.b.stop.prevent="emit('toggleSpotlight')"
-      @input="handleInput"
     >
       <template #append-inner>
         <VBtn

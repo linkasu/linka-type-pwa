@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { expect, test } from '@playwright/test'
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright'
+import { expectWordSpeech } from './word-speech'
 
 const devServerUrl = process.env.E2E_DEV_SERVER_URL || 'http://127.0.0.1:4174'
 
@@ -122,6 +123,8 @@ test('electron launch smoke', async () => {
     await page.getByRole('tab', { name: 'Банк' }).click()
     await expect(page.getByRole('region', { name: 'Список категорий' })).toBeVisible()
     await page.getByRole('tab', { name: 'Ввод' }).click()
+
+    await expectWordSpeech(page)
 
     const mainInput = page.getByRole('textbox', { name: 'Введите текст для озвучивания...' })
     await mainInput.fill('Smoke test: electron click flow')

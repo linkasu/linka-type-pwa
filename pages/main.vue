@@ -70,9 +70,10 @@ useMainKeyboard({
   onFocusBank: focusBank,
 })
 
-const onTextInput = (event: Event) => {
-  const target = event.target as HTMLTextAreaElement
-  handleTextInput(target.value, currentText.value)
+const updateText = (value: string) => {
+  const oldValue = currentText.value
+  currentText.value = value
+  handleTextInput(value, oldValue)
 }
 
 const handleSay = (download = false) => {
@@ -135,7 +136,7 @@ watch(
 
     <div v-show="mdAndUp || activeSection === 'input'">
       <MainInput
-        v-model="currentText"
+        :model-value="currentText"
         ref="mainInputRef"
         :is-playing="isPlaying"
         :show-download="showDownload"
@@ -143,7 +144,7 @@ watch(
         @say="handleSay"
         @clear="currentText = ''"
         @toggle-spotlight="toggleSpotlight"
-        @text-input="onTextInput"
+        @update:model-value="updateText"
       />
     </div>
 
@@ -181,7 +182,7 @@ watch(
       :model-value="showMode"
       :text="currentText"
       @update:model-value="updateSpotlight"
-      @update:text="currentText = $event"
+      @update:text="updateText"
       @say="handleSay(false)"
     />
   </VContainer>

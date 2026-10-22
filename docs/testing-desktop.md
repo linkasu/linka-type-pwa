@@ -44,13 +44,14 @@ What this smoke covers:
 - first-run mode selection (offline)
 - navigation `login -> main -> settings -> main -> chat`
 - core input interactions on `main` and `chat`
+- persisted word-speech setting, completed words in main/spotlight input, and no speech on deletion or when disabled
 - telemetry `unknown` mode, consent bridge, and offline AAC availability
 - dismissible privacy notice, offline AAC availability, and later Privacy settings
 
 Notes:
 - test launches Electron against `http://127.0.0.1:4174`
-- `playwright.electron.config.ts` auto-builds `dist/electron/main.js` and starts `vite` automatically
-- Vite development and automated environments do not start telemetry unless explicitly forced
+- `playwright.electron.config.ts` builds the renderer and Electron main process, then starts `vite preview` automatically
+- E2E uses the production renderer so compile-time client flags and settings persistence match the release
 
 ## Voices (unauthorized) smoke
 

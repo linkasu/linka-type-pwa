@@ -23,7 +23,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npm run build:electron && vite --host 127.0.0.1 --port 4174',
+    command: 'npm run build && vite preview --host 127.0.0.1 --port 4174',
     port: devServerPort,
     reuseExistingServer: false,
     timeout: 180_000,
