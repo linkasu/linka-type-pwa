@@ -24,7 +24,7 @@ const activeChat = useSharedState<number>('activeChat', () => 0)
 const showMode = ref(false)
 const showDownload = computed(() => settingsStore.yandex)
 const activeSection = ref<MainSection>('input')
-const mainInputRef = ref<{ focus: () => void } | null>(null)
+const mainInputRef = ref<{ focus: () => void, refreshPredictions?: (text?: string) => void } | null>(null)
 const quickesRef = ref<{ focus: () => void } | null>(null)
 const bankRef = ref<{ focus: () => void } | null>(null)
 
@@ -87,7 +87,9 @@ const handleSay = (download = false) => {
 }
 
 const handlePaste = (text: string) => {
-  currentText.value += (currentText.value ? ' ' : '') + text
+  const nextText = currentText.value + (currentText.value ? ' ' : '') + text
+  updateText(nextText)
+  nextTick(() => mainInputRef.value?.refreshPredictions?.(nextText))
   if (!mdAndUp.value) {
     activeSection.value = 'input'
     nextTick(() => mainInputRef.value?.focus())

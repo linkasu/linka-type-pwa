@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDisplay } from 'vuetify'
+import { syncTextareaPaste } from '~/composables/usePredictor'
 import { useSettingsStore } from '~/stores/settings'
 
 const props = defineProps<{
@@ -19,13 +20,17 @@ const { lgAndUp } = useDisplay()
 const showSpotlightPredictor = computed(() => settingsStore.showSpotlightPredictor && lgAndUp.value)
 
 const spotlightTextarea = ref<HTMLTextAreaElement | null>(null)
+const predictorRef = ref<{ refresh: (text?: string) => Promise<void> } | null>(null)
+
+const handlePaste = (event: ClipboardEvent) => syncTextareaPaste(
+  event,
+  () => props.text,
+  value => emit('update:text', value),
+  value => void predictorRef.value?.refresh(value),
+)
 
 watch(() => props.modelValue, (open) => {
-  if (open) {
-    nextTick(() => {
-      spotlightTextarea.value?.focus()
-    })
-  }
+  if (open) nextTick(() => spotlightTextarea.value?.focus())
 })
 
 const isPredictionShortcut = (event: KeyboardEvent) => {
@@ -80,6 +85,7 @@ const handleKeydown = (event: KeyboardEvent) => {
           :placeholder="t('main.placeholder')"
           :aria-label="t('main.placeholder')"
           @input="emit('update:text', ($event.target as HTMLTextAreaElement).value)"
+          @paste="handlePaste"
           @keydown="handleKeydown"
         />
       </div>
@@ -93,6 +99,7 @@ const handleKeydown = (event: KeyboardEvent) => {
           class="spotlight-predictor"
         >
           <Predictor
+            ref="predictorRef"
             :model-value="props.text"
             variant="spotlight"
             compact
