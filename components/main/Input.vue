@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useSettingsStore } from '~/stores/settings'
+import { syncTextareaPaste } from '~/composables/usePredictor'
 
 const props = defineProps<{
   modelValue: string
@@ -16,12 +16,15 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const settingsStore = useSettingsStore()
 type TextareaRef = {
   focus?: () => void
   $el?: Element | null
 }
+type PredictorRef = {
+  refresh: (text?: string) => Promise<void>
+}
 const textareaRef = ref<TextareaRef | null>(null)
+const predictorRef = ref<PredictorRef | null>(null)
 
 const focus = () => {
   const target = textareaRef.value
@@ -34,11 +37,24 @@ const focus = () => {
   el?.focus()
 }
 
-defineExpose({ focus })
+const refreshPredictions = (text?: string) => {
+  void predictorRef.value?.refresh(text)
+}
+
+defineExpose({ focus, refreshPredictions })
 
 const handleEnter = () => {
   if (!props.modelValue.trim()) return
   emit('say', false)
+}
+
+const handlePaste = (event: ClipboardEvent) => {
+  syncTextareaPaste(
+    event,
+    () => props.modelValue,
+    value => emit('update:modelValue', value),
+    value => refreshPredictions(value),
+  )
 }
 </script>
 
@@ -46,6 +62,7 @@ const handleEnter = () => {
   <div class="main-input">
     <Predictor
       v-if="props.showPredictor"
+      ref="predictorRef"
       :model-value="props.modelValue"
       class="mb-3"
       @update:model-value="emit('update:modelValue', $event)"
@@ -59,6 +76,7 @@ const handleEnter = () => {
       auto-grow
       :aria-label="t('main.placeholder')"
       @update:model-value="emit('update:modelValue', $event)"
+      @paste="handlePaste"
        @keydown.enter.exact.prevent="handleEnter"
        @keydown.ctrl.enter="emit('update:modelValue', props.modelValue + '\n')"
        @keydown.ctrl.b.stop.prevent="emit('toggleSpotlight')"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAnalytics } from '~/composables/useAnalytics'
+import { usePredictor } from '~/composables/usePredictor'
 
 const props = withDefaults(defineProps<{
   modelValue: string
@@ -17,13 +17,20 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { api } = useAppServices()
-const { trackPredicatorUse } = useAnalytics()
 
-const predictions = ref<string[]>([])
-const isLoading = ref(false)
-const insertPosition = ref(0)
-let activeRequestId = 0
+const {
+  predictions,
+  isLoading,
+  refresh,
+  selectPrediction,
+  dispose,
+} = usePredictor({
+  modelValue: () => props.modelValue,
+  onUpdateModelValue: value => emit('update:modelValue', value),
+})
+
+defineExpose({ refresh })
+
 const rootClasses = computed(() => ({
   predictor: true,
   'predictor--spotlight': props.variant === 'spotlight',
@@ -33,69 +40,6 @@ const buttonVariant = computed(() => (props.variant === 'spotlight' ? 'text' : '
 const buttonSize = computed(() => (props.compact ? 'x-small' : 'small'))
 const progressSize = computed(() => (props.compact ? 18 : 24))
 const iconSize = computed(() => (props.compact ? 16 : 18))
-
-// Debounced fetch
-let fetchTimeout: ReturnType<typeof setTimeout> | null = null
-
-watch(() => props.modelValue, async (text) => {
-  if (fetchTimeout) {
-    clearTimeout(fetchTimeout)
-  }
-
-  if (!text.trim()) {
-    activeRequestId++
-    predictions.value = []
-    isLoading.value = false
-    return
-  }
-
-  fetchTimeout = setTimeout(async () => {
-    await fetchPredictions(text)
-  }, 300)
-})
-
-const fetchPredictions = async (text: string) => {
-  const requestId = ++activeRequestId
-  isLoading.value = true
-  
-  try {
-    const data = await api.predictor.complete(text, { lang: 'ru', limit: 5 })
-    if (requestId !== activeRequestId) return
-    predictions.value = data.text || []
-    insertPosition.value = Number.isFinite(data.pos) ? data.pos : 0
-  } catch (err) {
-    console.error('Predictor error:', err)
-    if (requestId === activeRequestId) {
-      predictions.value = []
-    }
-  } finally {
-    if (requestId === activeRequestId) {
-      isLoading.value = false
-    }
-  }
-}
-
-const buildPredictionText = (prediction: string) => {
-  const text = props.modelValue
-  const pos = insertPosition.value
-  let base = text
-
-  if (pos < 0) {
-    base = text.slice(0, pos)
-  }
-
-  if (pos === 1) {
-    base += ' '
-  }
-
-  return base + prediction
-}
-
-const selectPrediction = (prediction: string, index?: number) => {
-  trackPredicatorUse(index ?? predictions.value.indexOf(prediction))
-  emit('update:modelValue', buildPredictionText(prediction))
-  predictions.value = []
-}
 
 // Keyboard shortcuts Alt+1-5
 const getShortcutNumber = (event: KeyboardEvent) => {
@@ -123,6 +67,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  dispose()
 })
 </script>
 
