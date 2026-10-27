@@ -16,7 +16,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  license-scope:
+    name: Licensing publication guard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deploy: ${{ steps.scope.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Test licensing guard
+        run: python3 .github/scripts/licensing-deployment-guard.py --self-test
+      - id: scope
+        run: python3 .github/scripts/licensing-deployment-guard.py
+
   deploy:
+    if: ${{ needs.license-scope.outputs.deploy == 'true' }}
+    needs: [license-scope]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

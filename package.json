@@ -1,4 +1,5 @@
 {
+  "license": "GPL-3.0-or-later",
   "name": "linka-type-pwa-v2",
   "version": "2.0.14",
   "type": "module",
