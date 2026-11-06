@@ -97,6 +97,7 @@ export const useTTS = () => {
           let blob = await getCachedAudio(cacheKey)
           if (!active()) return
           if (!blob) {
+            // shortcut: cancellation fences playback; abort the request when the shared TTS transport supports AbortSignal.
             blob = await api.tts.synthesize({ text, voice, speed: rate })
             if (!active()) return
             saveToCache(cacheKey, text, voice, blob).catch(() => {})
