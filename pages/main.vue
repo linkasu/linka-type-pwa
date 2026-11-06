@@ -82,7 +82,7 @@ const handleSay = (download = false) => {
   } else {
     if (!currentText.value.trim()) return
     trackSay(currentText.value.length, download)
-    speak(currentText.value, { download })
+    speak(currentText.value, { download, source: 'input' })
   }
 }
 
@@ -95,11 +95,11 @@ const handlePaste = (text: string) => {
 }
 
 const handleQuickeClick = (text: string) => {
-  speak(text)
+  speak(text, { source: 'quick' })
 }
 
 const handleSpeak = (text: string) => {
-  speak(text)
+  speak(text, { source: 'bank' })
 }
 
 watch(

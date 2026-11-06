@@ -2,11 +2,18 @@ import type { TelemetryCountBucket, TelemetryOutcome } from '~/types/analytics'
 
 type TrackOutcome = (outcome: TelemetryOutcome) => void
 
-const countBucket = (count: number): TelemetryCountBucket => {
+export const countBucket = (count: number): TelemetryCountBucket => {
   if (count <= 1) return 'one'
   if (count <= 5) return 'two_to_five'
   if (count <= 20) return 'six_to_twenty'
   return 'more_than_twenty'
+}
+
+export const durationBucket = (milliseconds: number): Extract<TelemetryOutcome, { kind: 'speech_completed' }>['duration_bucket'] => {
+  if (milliseconds < 5_000) return 'under_5s'
+  if (milliseconds <= 30_000) return '5s_to_30s'
+  if (milliseconds <= 120_000) return '31s_to_2m'
+  return 'over_2m'
 }
 
 export const createAnalyticsTrackers = (trackOutcome: TrackOutcome) => ({
