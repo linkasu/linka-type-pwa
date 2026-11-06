@@ -35,7 +35,7 @@ export const useChatMessaging = (options: ChatMessagingOptions) => {
       if (isPlaying.value) {
         stop()
       }
-      void speak(text)
+      void speak(text, { source: 'dialog' })
 
       const result = await api.dialog.createMessage(options.activeChatId.value, {
         role: 'disabled_person',

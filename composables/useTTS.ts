@@ -1,5 +1,6 @@
-import { ttsApi } from '~/api/tts'
 import { useSettingsStore } from '~/stores/settings'
+import type { TelemetryOutcome } from '~/types/analytics'
+import { countBucket, durationBucket } from './analytics/trackers'
 import { loadBrowserVoices, playBrowserSpeech } from './tts/browserSpeech'
 import { downloadAudioBlob, loadYandexVoiceOptions } from './tts/yandexHelpers'
 import {
@@ -16,6 +17,7 @@ import {
 } from '~/utils/ttsCache'
 
 export interface TTSOptions {
+  source?: Extract<TelemetryOutcome, { kind: 'speech_completed' }>['source']
   download?: boolean
   onStart?: () => void
   onEnd?: () => void
@@ -24,12 +26,12 @@ export interface TTSOptions {
 
 export const useTTS = () => {
   const settingsStore = useSettingsStore()
+  const { api, analytics } = useAppServices()
   const isPlaying = ref(false)
   const voices = ref<SpeechSynthesisVoice[]>([])
   const yandexVoices = ref<Array<{ id: string; name: string }>>([])
 
-  let currentUtterance: SpeechSynthesisUtterance | null = null
-  let currentAudio: HTMLAudioElement | null = null
+  let currentOperation: { cancel: () => void } | null = null
 
   const loadVoices = () => {
     loadBrowserVoices(voices)
@@ -40,108 +42,108 @@ export const useTTS = () => {
   }
 
   const stop = () => {
-    if (currentUtterance && 'speechSynthesis' in window) {
-      speechSynthesis.cancel()
-      currentUtterance = null
-    }
-    if (currentAudio) {
-      currentAudio.pause()
-      currentAudio.src = ''
-      currentAudio = null
-    }
-    isPlaying.value = false
+    currentOperation?.cancel()
   }
 
-  const speakYandex = async (text: string, options: TTSOptions = {}) => {
+  const speak = (text: string, options: TTSOptions = {}): Promise<void> => {
+    if (!text.trim()) return Promise.resolve()
     stop()
+    const mode = settingsStore.yandex ? 'cloud' : 'local'
+    const voice = settingsStore.yandexVoice || 'alena'
+    const rate = settingsStore.rate
 
-    let audioUrl: string | null = null
-
-    try {
-      isPlaying.value = true
-      options.onStart?.()
-
-      const voice = settingsStore.yandexVoice || 'alena'
-      const cacheKey = generateCacheKey(text, voice, settingsStore.rate)
-
-      // Try to get from cache first
-      let blob = await getCachedAudio(cacheKey)
-
-      if (!blob) {
-        // Not in cache, fetch from API
-        blob = await ttsApi.synthesize({
-          text,
-          voice,
-          speed: settingsStore.rate,
-        })
-
-        // Save to cache in background (don't await)
-        saveToCache(cacheKey, text, voice, blob).catch(() => {
-          // Ignore cache save errors
-        })
-      }
-
-      if (options.download) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-        downloadAudioBlob(blob, `linka-${timestamp}.mp3`)
-      }
-
-      audioUrl = URL.createObjectURL(blob)
-      currentAudio = new Audio(audioUrl)
-      currentAudio.volume = settingsStore.volume
-
-      // Store audioUrl in closure for cleanup
-      const urlToRevoke = audioUrl
-
-      currentAudio.onended = () => {
+    return new Promise<void>((resolve) => {
+      let terminal = false
+      let startedAt: number | undefined
+      let audio: HTMLAudioElement | null = null
+      let audioUrl: string | null = null
+      let utterance: SpeechSynthesisUtterance | null = null
+      const active = () => !terminal && currentOperation === operation
+      const finish = (result: 'completed' | 'failed' | 'cancelled', error?: Error) => {
+        if (!active()) return
+        terminal = true
+        currentOperation = null
         isPlaying.value = false
-        URL.revokeObjectURL(urlToRevoke)
-        options.onEnd?.()
+        if (utterance && result === 'cancelled') speechSynthesis.cancel()
+        if (audio) {
+          audio.pause()
+          audio.src = ''
+        }
+        if (audioUrl) URL.revokeObjectURL(audioUrl)
+        if (options.source) {
+          analytics.track({
+            kind: 'speech_completed', result, source: options.source, mode,
+            count_bucket: countBucket(text.length),
+            duration_bucket: durationBucket(startedAt === undefined ? 0 : performance.now() - startedAt),
+            ...(result === 'failed' ? { failure_code: mode === 'cloud' ? 'request_failed' : 'engine_unavailable' } : {}),
+          })
+        }
+        resolve()
+        if (result === 'completed') options.onEnd?.()
+        if (result === 'failed') options.onError?.(error ?? new Error('TTS error'))
+      }
+      const operation = { cancel: () => finish('cancelled') }
+      currentOperation = operation
+      const markStarted = () => {
+        if (active() && startedAt === undefined) startedAt = performance.now()
       }
 
-      currentAudio.onerror = () => {
-        isPlaying.value = false
-        URL.revokeObjectURL(urlToRevoke)
-        options.onError?.(new Error('Audio playback error'))
+      const playCloud = async () => {
+        try {
+          isPlaying.value = true
+          options.onStart?.()
+          if (!active()) return
+          const cacheKey = generateCacheKey(text, voice, rate)
+          let blob = await getCachedAudio(cacheKey)
+          if (!active()) return
+          if (!blob) {
+            blob = await api.tts.synthesize({ text, voice, speed: rate })
+            if (!active()) return
+            saveToCache(cacheKey, text, voice, blob).catch(() => {})
+          }
+          if (options.download) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+            downloadAudioBlob(blob, `linka-${timestamp}.mp3`)
+          }
+          audioUrl = URL.createObjectURL(blob)
+          audio = new Audio(audioUrl)
+          audio.volume = settingsStore.volume
+          audio.onplaying = markStarted
+          audio.onended = () => finish('completed')
+          audio.onerror = () => finish('failed', new Error('Audio playback error'))
+          await audio.play()
+          markStarted()
+        } catch (error) {
+          finish('failed', error instanceof Error ? error : new Error('TTS error'))
+        }
       }
 
-      await currentAudio.play()
-    } catch (err) {
-      isPlaying.value = false
-      // Cleanup audio URL on error to prevent memory leak
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl)
+      if (mode === 'cloud') {
+        void playCloud()
+      } else {
+        try {
+          utterance = playBrowserSpeech({
+            text,
+            options: {
+              onStart: () => {
+                if (!active()) return
+                markStarted()
+                options.onStart?.()
+              },
+              onEnd: () => finish('completed'),
+              onError: error => finish('failed', error),
+            },
+            settings: { volume: settingsStore.volume, rate, pitch: settingsStore.pitch, voiceUri: settingsStore.voiceUri },
+            voices: voices.value,
+            // The previous operation was stopped before this one was created.
+            stopCurrent: () => {},
+            setPlaying: playing => { if (active()) isPlaying.value = playing },
+          })
+        } catch (error) {
+          finish('failed', error instanceof Error ? error : new Error('TTS error'))
+        }
       }
-      options.onError?.(err instanceof Error ? err : new Error('TTS error'))
-    }
-  }
-
-  const speakBrowser = (text: string, options: TTSOptions = {}) => {
-    currentUtterance = playBrowserSpeech({
-      text,
-      options,
-      settings: {
-        volume: settingsStore.volume,
-        rate: settingsStore.rate,
-        pitch: settingsStore.pitch,
-        voiceUri: settingsStore.voiceUri,
-      },
-      voices: voices.value,
-      stopCurrent: stop,
-      setPlaying: playing => {
-        isPlaying.value = playing
-      },
     })
-  }
-
-  const speak = async (text: string, options: TTSOptions = {}) => {
-    if (!text.trim()) return
-
-    if (settingsStore.yandex) {
-      await speakYandex(text, options)
-    } else {
-      speakBrowser(text, options)
-    }
   }
 
   const speakLastWord = (text: string) => {

@@ -56,7 +56,11 @@ export function createAnalyticsService(): AnalyticsService {
 
   const track = (outcome: TelemetryOutcome) => {
     if (state.value !== ANALYTICS_CONSENT.Enabled) return
-    desktopPrivacy()?.recordOutcome(outcome)
+    try {
+      desktopPrivacy()?.recordOutcome(outcome)
+    } catch {
+      // Optional telemetry transport must not interrupt the user's action.
+    }
   }
 
   return { state, noticeDismissed, isEnabled, isReady, initialize, setConsent, dismissNotice, track }
